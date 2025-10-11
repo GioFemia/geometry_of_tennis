@@ -1,3 +1,63 @@
-# Geometry of Tennis Web App
+# Geometry of Tennis — Web App
 
+Una pagina interattiva che visualizza e spiega in modo intuitivo la geometria dei colpi nel tennis. L’interfaccia mostra un campo da tennis in SVG e, a partire da una posizione di impatto impostabile, traccia un ventaglio di traiettorie possibili, la loro bisettrice e una misura orizzontale a una quota selezionabile.
+
+## Come si usa
+
+1. Apri il file `geometry_of_tennis.html` con un browser moderno (Chrome, Edge, Firefox, Safari).
+2. Trascina il pallino rosso sul lato di campo attivo per impostare il punto d’impatto.
+3. Usa la freccia arancione sul bordo per muovere verticalmente la quota della misura orizzontale (linea e badge in alto/basso).
+4. Se attivo il modo 2 colpi, trascina la linea gialla per scegliere un punto specifico all’interno del corridoio utile alla quota selezionata.
+5. Cambia i controlli nella colonna laterale per vedere come varia la geometria.
+
+## Cosa mostra
+
+- Ventaglio di traiettorie: due linee blu (limite sinistro e destro) dal punto d’impatto fino al bordo alto/basso del campo attivo.
+- Bisettrice: linea blu tratteggiata che indica la direzione “mediana” del ventaglio.
+- Cuneo dell’area utile: poligono ombreggiato compreso tra i due limiti delle traiettorie.
+- Misura orizzontale: una linea arancione alla quota selezionata che mostra l’ampiezza del corridoio utile; il badge visualizza il valore in unità “Standard” o in “Metri”.
+- Linea gialla interattiva (in modalità 2 colpi): permette di fissare un punto orizzontale specifico alla quota selezionata entro i limiti consentiti.
+
+## Controlli
+
+- Misura: Standard / Metri
+  - Standard: valore scalato interno all’app per confronti rapidi.
+  - Metri: conversione indicativa in metri (mostra “25+” oltre la soglia massima).
+- Colpo: Tuo / Avversario
+  - Inverte il lato di campo attivo con mirroring automatico (origine, quota e traiettorie si specchiano rispetto alla rete).
+- Tipo: Palleggio / Passante
+  - Cambia sia il colore tema (blu per Palleggio, rosso per Passante) sia i parametri che determinano l’apertura del ventaglio.
+- Numero campi: 1 colpo / 2 colpi
+  - 1 colpo: singolo campo interattivo con tutti i controlli di base.
+  - 2 colpi: appare un secondo campo a destra. Il pallino di destra si posiziona alla quota della freccia; è mostrato anche un pallino “replica” della posizione del primo colpo per riferimento.
+  - Tipo colpo (2 colpi): Palleggio / Attacco
+    - Palleggio: sinistra Palleggio, destra Palleggio.
+    - Attacco: sinistra Palleggio, destra Passante (cambia la geometria e il colore del secondo campo).
+
+## Interazioni principali
+
+- Trascinamento pallino rosso: sposta il punto d’impatto sul lato di campo attivo, aggiornando in tempo reale ventaglio, bisettrice e misura.
+- Freccia arancione laterale: regola la quota della misura orizzontale (sopra la rete se il colpo è “Tuo”, sotto se “Avversario”).
+- Linea gialla (2 colpi): trascina orizzontalmente per selezionare un punto entro i limiti consentiti dal ventaglio alla quota corrente; influenza il posizionamento e le traiettorie del secondo campo.
+
+## Avvio rapido
+
+- Non è richiesto alcun setup: doppio clic su `geometry_of_tennis.html` oppure trascina il file nel browser.
+- Funziona offline. È utilizzato solo Google Fonts per i caratteri.
+
+## Note tecniche
+
+- Grafica basata su SVG responsive: si adatta alla finestra mantenendo le proporzioni del campo.
+- Logica tutta in JavaScript vanilla, nessuna dipendenza o build tool.
+- Il calcolo dei limiti del ventaglio e della bisettrice dipende dalla posizione del pallino e dal tipo di colpo selezionato, con un mirroring coerente tra i lati del campo.
+- La misura “Metri” è indicativa e pensata per confronti qualitativi.
+
+## Struttura del progetto
+
+- `geometry_of_tennis.html`: pagina web completa con stile, SVG del campo e logica interattiva.
+- `README.md`: questo documento.
+
+## Compatibilità
+
+- Testato su browser moderni desktop. Su schermi piccoli l’SVG scala mantenendo le proporzioni; è consigliato l’uso in orizzontale.
 
