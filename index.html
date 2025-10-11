@@ -522,8 +522,8 @@
                     const bisTargetLeft = (leftTargets.left + leftTargets.right) / 2;
                     xIntersect = computeBisectorXAtY(leftDotX, leftDotY, bisTargetLeft, currentMeasureY);
                 } else {
-                    const yEnd = lastEndYSvg != null ? lastEndYSvg : (isPlayer ? END_Y_TOP : END_Y_BOTTOM);
-                    xIntersect = computeIntersectionX(leftDotX, leftDotY, yellowEndX, yEnd, currentMeasureY);
+                    // Use the yellow endpoint at the same Y as the horizontal measure to ensure exact X alignment
+                    xIntersect = computeIntersectionX(leftDotX, leftDotY, yellowEndX, currentMeasureY, currentMeasureY);
                 }
                 const clampedX = Math.max(minXAtY, Math.min(maxXAtY, xIntersect));
 
