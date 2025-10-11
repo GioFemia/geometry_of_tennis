@@ -27,7 +27,7 @@
         .svg-wrap.secondary { display: none; }
         .three-cols { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 12px; }
 
-        /* .tooltip { position: fixed; pointer-events: none; background: rgba(0,0,0,0.85); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 13px; line-height: 1.2; z-index: 20; white-space: nowrap; box-shadow: 0 2px 10px rgba(0,0,0,0.25); } */
+        .tooltip { position: fixed; pointer-events: none; background: rgba(0,0,0,0.85); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 13px; line-height: 1.2; z-index: 20; white-space: nowrap; box-shadow: 0 2px 10px rgba(0,0,0,0.25); }
 
         .arrow-container { position: absolute; left: -10px; top: 0; width: 28px; height: 28px; transform: translateY(-50%); cursor: ns-resize; z-index: 25; display: none; }
         .arrow-container .arrow { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 9px solid transparent; border-bottom: 9px solid transparent; border-left: 16px solid #ff6f00; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4)); }
@@ -163,7 +163,7 @@
         </div>
     </div>
 
-    <!-- <div id="coordTooltip" class="tooltip" style="display:none;"></div> -->
+    <div id="coordTooltip" class="tooltip" style="display:none;"></div>
 
     <script>
         (function () {
@@ -179,7 +179,7 @@
             const hMeasure = document.getElementById('h-measure');
             const hMeasureLabel = document.getElementById('h-measure-label');
             const hMeasureBadge = document.getElementById('h-measure-badge');
-            // const tooltip = document.getElementById('coordTooltip');
+            const tooltip = document.getElementById('coordTooltip');
             const arrowHtml = document.getElementById('measureArrowHtml');
             const shotOwnerInputs = document.querySelectorAll('input[name="shotOwner"]');
             const shotTypeInputs = document.querySelectorAll('input[name="shotType"]');
@@ -419,6 +419,9 @@
                         svg2.appendChild(dot2b);
                         secondary.innerHTML = '';
                         secondary.appendChild(svg2);
+                        // Tooltip listeners per il campo destro
+                        svg2.addEventListener('mousemove', onMoveRight, { passive: true });
+                        svg2.addEventListener('mouseleave', onLeaveRight);
                     }
                     secondary.style.display = 'block';
                 } else {
@@ -637,6 +640,14 @@
                 return pt.matrixTransform(inv);
             }
 
+            function toSvgPointOn(svgel, evt) {
+                const pt = svgel.createSVGPoint();
+                pt.x = evt.clientX;
+                pt.y = evt.clientY;
+                const inv = svgel.getScreenCTM().inverse();
+                return pt.matrixTransform(inv);
+            }
+
             function onMove(evt) {
                 const p = toSvgPoint(evt);
                 const inCampoA = p.x >= SVG_X_MIN && p.x <= SVG_X_MAX && p.y > NET_Y && p.y <= SVG_Y_MAX;
@@ -647,14 +658,37 @@
                 const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
                 updateLinesAndWedge(dotX, dotY);
 
-                // Tooltip disabilitato
+                if (tooltip) {
+                    tooltip.style.display = 'block';
+                    const label = inCampoA ? 'Campo A' : (inCampoB ? 'Campo B' : 'Fuori');
+                    tooltip.textContent = `${label} • x:${Math.round(p.x)} y:${Math.round(p.y)}`;
+                    tooltip.style.left = `${evt.clientX + 12}px`;
+                    tooltip.style.top = `${evt.clientY + 12}px`;
+                }
             }
 
             function onLeave() {
                 const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
                 const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
                 updateLinesAndWedge(dotX, dotY);
-                // if (tooltip) { tooltip.style.display = 'none'; }
+                if (tooltip) { tooltip.style.display = 'none'; }
+            }
+
+            function onMoveRight(evt) {
+                const svg2 = evt.currentTarget;
+                if (!svg2 || !tooltip) return;
+                const p = toSvgPointOn(svg2, evt);
+                const inCampoA = p.x >= SVG_X_MIN && p.x <= SVG_X_MAX && p.y > NET_Y && p.y <= SVG_Y_MAX;
+                const inCampoB = p.x >= SVG_X_MIN && p.x <= SVG_X_MAX && p.y >= SVG_Y_MIN && p.y < NET_Y;
+                tooltip.style.display = 'block';
+                const label = inCampoA ? 'Campo A' : (inCampoB ? 'Campo B' : 'Fuori');
+                tooltip.textContent = `${label} • x:${Math.round(p.x)} y:${Math.round(p.y)}`;
+                tooltip.style.left = `${evt.clientX + 12}px`;
+                tooltip.style.top = `${evt.clientY + 12}px`;
+            }
+
+            function onLeaveRight() {
+                if (tooltip) { tooltip.style.display = 'none'; }
             }
 
             function onClick(evt) {
