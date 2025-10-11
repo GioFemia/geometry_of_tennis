@@ -143,7 +143,7 @@
                     </div>
                 </div>
                 <div class="control-group" id="group-two-type" style="display:none;">
-                    <div class="control-title">Tipo colpo</div>
+                    <div class="control-title">Tipo</div>
                     <div class="segment" role="tablist" aria-label="Seleziona tipo colpo 2-colpi">
                         <input class="seg-radio" type="radio" id="twoType_pal" name="twoShotType" value="palleggio" checked />
                         <label class="seg-item" for="twoType_pal">Palleggio</label>
@@ -618,7 +618,7 @@
 
                 // Aggiorna linea gialla: termina alla quota della freccia (y = currentMeasureY)
                 if (yellowLine) {
-                    yellowLine.style.display = (window.__twoCourts__ ? '' : 'none');
+                    yellowLine.style.display = '';
                     yellowLine.setAttribute('x1', String(dotX));
                     yellowLine.setAttribute('y1', String(dotY));
                     const xLeftAtH = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, currentMeasureY);
@@ -921,7 +921,7 @@
                             if (groupShot) groupShot.querySelector('.control-title').textContent = 'Primo colpo';
                             if (groupType1) groupType1.style.display = 'none';
                             if (groupType2) groupType2.style.display = 'none';
-                            if (groupTwoType) groupTwoType.style.display = '';
+                            if (groupTwoType) { groupTwoType.style.display = ''; const t = groupTwoType.querySelector('.control-title'); if (t) t.textContent = 'Tipo'; }
 
                             // Reset colori e tipi alla modalità base: palleggio (blu) su entrambi i campi
                             window.__shotTypeIsPassante__ = false;
