@@ -225,6 +225,7 @@
             window.__shotTypeIsPassante__ = false; // default Palleggio
             window.__shotType2IsPassante__ = false; // default Palleggio (campo destro)
             window.__measureInMeters__ = false; // default Standard
+            window.__leftForceRed__ = false; // in 2-colpi attacco: rosso solo come colore, non come logica
 
             function setLineToYEnd(lineEl, x0, y0, x1, y1, endYSvg) {
                 if (!lineEl) return;
@@ -436,7 +437,8 @@
             }
 
             function updateThemeColors() {
-                const color = (window.__shotTypeIsPassante__ || false) ? COLOR_PASSANTE : COLOR_PALLEGGIO;
+                const baseColor = (window.__shotTypeIsPassante__ || false) ? COLOR_PASSANTE : COLOR_PALLEGGIO;
+                const color = (window.__leftForceRed__ || false) ? COLOR_PASSANTE : baseColor;
                 if (hMeasure) hMeasure.setAttribute('stroke', color);
                 if (hMeasureLabel) hMeasureLabel.setAttribute('fill', color);
                 if (leftLine) leftLine.setAttribute('stroke', color);
@@ -871,6 +873,8 @@
                     inp.addEventListener('change', (e) => {
                         const val = e.target && e.target.value ? e.target.value : 'palleggio';
                         window.__shotTypeIsPassante__ = (val === 'passante');
+                        // in modalità 1 colpo nessun override colore sul campo sinistro
+                        window.__leftForceRed__ = false;
                         if (window.__shotTypeIsPassante__) {
                             const targetYCampoB = 380; // y SVG nel Campo B
                             currentMeasureY = isPlayer ? targetYCampoB : (2 * NET_Y - targetYCampoB);
@@ -918,11 +922,29 @@
                             if (groupType1) groupType1.style.display = 'none';
                             if (groupType2) groupType2.style.display = 'none';
                             if (groupTwoType) groupTwoType.style.display = '';
+
+                            // Reset colori e tipi alla modalità base: palleggio (blu) su entrambi i campi
+                            window.__shotTypeIsPassante__ = false;
+                            window.__shotType2IsPassante__ = false;
+                            window.__leftForceRed__ = false;
+                            // Sincronizza i radio button visivamente
+                            const st1 = document.getElementById('shotType_pal');
+                            const st2 = document.getElementById('shotType2_pal');
+                            const stTwo = document.getElementById('twoType_pal');
+                            if (st1 && 'checked' in st1) st1.checked = true;
+                            if (st2 && 'checked' in st2) st2.checked = true;
+                            if (stTwo && 'checked' in stTwo) stTwo.checked = true;
+                            // Aggiorna colori tema
+                            updateThemeColors();
+                            updateThemeColorsRight();
                         } else {
                             if (groupShot) groupShot.querySelector('.control-title').textContent = 'Colpo';
                             if (groupType1) { groupType1.style.display = ''; groupType1.querySelector('.control-title').textContent = 'Tipo'; }
                             if (groupType2) groupType2.style.display = 'none';
                             if (groupTwoType) groupTwoType.style.display = 'none';
+                            // Uscendo da 2 colpi rimuovi override
+                            window.__leftForceRed__ = false;
+                            updateThemeColors();
                         }
                         const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
                         const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
@@ -950,8 +972,16 @@
                         // Palleggio => sinistra palleggio, destra palleggio; Attacco => sinistra palleggio, destra passante
                         window.__shotTypeIsPassante__ = false;
                         window.__shotType2IsPassante__ = (mode === 'attacco');
+                        // In 2 colpi, Attacco: il campo sinistro resta con logica palleggio ma diventa rosso come colore
+                        window.__leftForceRed__ = (mode === 'attacco');
                         updateThemeColors();
                         updateThemeColorsRight();
+                        // In due colpi, se Attacco, tutti gli elementi di UI (accent) diventano rossi, lasciando invariato il campo sinistro
+                        const controls = document.querySelector('.side-controls');
+                        if (controls) {
+                            const colorControls = (mode === 'attacco') ? COLOR_PASSANTE : COLOR_PALLEGGIO;
+                            controls.style.setProperty('--accent-color', colorControls);
+                        }
                         const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
                         const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
                         updateLinesAndWedge(dotX, dotY);
