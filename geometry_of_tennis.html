@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Geometry of Tennis</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #e8f5e9 0%, #b3e5fc 100%);
+        }
+
+        .page-container { max-width: 1100px; margin: 0.5em auto; padding: 0 1em; display: grid; grid-template-columns: 1fr; gap: 1.2em; position: relative; }
+
+        .panel { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(44, 62, 80, 0.13); padding: 1.5em; }
+
+        .court-container { margin-top: 0; margin-right: 0; }
+        .panel.court-container { background: transparent; padding: 0; box-shadow: none; border-radius: 0; }
+        .svg-wrap { position: relative; width: auto; max-width: 100%; margin: 0 auto; }
+        .svg-wrap svg { height: calc(100vh - 16px); width: auto; max-width: 100%; }
+        @media (max-height: 900px) {
+            .svg-wrap svg { height: calc(100vh - 16px); }
+        }
+        .svg-wrap.secondary { display: none; }
+        .three-cols { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 12px; }
+
+        /* .tooltip { position: fixed; pointer-events: none; background: rgba(0,0,0,0.85); color: #fff; padding: 6px 8px; border-radius: 6px; font-size: 13px; line-height: 1.2; z-index: 20; white-space: nowrap; box-shadow: 0 2px 10px rgba(0,0,0,0.25); } */
+
+        .arrow-container { position: absolute; left: -10px; top: 0; width: 28px; height: 28px; transform: translateY(-50%); cursor: ns-resize; z-index: 25; display: none; }
+        .arrow-container .arrow { position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 0; height: 0; border-top: 9px solid transparent; border-bottom: 9px solid transparent; border-left: 16px solid #ff6f00; filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4)); }
+
+        .side-controls { position: static; background: #fff; border-radius: 10px; box-shadow: 0 2px 14px rgba(44,62,80,0.16); padding: 10px 12px; font-size: 14px; color: #263238; z-index: 24; --accent-color: #1976d2; }
+        .side-controls .row { display: flex; align-items: center; gap: 8px; }
+        .side-controls label { display: inline-flex; align-items: center; gap: 6px; margin-left: 8px; cursor: pointer; }
+        .side-controls input[type="radio"] { accent-color: var(--accent-color); }
+        .side-controls .row + .row { margin-top: 8px; }
+        .side-controls .control-group { background: #fafafa; border: 1px solid #e0e0e0; border-radius: 10px; padding: 10px; display: flex; align-items: center; gap: 10px; }
+        .side-controls .control-group + .control-group { margin-top: 10px; }
+        .side-controls .control-title { font-size: 12px; font-weight: 700; color: #607d8b; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap; }
+        .side-controls .segment { display: inline-flex; align-items: center; gap: 4px; background: #fff; border: 1px solid #e0e0e0; border-radius: 999px; padding: 2px; }
+        .side-controls .segment .seg-radio { position: absolute; opacity: 0; pointer-events: none; }
+        .side-controls .segment .seg-item { padding: 6px 12px; border-radius: 999px; color: #455a64; line-height: 1; user-select: none; transition: all 0.15s ease; }
+        .side-controls .segment .seg-item:hover { background: #f5f5f5; }
+        .side-controls .segment .seg-radio:checked + .seg-item { background: var(--accent-color); color: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); }
+        #cursorDot { cursor: grab; }
+        .app-title-wrap { text-align: center; margin: 0; position: absolute; top: 0; left: 0; right: 0; z-index: 10; }
+        .app-title { margin: 0; font-weight: 900; color: #263238; letter-spacing: 0.4px; line-height: 1.05; }
+        .app-title span { display: block; font-size: 28px; }
+        .three-cols > .panel:not(.court-container) { margin-top: 100px; }
+        .side-controls .control-group.courts { --accent-color-courts: #00897b; background: #f3fbfb; border-color: #b2dfdb; margin-top: 36px; }
+        .side-controls .control-group.courts input[type="radio"] { accent-color: var(--accent-color-courts); }
+        .side-controls .control-group.courts .segment .seg-radio:checked + .seg-item { background: var(--accent-color-courts); color: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); }
+    </style>
+</head>
+<body>
+    <div class="page-container three-cols">
+        <div class="app-title-wrap" style="grid-column: 1 / -1;">
+            <h2 class="app-title">
+                <span>Geometry</span>
+                <span>of</span>
+                <span>Tennis</span>
+            </h2>
+        </div>
+        <div class="panel court-container">
+            <div class="svg-wrap primary">
+                <svg id="tennisCourt" width="100%" height="auto" viewBox="0 0 600 1006" style="background:#888; border-radius:20px; display:block;">
+                    <rect x="184" y="150" width="232" height="672" fill="#133c1e" stroke="#fff" stroke-width="5"/>
+                    <rect x="146" y="150" width="38" height="672" fill="#133c1e" stroke="#fff" stroke-width="5"/>
+                    <rect x="416" y="150" width="38" height="672" fill="#133c1e" stroke="#fff" stroke-width="5"/>
+                    <rect x="146" y="150" width="308" height="672" fill="none" stroke="#fff" stroke-width="5"/>
+                    <line x1="300" y1="318" x2="300" y2="654" stroke="#fff" stroke-width="5"/>
+                    <line x1="184" y1="318" x2="416" y2="318" stroke="#fff" stroke-width="5"/>
+                    <line x1="184" y1="654" x2="416" y2="654" stroke="#fff" stroke-width="5"/>
+                    <line x1="146" y1="150" x2="454" y2="150" stroke="#fff" stroke-width="5"/>
+                    <line x1="146" y1="822" x2="454" y2="822" stroke="#fff" stroke-width="5"/>
+                    <line x1="106" y1="486" x2="494" y2="486" stroke="#fff" stroke-width="10"/>
+                    <circle id="cursorDot" cx="300" cy="822" r="12" fill="#ff5252" stroke="#fff" stroke-width="2" />
+                    <polygon id="wedgeFill" points="300,822 185,0 415,0" fill="#000" fill-opacity="0.15" />
+                    <line id="leftLine" x1="300" y1="822" x2="185" y2="0" stroke="#2196f3" stroke-width="3" stroke-linecap="round" />
+                    <line id="rightLine" x1="300" y1="822" x2="415" y2="0" stroke="#2196f3" stroke-width="3" stroke-linecap="round" />
+                    <line id="bisectorLine" x1="300" y1="822" x2="300" y2="0" stroke="#2196f3" stroke-width="2" stroke-dasharray="6 6" stroke-linecap="round" />
+                    <!-- Linea gialla interattiva: parte dal pallino rosso e arriva al bordo superiore/inferiore, di default sulla bisettrice -->
+                    <line id="yellowLine" x1="300" y1="822" x2="300" y2="0" stroke="#ffd600" stroke-width="4" stroke-linecap="round" opacity="0.9" style="cursor: ew-resize; display:none;" />
+                    <!-- Misura orizzontale a yB = -50 (Campo B) → ySVG = ORIGIN_TOP_Y - 50 = 100 -->
+                    <line id="h-measure" x1="300" y1="100" x2="300" y2="100" stroke="#ff6f00" stroke-width="4" opacity="0.9" />
+                    <circle id="h-measure-badge" cx="300" cy="90" r="18" fill="#fff" />
+                    <text id="h-measure-label" x="300" y="90" fill="#ff6f00" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="middle">0</text>
+
+                    <!-- Freccia/handle trascinabile per impostare l'altezza della misura su Campo B -->
+                    <g id="measureArrow" transform="translate(595,100)" style="display:none;">
+                        <line x1="-20" y1="0" x2="0" y2="0" stroke="#ff6f00" stroke-width="6" stroke-linecap="round" />
+                        <polygon points="-28,0 -12,-8 -12,8" fill="#ff6f00" />
+                    </g>
+                </svg>
+                <div id="measureArrowHtml" class="arrow-container"><div class="arrow"></div></div>
+            </div>
+        </div>
+        <div class="panel">
+            <div class="side-controls">
+                <div class="control-group">
+                    <div class="control-title">Misura</div>
+                    <div class="segment" role="tablist" aria-label="Seleziona misura">
+                        <input class="seg-radio" type="radio" id="measureType_std" name="measureType" value="standard" checked />
+                        <label class="seg-item" for="measureType_std">Standard</label>
+                        <input class="seg-radio" type="radio" id="measureType_m" name="measureType" value="metri" />
+                        <label class="seg-item" for="measureType_m">Metri</label>
+                    </div>
+                </div>
+                <div class="control-group" id="group-shot-owner">
+                    <div class="control-title">Colpo</div>
+                    <div class="segment" role="tablist" aria-label="Seleziona colpo">
+                        <input class="seg-radio" type="radio" id="shotOwner_tuo" name="shotOwner" value="tuo" checked />
+                        <label class="seg-item" for="shotOwner_tuo">Tuo</label>
+                        <input class="seg-radio" type="radio" id="shotOwner_avv" name="shotOwner" value="avversario" />
+                        <label class="seg-item" for="shotOwner_avv">Avversario</label>
+                    </div>
+                </div>
+                <div class="control-group" id="group-type-1">
+                    <div class="control-title">Tipo</div>
+                    <div class="segment" role="tablist" aria-label="Seleziona tipo">
+                        <input class="seg-radio" type="radio" id="shotType_pal" name="shotType" value="palleggio" checked />
+                        <label class="seg-item" for="shotType_pal">Palleggio</label>
+                        <input class="seg-radio" type="radio" id="shotType_pas" name="shotType" value="passante" />
+                        <label class="seg-item" for="shotType_pas">Passante</label>
+                    </div>
+                </div>
+                <div class="control-group" id="group-type-2" style="display:none;">
+                    <div class="control-title">Tipo colpo 2</div>
+                    <div class="segment" role="tablist" aria-label="Seleziona tipo colpo 2">
+                        <input class="seg-radio" type="radio" id="shotType2_pal" name="shotType2" value="palleggio" checked />
+                        <label class="seg-item" for="shotType2_pal">Palleggio</label>
+                        <input class="seg-radio" type="radio" id="shotType2_pas" name="shotType2" value="passante" />
+                        <label class="seg-item" for="shotType2_pas">Passante</label>
+                    </div>
+                </div>
+                <div class="control-group" id="group-two-type" style="display:none;">
+                    <div class="control-title">Tipo colpo</div>
+                    <div class="segment" role="tablist" aria-label="Seleziona tipo colpo 2-colpi">
+                        <input class="seg-radio" type="radio" id="twoType_pal" name="twoShotType" value="palleggio" checked />
+                        <label class="seg-item" for="twoType_pal">Palleggio</label>
+                        <input class="seg-radio" type="radio" id="twoType_att" name="twoShotType" value="attacco" />
+                        <label class="seg-item" for="twoType_att">Attacco</label>
+                    </div>
+                </div>
+                <div class="control-group courts">
+                    <div class="control-title" style="display:none;"></div>
+                    <div class="segment" role="tablist" aria-label="Seleziona numero campi">
+                        <input class="seg-radio" type="radio" id="numCourts_1" name="numCourts" value="1" checked />
+                        <label class="seg-item" for="numCourts_1">1 colpo</label>
+                        <input class="seg-radio" type="radio" id="numCourts_2" name="numCourts" value="2" />
+                        <label class="seg-item" for="numCourts_2">2 colpi</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel court-container">
+            <div class="svg-wrap secondary">
+                <!-- Cloniamo in JS il contenuto del campo di sinistra quando richiesto -->
+            </div>
+        </div>
+    </div>
+
+    <!-- <div id="coordTooltip" class="tooltip" style="display:none;"></div> -->
+
+    <script>
+        (function () {
+            const svg = document.getElementById('tennisCourt');
+            if (!svg) return;
+            
+            const dot = document.getElementById('cursorDot');
+            const leftLine = document.getElementById('leftLine');
+            const rightLine = document.getElementById('rightLine');
+            const bisectorLine = document.getElementById('bisectorLine');
+            const yellowLine = document.getElementById('yellowLine');
+            const wedge = document.getElementById('wedgeFill');
+            const hMeasure = document.getElementById('h-measure');
+            const hMeasureLabel = document.getElementById('h-measure-label');
+            const hMeasureBadge = document.getElementById('h-measure-badge');
+            // const tooltip = document.getElementById('coordTooltip');
+            const arrowHtml = document.getElementById('measureArrowHtml');
+            const shotOwnerInputs = document.querySelectorAll('input[name="shotOwner"]');
+            const shotTypeInputs = document.querySelectorAll('input[name="shotType"]');
+            const shotType2Inputs = document.querySelectorAll('input[name="shotType2"]');
+            const twoShotTypeInputs = document.querySelectorAll('input[name="twoShotType"]');
+            const measureTypeInputs = document.querySelectorAll('input[name="measureType"]');
+            const numCourtsInputs = document.querySelectorAll('input[name="numCourts"]');
+
+            const COURT_X_MIN = 146;
+            const COURT_X_MAX = 454;
+            const COURT_Y_MIN = 150;
+            const COURT_Y_MAX = 822;
+            const NET_Y = 486;
+            const ORIGIN_X = 300;
+            const ORIGIN_TOP_Y = 150;
+            const ORIGIN_BOTTOM_Y = 822;
+            const SVG_X_MIN = 0;
+            const SVG_X_MAX = 600;
+            const SVG_Y_MIN = 0;
+            const SVG_Y_MAX = 1006;
+            const LEFT_X_SVG = ORIGIN_X - 115; // 185
+            const RIGHT_X_SVG = ORIGIN_X + 115; // 415
+            const END_Y_TOP = 0;
+            const END_Y_BOTTOM = SVG_Y_MAX;
+            const ARROW_X = 595; // posizione destra fuori dal campo verde (non usato per HTML)
+            const COLOR_PALLEGGIO = '#1976d2'; // blue 700 - affidabile
+            const COLOR_PASSANTE = '#d32f2f';  // red 700 - pericolo
+
+            let currentMeasureY = ORIGIN_TOP_Y - 50; // y SVG per Campo B y = -50
+            let draggingArrow = false;
+            let isPlayer = true; // true = Tuo (pallina nel Campo A)
+            let isDotLocked = true; // il pallino non segue il mouse; si muove solo con drag/click
+            let draggingDot = false;
+            let draggingYellow = false;
+            let yellowEndX = null; // endpoint x desiderato per la linea gialla
+            let lastLeftEndX = null, lastRightEndX = null, lastEndYSvg = null;
+            window.__shotTypeIsPassante__ = false; // default Palleggio
+            window.__shotType2IsPassante__ = false; // default Palleggio (campo destro)
+            window.__measureInMeters__ = false; // default Standard
+
+            function setLineToYEnd(lineEl, x0, y0, x1, y1, endYSvg) {
+                if (!lineEl) return;
+                const dx = x1 - x0;
+                const dy = y1 - y0;
+                const EPS = 1e-6;
+                const denom = Math.abs(dy) < EPS ? (dy >= 0 ? EPS : -EPS) : dy;
+                const t = (endYSvg - y0) / denom;
+                const xEnd = x0 + t * dx;
+                lineEl.setAttribute('x1', String(x0));
+                lineEl.setAttribute('y1', String(y0));
+                lineEl.setAttribute('x2', String(xEnd));
+                lineEl.setAttribute('y2', String(endYSvg));
+                return xEnd;
+            }
+
+            function setBisectorToYEnd(lineEl, x0, y0, passYSvg, endYSvg) {
+                if (!lineEl) return;
+                const EPS = 1e-6;
+                const vLx = LEFT_X_SVG - x0;
+                const vLy = passYSvg - y0;
+                const vRx = RIGHT_X_SVG - x0;
+                const vRy = passYSvg - y0;
+                const lenL = Math.hypot(vLx, vLy) || EPS;
+                const lenR = Math.hypot(vRx, vRy) || EPS;
+                const ux = vLx / lenL + vRx / lenR;
+                const uy = vLy / lenL + vRy / lenR;
+                let xEnd;
+                if (Math.abs(uy) < EPS) {
+                    xEnd = x0;
+                } else {
+                    const t = (endYSvg - y0) / uy;
+                    xEnd = x0 + t * ux;
+                }
+                lineEl.setAttribute('x1', String(x0));
+                lineEl.setAttribute('y1', String(y0));
+                lineEl.setAttribute('x2', String(xEnd));
+                lineEl.setAttribute('y2', String(endYSvg));
+            }
+
+            function computeIntersectionX(x0, y0, xT, yT, yH) {
+                const dx = xT - x0;
+                const dy = yT - y0;
+                const EPS = 1e-6;
+                const denom = Math.abs(dy) < EPS ? (dy >= 0 ? EPS : -EPS) : dy;
+                const t = (yH - y0) / denom;
+                return x0 + t * dx;
+            }
+
+            function computeBisectorXAtY(x0, y0, passYSvg, yH) {
+                const EPS = 1e-6;
+                const vLx = LEFT_X_SVG - x0;
+                const vLy = passYSvg - y0;
+                const vRx = RIGHT_X_SVG - x0;
+                const vRy = passYSvg - y0;
+                const lenL = Math.hypot(vLx, vLy) || EPS;
+                const lenR = Math.hypot(vRx, vRy) || EPS;
+                const ux = vLx / lenL + vRx / lenR;
+                const uy = vLy / lenL + vRy / lenR;
+                if (Math.abs(uy) < EPS) return x0;
+                const t = (yH - y0) / uy;
+                return x0 + t * ux;
+            }
+
+            function updateHorizontalMeasure(dotX, dotY, targets, yH) {
+                if (!hMeasure || !hMeasureLabel) return;
+                const xLeft = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, yH);
+                const xRight = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, yH);
+                const x1 = Math.min(xLeft, xRight);
+                const x2 = Math.max(xLeft, xRight);
+                hMeasure.setAttribute('x1', String(x1));
+                hMeasure.setAttribute('y1', String(yH));
+                hMeasure.setAttribute('x2', String(x2));
+                hMeasure.setAttribute('y2', String(yH));
+                const delta = Math.max(0, x2 - x1);
+                const scale = 100 / 293;
+                const scaled = delta * scale;
+                if (window.__measureInMeters__) {
+                    const meters = scaled / 9.65;
+                    hMeasureLabel.textContent = meters > 25.0 ? '25+' : meters.toFixed(1);
+                } else {
+                    const val = Math.round(scaled);
+                    hMeasureLabel.textContent = val > 600 ? '600+' : String(val);
+                }
+                const bisectorTarget = (targets.left + targets.right) / 2;
+                let xOnBisector = computeBisectorXAtY(dotX, dotY, bisectorTarget, yH);
+                const xClamped = Math.max(COURT_X_MIN, Math.min(COURT_X_MAX, xOnBisector));
+                const hideBadge = (window.__twoCourts__ || false);
+                if (hideBadge) {
+                    if (hMeasureLabel) hMeasureLabel.style.display = 'none';
+                    if (hMeasureBadge) hMeasureBadge.style.display = 'none';
+                } else {
+                    if (hMeasureLabel) {
+                        hMeasureLabel.style.display = '';
+                        hMeasureLabel.setAttribute('x', String(xClamped));
+                        hMeasureLabel.setAttribute('y', String(yH));
+                    }
+                    if (hMeasureBadge) {
+                        hMeasureBadge.style.display = '';
+                        hMeasureBadge.setAttribute('cx', String(xClamped));
+                        hMeasureBadge.setAttribute('cy', String(yH));
+                    }
+                }
+            }
+
+            function svgYToClientY(ySvg) {
+                const pt = svg.createSVGPoint();
+                pt.x = 0; pt.y = ySvg;
+                const ctm = svg.getScreenCTM();
+                const p = pt.matrixTransform(ctm);
+                return p.y;
+            }
+
+            function updateArrowHtmlPosition() {
+                if (!arrowHtml) return;
+                const wrap = svg.parentElement; // .svg-wrap
+                if (!wrap) return;
+                const wrapRect = wrap.getBoundingClientRect();
+                const clientY = svgYToClientY(currentMeasureY);
+                const top = clientY - wrapRect.top;
+                arrowHtml.style.top = `${top}px`;
+                if (arrowHtml.style.display !== 'block') arrowHtml.style.display = 'block';
+            }
+
+            function setupSecondaryCourt(enabled) {
+                const secondary = document.querySelector('.svg-wrap.secondary');
+                const primary = document.querySelector('.svg-wrap.primary');
+                if (!secondary || !primary) return;
+                if (enabled) {
+                    if (!secondary.querySelector('svg')) {
+                        // Costruisci un SVG minimale per il campo destro
+                        const svg2 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                        svg2.setAttribute('width', '100%');
+                        svg2.setAttribute('height', 'auto');
+                        svg2.setAttribute('viewBox', '0 0 600 1006');
+                        svg2.setAttribute('style', 'background:#888; border-radius:20px; display:block;');
+                        // campo
+                        const elems = [
+                            ['rect', { x: '184', y: '150', width: '232', height: '672', fill: '#133c1e', stroke: '#fff', 'stroke-width': '5' }],
+                            ['rect', { x: '146', y: '150', width: '38', height: '672', fill: '#133c1e', stroke: '#fff', 'stroke-width': '5' }],
+                            ['rect', { x: '416', y: '150', width: '38', height: '672', fill: '#133c1e', stroke: '#fff', 'stroke-width': '5' }],
+                            ['rect', { x: '146', y: '150', width: '308', height: '672', fill: 'none', stroke: '#fff', 'stroke-width': '5' }],
+                            ['line', { x1: '300', y1: '318', x2: '300', y2: '654', stroke: '#fff', 'stroke-width': '5' }],
+                            ['line', { x1: '184', y1: '318', x2: '416', y2: '318', stroke: '#fff', 'stroke-width': '5' }],
+                            ['line', { x1: '184', y1: '654', x2: '416', y2: '654', stroke: '#fff', 'stroke-width': '5' }],
+                            ['line', { x1: '146', y1: '150', x2: '454', y2: '150', stroke: '#fff', 'stroke-width': '5' }],
+                            ['line', { x1: '146', y1: '822', x2: '454', y2: '822', stroke: '#fff', 'stroke-width': '5' }],
+                            ['line', { x1: '106', y1: '486', x2: '494', y2: '486', stroke: '#fff', 'stroke-width': '10' }]
+                        ];
+                        elems.forEach(([tag, attrs]) => {
+                            const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+                            Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+                            svg2.appendChild(el);
+                        });
+                        // linee e cuneo
+                        const left2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        left2.setAttribute('id', 'leftLine2');
+                        left2.setAttribute('stroke', COLOR_PALLEGGIO);
+                        left2.setAttribute('stroke-width', '3');
+                        left2.setAttribute('stroke-linecap', 'round');
+                        svg2.appendChild(left2);
+                        const right2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        right2.setAttribute('id', 'rightLine2');
+                        right2.setAttribute('stroke', COLOR_PALLEGGIO);
+                        right2.setAttribute('stroke-width', '3');
+                        right2.setAttribute('stroke-linecap', 'round');
+                        svg2.appendChild(right2);
+                        const bis2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        bis2.setAttribute('id', 'bisectorLine2');
+                        bis2.setAttribute('stroke', COLOR_PALLEGGIO);
+                        bis2.setAttribute('stroke-width', '2');
+                        bis2.setAttribute('stroke-dasharray', '6 6');
+                        bis2.setAttribute('stroke-linecap', 'round');
+                        svg2.appendChild(bis2);
+                        const wedge2 = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                        wedge2.setAttribute('id', 'wedgeFill2');
+                        wedge2.setAttribute('fill', '#000');
+                        wedge2.setAttribute('fill-opacity', '0.15');
+                        svg2.appendChild(wedge2);
+                        // cerchi rossi: origine e replica
+                        const dot2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        dot2.setAttribute('id', 'cursorDot2');
+                        dot2.setAttribute('cx', '300');
+                        dot2.setAttribute('cy', '822');
+                        dot2.setAttribute('r', '12');
+                        dot2.setAttribute('fill', '#ff5252');
+                        dot2.setAttribute('stroke', '#fff');
+                        dot2.setAttribute('stroke-width', '2');
+                        svg2.appendChild(dot2);
+                        const dot2b = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        dot2b.setAttribute('id', 'cursorDotReplica2');
+                        dot2b.setAttribute('cx', '300');
+                        dot2b.setAttribute('cy', '822');
+                        dot2b.setAttribute('r', '12');
+                        dot2b.setAttribute('fill', '#ff5252');
+                        dot2b.setAttribute('stroke', '#fff');
+                        dot2b.setAttribute('stroke-width', '1.5');
+                        svg2.appendChild(dot2b);
+                        secondary.innerHTML = '';
+                        secondary.appendChild(svg2);
+                    }
+                    secondary.style.display = 'block';
+                } else {
+                    secondary.style.display = 'none';
+                }
+            }
+
+            function updateThemeColors() {
+                const color = (window.__shotTypeIsPassante__ || false) ? COLOR_PASSANTE : COLOR_PALLEGGIO;
+                if (hMeasure) hMeasure.setAttribute('stroke', color);
+                if (hMeasureLabel) hMeasureLabel.setAttribute('fill', color);
+                if (leftLine) leftLine.setAttribute('stroke', color);
+                if (rightLine) rightLine.setAttribute('stroke', color);
+                if (bisectorLine) bisectorLine.setAttribute('stroke', color);
+                if (arrowHtml) {
+                    const tip = arrowHtml.querySelector('.arrow');
+                    if (tip) tip.style.borderLeftColor = color;
+                }
+                const controls = document.querySelector('.side-controls');
+                if (controls) controls.style.setProperty('--accent-color', color);
+            }
+
+            function updateThemeColorsRight() {
+                const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                if (!svg2) return;
+                const color2 = (window.__shotType2IsPassante__ || false) ? COLOR_PASSANTE : COLOR_PALLEGGIO;
+                const l2 = svg2.querySelector('#leftLine2');
+                const r2 = svg2.querySelector('#rightLine2');
+                const b2 = svg2.querySelector('#bisectorLine2');
+                if (l2) l2.setAttribute('stroke', color2);
+                if (r2) r2.setAttribute('stroke', color2);
+                if (b2) b2.setAttribute('stroke', color2);
+            }
+
+            function computePassYTargetsBaseRight(dotX, dotY) {
+                const xA = dotX - ORIGIN_X;
+                const yA = ORIGIN_BOTTOM_Y - dotY;
+                const isPassante = (window.__shotType2IsPassante__ || false);
+                const baseOffset = isPassante ? 150 : 105;
+                const baseCoeff = isPassante ? 0.15 : 0.4;
+                const effectCoeff = isPassante ? 0.5 : 0.4;
+                const base = baseOffset + baseCoeff * yA;
+                const effect = effectCoeff * Math.abs(xA);
+                const yA_min = ORIGIN_BOTTOM_Y - SVG_Y_MAX;
+                const yA_max = ORIGIN_BOTTOM_Y - NET_Y;
+                const denom = (yA_max - yA_min) || 1;
+                let t = (yA - yA_min) / denom;
+                if (t < 0) t = 0; else if (t > 1) t = 1;
+                const negScale = isPassante ? 1.3 * t : 4 * t - 1.5;
+
+                let leftB = base;
+                let rightB = base;
+                if (xA > 0) {
+                    leftB = base + effect;
+                    rightB = base - effect * negScale;
+                } else if (xA < 0) {
+                    leftB = base - effect * negScale;
+                    rightB = base + effect;
+                }
+                return { left: ORIGIN_TOP_Y + leftB, right: ORIGIN_TOP_Y + rightB };
+            }
+
+            function computePassYTargetsFor(dotX, dotY, isPlayerLocal) {
+                if (isPlayerLocal) {
+                    return computePassYTargetsBaseRight(dotX, dotY);
+                }
+                const dotX_m = 2 * ORIGIN_X - dotX;
+                const dotY_m = 2 * NET_Y - dotY;
+                const tTop = computePassYTargetsBaseRight(dotX_m, dotY_m);
+                return { left: 2 * NET_Y - tTop.right, right: 2 * NET_Y - tTop.left };
+            }
+
+            function updateSecondaryFromLeft() {
+                if (!window.__twoCourts__) return;
+                const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                if (!svg2) return;
+                const dot2 = svg2.querySelector('#cursorDot2');
+                const dot2b = svg2.querySelector('#cursorDotReplica2');
+                const l2 = svg2.querySelector('#leftLine2');
+                const r2 = svg2.querySelector('#rightLine2');
+                const b2 = svg2.querySelector('#bisectorLine2');
+                const w2 = svg2.querySelector('#wedgeFill2');
+                if (!(dot2 && dot2b && l2 && r2 && b2 && w2)) return;
+
+                const leftDotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                const leftDotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                const isPlayerRight = !isPlayer; // lato destro opposto al primo colpo
+                const endYSvgR = isPlayerRight ? END_Y_TOP : END_Y_BOTTOM;
+
+                // Intersezione con la quota blu (y = currentMeasureY)
+                const leftTargets = computePassYTargets(leftDotX, leftDotY);
+                const xLeftAtY = computeIntersectionX(leftDotX, leftDotY, LEFT_X_SVG, leftTargets.left, currentMeasureY);
+                const xRightAtY = computeIntersectionX(leftDotX, leftDotY, RIGHT_X_SVG, leftTargets.right, currentMeasureY);
+                const minXAtY = Math.min(xLeftAtY, xRightAtY);
+                const maxXAtY = Math.max(xLeftAtY, xRightAtY);
+                let xIntersect;
+                if (yellowEndX == null) {
+                    const bisTargetLeft = (leftTargets.left + leftTargets.right) / 2;
+                    xIntersect = computeBisectorXAtY(leftDotX, leftDotY, bisTargetLeft, currentMeasureY);
+                } else {
+                    const yEnd = lastEndYSvg != null ? lastEndYSvg : (isPlayer ? END_Y_TOP : END_Y_BOTTOM);
+                    xIntersect = computeIntersectionX(leftDotX, leftDotY, yellowEndX, yEnd, currentMeasureY);
+                }
+                const clampedX = Math.max(minXAtY, Math.min(maxXAtY, xIntersect));
+
+                // Origine pallino a destra: stessa quota della freccia e X d'incrocio
+                const mainY = currentMeasureY;
+                dot2.setAttribute('cx', String(clampedX));
+                dot2.setAttribute('cy', String(mainY));
+                // Replica del pallino sinistro
+                dot2b.setAttribute('cx', String(leftDotX));
+                dot2b.setAttribute('cy', String(leftDotY));
+
+                // Calcolo linee campo destro
+                const targetsR = computePassYTargetsFor(clampedX, mainY, isPlayerRight);
+                const leftEndX2 = setLineToYEnd(l2, clampedX, mainY, LEFT_X_SVG, targetsR.left, endYSvgR);
+                const rightEndX2 = setLineToYEnd(r2, clampedX, mainY, RIGHT_X_SVG, targetsR.right, endYSvgR);
+                const bisTargetR = (targetsR.left + targetsR.right) / 2;
+                setBisectorToYEnd(b2, clampedX, mainY, bisTargetR, endYSvgR);
+                w2.setAttribute('points', `${clampedX},${mainY} ${leftEndX2},${endYSvgR} ${rightEndX2},${endYSvgR}`);
+
+                updateThemeColorsRight();
+            }
+
+            //LOGICA SULL'AREA DELLE TRAIETTORIE
+
+            function computePassYTargetsBase(dotX, dotY) {
+                const xA = dotX - ORIGIN_X;
+                const yA = ORIGIN_BOTTOM_Y - dotY;
+                const baseOffset = (window.__shotTypeIsPassante__ || false) ? 150 : 105;
+                const baseCoeff = (window.__shotTypeIsPassante__ || false) ? 0.15 : 0.4;
+                const effectCoeff = (window.__shotTypeIsPassante__ || false) ? 0.5 : 0.4;
+                const base = baseOffset + baseCoeff * yA;
+                const effect = effectCoeff * Math.abs(xA);
+                const yA_min = ORIGIN_BOTTOM_Y - SVG_Y_MAX;
+                const yA_max = ORIGIN_BOTTOM_Y - NET_Y;
+                const denom = (yA_max - yA_min) || 1;
+                let t = (yA - yA_min) / denom;
+                if (t < 0) t = 0 ; else if (t > 1) t = 1;
+                const negScaleBase = (window.__shotTypeIsPassante__ || false) ? 1.3 * t : 4 * t - 1.5;
+                const negScale = negScaleBase;
+
+                let leftB = base;
+                let rightB = base;
+                if (xA > 0) {
+                    leftB = base + effect;
+                    rightB = base - effect * negScale;
+                } else if (xA < 0) {
+                    leftB = base - effect * negScale;
+                    rightB = base + effect;
+                }
+                return { left: ORIGIN_TOP_Y + leftB, right: ORIGIN_TOP_Y + rightB };
+            }
+
+            function computePassYTargets(dotX, dotY) {
+                if (isPlayer) {
+                    return computePassYTargetsBase(dotX, dotY);
+                }
+                // Mirroring per "Avversario":
+                // 1) Specchia il punto rispetto al centro X e alla rete Y
+                const dotX_m = 2 * ORIGIN_X - dotX; // X opposto
+                const dotY_m = 2 * NET_Y - dotY;    // mirror rispetto alla rete
+                // 2) Calcola i target come per il giocatore
+                const tTop = computePassYTargetsBase(dotX_m, dotY_m);
+                // 3) Specchia i target rispetto alla rete e SCAMBIA sinistra/destra
+                return { left: 2 * NET_Y - tTop.right, right: 2 * NET_Y - tTop.left };
+            }
+
+            function updateLinesAndWedge(dotX, dotY) {
+                const targets = computePassYTargets(dotX, dotY);
+                const endYSvg = isPlayer ? END_Y_TOP : END_Y_BOTTOM;
+                const leftEndX = setLineToYEnd(leftLine, dotX, dotY, LEFT_X_SVG, targets.left, endYSvg);
+                const rightEndX = setLineToYEnd(rightLine, dotX, dotY, RIGHT_X_SVG, targets.right, endYSvg);
+                const bisectorTarget = (targets.left + targets.right) / 2;
+                setBisectorToYEnd(bisectorLine, dotX, dotY, bisectorTarget, endYSvg);
+                if (wedge) {
+                    wedge.setAttribute('points', `${dotX},${dotY} ${leftEndX},${endYSvg} ${rightEndX},${endYSvg}`);
+                }
+                updateHorizontalMeasure(dotX, dotY, targets, currentMeasureY);
+                updateArrowHtmlPosition();
+
+                // Aggiorna cache dei limiti dell'area (proiezioni delle linee blu al bordo)
+                lastLeftEndX = Math.min(leftEndX, rightEndX);
+                lastRightEndX = Math.max(leftEndX, rightEndX);
+                lastEndYSvg = endYSvg;
+
+                // Aggiorna linea gialla: termina alla quota della freccia (y = currentMeasureY)
+                if (yellowLine) {
+                    yellowLine.style.display = (window.__twoCourts__ ? '' : 'none');
+                    yellowLine.setAttribute('x1', String(dotX));
+                    yellowLine.setAttribute('y1', String(dotY));
+                    const xLeftAtH = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, currentMeasureY);
+                    const xRightAtH = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, currentMeasureY);
+                    const minXAtH = Math.min(xLeftAtH, xRightAtH);
+                    const maxXAtH = Math.max(xLeftAtH, xRightAtH);
+                    if (yellowEndX == null) {
+                        const xOnBis = computeBisectorXAtY(dotX, dotY, bisectorTarget, currentMeasureY);
+                        const clamped = Math.max(minXAtH, Math.min(maxXAtH, xOnBis));
+                        yellowLine.setAttribute('x2', String(clamped));
+                        yellowLine.setAttribute('y2', String(currentMeasureY));
+                    } else {
+                        const clamped = Math.max(minXAtH, Math.min(maxXAtH, yellowEndX));
+                        yellowLine.setAttribute('x2', String(clamped));
+                        yellowLine.setAttribute('y2', String(currentMeasureY));
+                    }
+                }
+                // aggiorna campo destro se visibile
+                updateSecondaryFromLeft();
+            }
+
+            function toSvgPoint(evt) {
+                const pt = svg.createSVGPoint();
+                pt.x = evt.clientX;
+                pt.y = evt.clientY;
+                const inv = svg.getScreenCTM().inverse();
+                return pt.matrixTransform(inv);
+            }
+
+            function onMove(evt) {
+                const p = toSvgPoint(evt);
+                const inCampoA = p.x >= SVG_X_MIN && p.x <= SVG_X_MAX && p.y > NET_Y && p.y <= SVG_Y_MAX;
+                const inCampoB = p.x >= SVG_X_MIN && p.x <= SVG_X_MAX && p.y >= SVG_Y_MIN && p.y < NET_Y;
+                const allowMove = isPlayer ? inCampoA : inCampoB;
+                // niente follow del mouse: il dot si muove solo in drag/click
+                const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                updateLinesAndWedge(dotX, dotY);
+
+                // Tooltip disabilitato
+            }
+
+            function onLeave() {
+                const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                updateLinesAndWedge(dotX, dotY);
+                // if (tooltip) { tooltip.style.display = 'none'; }
+            }
+
+            function onClick(evt) {
+                const p = toSvgPoint(evt);
+                const inCampoA = p.x >= SVG_X_MIN && p.x <= SVG_X_MAX && p.y > NET_Y && p.y <= SVG_Y_MAX;
+                const inCampoB = p.x >= SVG_X_MIN && p.x <= SVG_X_MAX && p.y >= SVG_Y_MIN && p.y < NET_Y;
+                const allowClick = isPlayer ? inCampoA : inCampoB;
+                if (!allowClick || !dot) return;
+                    dot.setAttribute('cx', String(p.x));
+                    dot.setAttribute('cy', String(p.y));
+                const dotX = parseFloat(dot.getAttribute('cx'));
+                const dotY = parseFloat(dot.getAttribute('cy'));
+                updateLinesAndWedge(dotX, dotY);
+            }
+
+            function onDotPointerDown(evt) {
+                draggingDot = true;
+                svg.setPointerCapture && svg.setPointerCapture(evt.pointerId);
+                if (dot) dot.style.cursor = 'grabbing';
+                evt.preventDefault();
+            }
+
+            function onDotPointerMove(evt) {
+                if (!draggingDot) return;
+                const p = toSvgPoint(evt);
+                const inCampoA = p.x >= SVG_X_MIN && p.x <= SVG_X_MAX && p.y > NET_Y && p.y <= SVG_Y_MAX;
+                const inCampoB = p.x >= SVG_X_MIN && p.x <= SVG_X_MAX && p.y >= SVG_Y_MIN && p.y < NET_Y;
+                const allow = isPlayer ? inCampoA : inCampoB;
+                if (dot && allow) {
+                    dot.setAttribute('cx', String(p.x));
+                    dot.setAttribute('cy', String(p.y));
+                    const dotX = parseFloat(dot.getAttribute('cx'));
+                    const dotY = parseFloat(dot.getAttribute('cy'));
+                    updateLinesAndWedge(dotX, dotY);
+                }
+            }
+
+            function onDotPointerUp(evt) {
+                draggingDot = false;
+                svg.releasePointerCapture && svg.releasePointerCapture(evt.pointerId);
+                if (dot) dot.style.cursor = 'grab';
+            }
+
+            (function initGraphics() {
+                const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                // posiziona freccia HTML appena fuori dall'area grigia
+                updateArrowHtmlPosition();
+                updateThemeColors();
+                updateLinesAndWedge(dotX, dotY);
+                setupSecondaryCourt(false);
+            })();
+
+            svg.addEventListener('mousemove', onMove, { passive: true });
+            svg.addEventListener('mouseleave', onLeave);
+            // svg.addEventListener('click', onClick); // disabilitato: il pallino si sposta solo trascinando
+            if (dot) {
+                dot.addEventListener('pointerdown', onDotPointerDown);
+                window.addEventListener('pointermove', onDotPointerMove);
+                window.addEventListener('pointerup', onDotPointerUp);
+            }
+
+            // Drag della linea gialla (solo orizzontale, endpoint al bordo alto/basso entro i limiti blu)
+            function onYellowPointerDown(evt) {
+                if (!yellowLine) return;
+                draggingYellow = true;
+                yellowLine.setPointerCapture && yellowLine.setPointerCapture(evt.pointerId);
+                evt.preventDefault();
+            }
+            function onYellowPointerMove(evt) {
+                if (!draggingYellow || !yellowLine) return;
+                const p = toSvgPoint(evt);
+                const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                // Limiti orizzontali all'altezza della freccia
+                const targets = computePassYTargets(dotX, dotY);
+                const xLeftAtH = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, currentMeasureY);
+                const xRightAtH = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, currentMeasureY);
+                const minXAtH = Math.min(xLeftAtH, xRightAtH);
+                const maxXAtH = Math.max(xLeftAtH, xRightAtH);
+                const clampedX = Math.max(minXAtH, Math.min(maxXAtH, p.x));
+                yellowEndX = clampedX; // memorizza scelta alla quota della freccia
+                yellowLine.setAttribute('x1', String(dotX));
+                yellowLine.setAttribute('y1', String(dotY));
+                yellowLine.setAttribute('x2', String(clampedX));
+                yellowLine.setAttribute('y2', String(currentMeasureY));
+                // aggiorna anche il campo destro mentre si trascina
+                updateSecondaryFromLeft();
+            }
+            function onYellowPointerUp(evt) {
+                if (!yellowLine) return;
+                draggingYellow = false;
+                yellowLine.releasePointerCapture && yellowLine.releasePointerCapture(evt.pointerId);
+            }
+            if (yellowLine) {
+                yellowLine.addEventListener('pointerdown', onYellowPointerDown);
+                window.addEventListener('pointermove', onYellowPointerMove);
+                window.addEventListener('pointerup', onYellowPointerUp);
+            }
+
+            // Drag della freccia HTML per impostare l'altezza della misura
+            (function initArrowDrag() {
+                if (!arrowHtml) return;
+                const onPointerDown = (evt) => {
+                    draggingArrow = true;
+                    arrowHtml.setPointerCapture && arrowHtml.setPointerCapture(evt.pointerId);
+                    evt.preventDefault();
+                };
+                const onPointerMove = (evt) => {
+                    if (!draggingArrow) return;
+                    const p = toSvgPoint(evt);
+                    // Clamp alla verticale del lato attivo
+                    let newY;
+                    if (isPlayer) {
+                        newY = Math.max(SVG_Y_MIN, Math.min(NET_Y, p.y)); // Campo B
+                    } else {
+                        newY = Math.max(NET_Y, Math.min(SVG_Y_MAX, p.y)); // Campo A
+                    }
+                    currentMeasureY = newY;
+                    updateArrowHtmlPosition();
+                    const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                    const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                    updateLinesAndWedge(dotX, dotY);
+                };
+                const onPointerUp = (evt) => {
+                    draggingArrow = false;
+                    arrowHtml.releasePointerCapture && arrowHtml.releasePointerCapture(evt.pointerId);
+                };
+                arrowHtml.addEventListener('pointerdown', onPointerDown);
+                window.addEventListener('pointermove', onPointerMove);
+                window.addEventListener('pointerup', onPointerUp);
+                window.addEventListener('resize', updateArrowHtmlPosition);
+            })();
+
+            // Switch Tuo / Avversario con mirroring tra i lati del campo
+            function mirrorAroundNet(ySvg) {
+                return 2 * NET_Y - ySvg;
+            }
+
+            function setShotOwner(owner) {
+                const wasPlayer = isPlayer;
+                isPlayer = owner === 'tuo';
+                // mirror quota misura
+                currentMeasureY = mirrorAroundNet(currentMeasureY);
+                if (isPlayer) {
+                    currentMeasureY = Math.max(SVG_Y_MIN, Math.min(NET_Y, currentMeasureY));
+                } else {
+                    currentMeasureY = Math.max(NET_Y, Math.min(SVG_Y_MAX, currentMeasureY));
+                }
+                updateArrowHtmlPosition();
+
+                // riposiziona il pallino all'origine del lato selezionato
+                if (dot) {
+                    const originY = isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
+                    dot.setAttribute('cx', String(ORIGIN_X));
+                    dot.setAttribute('cy', String(originY));
+                }
+                const dotX = ORIGIN_X;
+                const dotY = isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
+                updateLinesAndWedge(dotX, dotY);
+            }
+
+            if (shotOwnerInputs && shotOwnerInputs.length) {
+                shotOwnerInputs.forEach((inp) => {
+                    inp.addEventListener('change', (e) => {
+                        const val = e.target && e.target.value ? e.target.value : 'tuo';
+                        setShotOwner(val);
+                    });
+                });
+            }
+
+            if (shotTypeInputs && shotTypeInputs.length) {
+                shotTypeInputs.forEach((inp) => {
+                    inp.addEventListener('change', (e) => {
+                        const val = e.target && e.target.value ? e.target.value : 'palleggio';
+                        window.__shotTypeIsPassante__ = (val === 'passante');
+                        if (window.__shotTypeIsPassante__) {
+                            const targetYCampoB = 380; // y SVG nel Campo B
+                            currentMeasureY = isPlayer ? targetYCampoB : (2 * NET_Y - targetYCampoB);
+                            updateArrowHtmlPosition();
+                        } else {
+                            const defaultYCampoB = ORIGIN_TOP_Y - 50; // y SVG originaria (Campo B y = -50)
+                            currentMeasureY = isPlayer ? defaultYCampoB : (2 * NET_Y - defaultYCampoB);
+                            updateArrowHtmlPosition();
+                        }
+                        updateThemeColors();
+                        const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                        const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                        updateLinesAndWedge(dotX, dotY);
+                        updateSecondaryFromLeft();
+                    });
+                });
+            }
+
+            if (measureTypeInputs && measureTypeInputs.length) {
+                measureTypeInputs.forEach((inp) => {
+                    inp.addEventListener('change', (e) => {
+                        const val = e.target && e.target.value ? e.target.value : 'standard';
+                        window.__measureInMeters__ = (val === 'metri');
+                        const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                        const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                        updateLinesAndWedge(dotX, dotY);
+                        updateSecondaryFromLeft();
+                    });
+                });
+            }
+
+            if (numCourtsInputs && numCourtsInputs.length) {
+                numCourtsInputs.forEach((inp) => {
+                    inp.addEventListener('change', (e) => {
+                        const val = e.target && e.target.value ? e.target.value : '1';
+                        const twoCourts = (val === '2');
+                        window.__twoCourts__ = twoCourts;
+                        setupSecondaryCourt(twoCourts);
+                        const groupShot = document.getElementById('group-shot-owner');
+                        const groupType1 = document.getElementById('group-type-1');
+                        const groupType2 = document.getElementById('group-type-2');
+                        const groupTwoType = document.getElementById('group-two-type');
+                        if (twoCourts) {
+                            if (groupShot) groupShot.querySelector('.control-title').textContent = 'Primo colpo';
+                            if (groupType1) groupType1.style.display = 'none';
+                            if (groupType2) groupType2.style.display = 'none';
+                            if (groupTwoType) groupTwoType.style.display = '';
+                        } else {
+                            if (groupShot) groupShot.querySelector('.control-title').textContent = 'Colpo';
+                            if (groupType1) { groupType1.style.display = ''; groupType1.querySelector('.control-title').textContent = 'Tipo'; }
+                            if (groupType2) groupType2.style.display = 'none';
+                            if (groupTwoType) groupTwoType.style.display = 'none';
+                        }
+                        const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                        const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                        updateLinesAndWedge(dotX, dotY);
+                        updateSecondaryFromLeft();
+                    });
+                });
+            }
+
+            if (shotType2Inputs && shotType2Inputs.length) {
+                shotType2Inputs.forEach((inp) => {
+                    inp.addEventListener('change', (e) => {
+                        const val = e.target && e.target.value ? e.target.value : 'palleggio';
+                        window.__shotType2IsPassante__ = (val === 'passante');
+                        updateThemeColorsRight();
+                        updateSecondaryFromLeft();
+                    });
+                });
+            }
+
+            if (twoShotTypeInputs && twoShotTypeInputs.length) {
+                twoShotTypeInputs.forEach((inp) => {
+                    inp.addEventListener('change', (e) => {
+                        const mode = e.target && e.target.value ? e.target.value : 'palleggio';
+                        // Palleggio => sinistra palleggio, destra palleggio; Attacco => sinistra palleggio, destra passante
+                        window.__shotTypeIsPassante__ = false;
+                        window.__shotType2IsPassante__ = (mode === 'attacco');
+                        updateThemeColors();
+                        updateThemeColorsRight();
+                        const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                        const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                        updateLinesAndWedge(dotX, dotY);
+                        updateSecondaryFromLeft();
+                    });
+                });
+            }
+        })();
+    </script>
+</body>
+</html>
+
+
