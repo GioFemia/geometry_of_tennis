@@ -17,7 +17,7 @@
 
         .panel { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(44, 62, 80, 0.13); padding: 1.5em; }
 
-        .court-container { margin-top: 0; margin-right: 0; }
+        .court-container { margin-top: 0; margin-right: 0; position: relative; }
         .panel.court-container { background: transparent; padding: 0; box-shadow: none; border-radius: 0; }
         .svg-wrap { position: relative; width: auto; max-width: 100%; margin: 0 auto; }
         .svg-wrap svg { height: calc(100vh - 16px); width: auto; max-width: 100%; }
@@ -69,6 +69,11 @@
         .side-controls .control-group.courts .segment { border-color: #b2dfdb; background: #ffffff; box-shadow: 0 2px 10px rgba(0,0,0,0.06); padding: 4px; }
         .side-controls .control-group.courts .segment .seg-item { text-transform: uppercase; font-weight: 700; color: #00695c; }
         .side-controls .control-group.courts .segment .seg-item:hover { background: #e0f2f1; }
+        .svg-wrap.secondary { position: relative; }
+        .court-lock-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; background: rgba(255,255,255,0.65); display: none; align-items: center; justify-content: center; border-radius: 20px; z-index: 15; pointer-events: none; }
+        .court-lock-overlay.active { display: flex; }
+        .lock-icon-wrapper { background: #ffffff; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+        .lock-icon { width: 40px; height: 40px; fill: #263238; }
     </style>
 </head>
 <body>
@@ -182,6 +187,13 @@
             <div class="svg-wrap secondary">
                 <!-- Cloniamo in JS il contenuto del campo di sinistra quando richiesto -->
             </div>
+            <div id="courtLockOverlay" class="court-lock-overlay">
+                <div class="lock-icon-wrapper">
+                    <svg class="lock-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="currentColor" d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+                    </svg>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -210,6 +222,7 @@
             const chkResponder = document.getElementById('view_responder');
             const chkCover = document.getElementById('view_cover');
             const chkCenter = document.getElementById('view_center');
+            const courtLockOverlay = document.getElementById('courtLockOverlay');
             const shotOwnerInputs = document.querySelectorAll('input[name="shotOwner"]');
             const shotTypeInputs = document.querySelectorAll('input[name="shotType"]');
             const shotType2Inputs = document.querySelectorAll('input[name="shotType2"]');
@@ -878,7 +891,23 @@
                 if (hMeasureLabel) hMeasureLabel.style.display = (window.__viewCover__ === false) ? 'none' : '';
                 if (hMeasureBadge) hMeasureBadge.style.display = (window.__viewCover__ === false) ? 'none' : '';
                 if (arrowHtml) arrowHtml.style.display = (window.__viewResponder__ === false) ? 'none' : 'block';
+                updateSecondaryCourtLock();
                 updateSecondaryFromLeft();
+            }
+
+            function updateSecondaryCourtLock() {
+                if (!courtLockOverlay) return;
+                // In modalità 2 colpi: blocca il campo destro se uno dei 3 elementi critici è deselezionato
+                if (window.__twoCourts__) {
+                    const allUnlocked = window.__viewPlayer__ && window.__viewShot__ && window.__viewResponder__;
+                    if (allUnlocked) {
+                        courtLockOverlay.classList.remove('active');
+                    } else {
+                        courtLockOverlay.classList.add('active');
+                    }
+                } else {
+                    courtLockOverlay.classList.remove('active');
+                }
             }
 
             // Visualizza: apertura/chiusura menu e checkbox
@@ -914,6 +943,18 @@
             // Vincolo: se "Posizione Risponditore" è OFF, forza OFF e disabilita "Campo da Coprire"
             if (chkResponder && chkCover) {
                 const syncCoverWithResponder = () => {
+                    // In 2 colpi: Campo da Coprire sempre disabilitato e non selezionabile
+                    if ((window.__twoCourts__ || false)) {
+                        window.__prevViewCover__ = window.__viewCover__;
+                        window.__viewCover__ = false;
+                        chkCover.checked = false;
+                        chkCover.disabled = true;
+                        applyViewToggles();
+                        const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                        const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                        updateLinesAndWedge(dotX, dotY);
+                        return;
+                    }
                     if (!chkResponder.checked) {
                         window.__prevViewCover__ = window.__viewCover__;
                         window.__viewCover__ = false;
@@ -1044,6 +1085,13 @@
                             // Aggiorna colori tema
                             updateThemeColors();
                             updateThemeColorsRight();
+                            // In 2 colpi: disabilita sempre Campo da Coprire e forza OFF
+                            if (chkCover) {
+                                window.__prevViewCover__ = window.__viewCover__;
+                                window.__viewCover__ = false;
+                                chkCover.checked = false;
+                                chkCover.disabled = true;
+                            }
                         } else {
                             if (groupShot) groupShot.querySelector('.control-title').textContent = 'Colpo';
                             if (groupType1) { groupType1.style.display = ''; groupType1.querySelector('.control-title').textContent = 'Tipo'; }
@@ -1052,11 +1100,23 @@
                             // Uscendo da 2 colpi rimuovi override
                             window.__leftForceRed__ = false;
                             updateThemeColors();
+                            // Riabilita Campo da Coprire ripristinando la preferenza precedente (default true)
+                            if (chkCover) {
+                                chkCover.disabled = false;
+                                window.__viewCover__ = (window.__prevViewCover__ !== undefined) ? window.__prevViewCover__ : true;
+                                chkCover.checked = !!window.__viewCover__;
+                            }
                         }
                         const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
                         const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
                         updateLinesAndWedge(dotX, dotY);
+                        updateSecondaryCourtLock();
                         updateSecondaryFromLeft();
+                        if (chkResponder && chkCover) {
+                            // riallinea eventuali vincoli anche rispetto a Posizione Risponditore
+                            const evt = new Event('change');
+                            chkResponder.dispatchEvent(evt);
+                        }
                     });
                 });
             }
