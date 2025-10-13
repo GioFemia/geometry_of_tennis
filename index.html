@@ -46,11 +46,20 @@
         .side-controls .segment .seg-item:hover { background: #f5f5f5; }
         .side-controls .segment .seg-radio:checked + .seg-item { background: var(--accent-color); color: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); }
         #cursorDot { cursor: grab; }
-        .app-title-wrap { text-align: center; margin: 0; position: absolute; top: 0; left: 0; right: 0; z-index: 10; }
+        .app-title-wrap { text-align: center; margin: 0; position: absolute; top: 10px; left: 0; right: 0; z-index: 10; }
         .app-title { margin: 0; font-weight: 900; color: #263238; letter-spacing: 0.4px; line-height: 1.05; }
         .app-title span { display: block; font-size: 28px; }
         .app-title img { height: 270px; width: auto; }
-        .three-cols > .panel:not(.court-container) { margin-top: 290px; }
+        .header-actions { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 6px; }
+        .icon-btn { background: #ffffff; color: #263238; border: 1px solid #e0e0e0; border-radius: 999px; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.12); cursor: pointer; }
+        .icon-btn:hover { background: #f5f5f5; }
+        .icon-btn .icon { width: 16px; height: 16px; }
+        .icon-btn .btn-label { font-weight: 900; font-size: 18px; line-height: 1; }
+        .view-menu { position: absolute; top: 46px; left: 50%; transform: translateX(-50%); background: #ffffff; border: 1px solid #e0e0e0; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.16); padding: 6px; z-index: 30; min-width: 220px; }
+        .view-menu .item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; cursor: pointer; user-select: none; }
+        .view-menu .item:hover { background: #f5f5f5; }
+        .view-menu input[type="checkbox"] { accent-color: var(--accent-color); }
+        .three-cols > .panel:not(.court-container) { margin-top: 355px; }
         .side-controls .control-group.courts { --accent-color-courts: #00897b; background: #f3fbfb; border-color: #b2dfdb; margin-top: 36px; }
         .side-controls .control-group.courts input[type="radio"] { accent-color: var(--accent-color-courts); }
         .side-controls .control-group.courts .segment .seg-radio:checked + .seg-item { background: var(--accent-color-courts); color: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); }
@@ -65,6 +74,23 @@
 <body>
     <div class="page-container three-cols">
         <div class="app-title-wrap" style="grid-column: 1 / -1;">
+            <div class="header-actions" aria-label="Azioni intestazione">
+                <button type="button" class="icon-btn" id="btnGuide" title="Guida" aria-label="Guida">
+                    <span class="btn-label">?</span>
+                </button>
+                <button type="button" class="icon-btn" id="btnVisualizza" title="Visualizza" aria-label="Visualizza">
+                    <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="currentColor" d="M12 5c-6.5 0-10.7 6.2-10.9 6.6-.1.2-.1.5 0 .7.2.4 4.4 6.6 10.9 6.6s10.7-6.2 10.9-6.6c.1-.2.1-.5 0-.7C22.7 11.2 18.5 5 12 5zm0 11a5 5 0 110-10 5 5 0 010 10zm0-8a3 3 0 100 6 3 3 0 000-6z"/>
+                    </svg>
+                </button>
+            </div>
+            <div id="viewMenu" class="view-menu" role="menu" style="display:none;">
+                <label class="item" for="view_player"><input id="view_player" type="checkbox" checked /> <span>Giocatore</span></label>
+                <label class="item" for="view_shot"><input id="view_shot" type="checkbox" checked /> <span>Colpo</span></label>
+                <label class="item" for="view_responder"><input id="view_responder" type="checkbox" checked /> <span>Posizione Risponditore</span></label>
+                <label class="item" for="view_cover"><input id="view_cover" type="checkbox" checked /> <span>Campo da Coprire</span></label>
+                <label class="item" for="view_center"><input id="view_center" type="checkbox" checked /> <span>Centro del Campo</span></label>
+            </div>
             <h2 class="app-title">
                 <img src="logo.png" alt="Geometry of Tennis" />
             </h2>
@@ -105,15 +131,6 @@
         </div>
         <div class="panel">
             <div class="side-controls">
-                <div class="control-group">
-                    <div class="control-title">Misura</div>
-                    <div class="segment" role="tablist" aria-label="Seleziona misura">
-                        <input class="seg-radio" type="radio" id="measureType_std" name="measureType" value="standard" checked />
-                        <label class="seg-item" for="measureType_std">Standard</label>
-                        <input class="seg-radio" type="radio" id="measureType_m" name="measureType" value="metri" />
-                        <label class="seg-item" for="measureType_m">Metri</label>
-                    </div>
-                </div>
                 <div class="control-group" id="group-shot-owner">
                     <div class="control-title">Colpo</div>
                     <div class="segment" role="tablist" aria-label="Seleziona colpo">
@@ -186,6 +203,13 @@
             const hMeasureBadge = document.getElementById('h-measure-badge');
             const tooltip = document.getElementById('coordTooltip');
             const arrowHtml = document.getElementById('measureArrowHtml');
+            const viewMenu = document.getElementById('viewMenu');
+            const btnVisualizza = document.getElementById('btnVisualizza');
+            const chkPlayer = document.getElementById('view_player');
+            const chkShot = document.getElementById('view_shot');
+            const chkResponder = document.getElementById('view_responder');
+            const chkCover = document.getElementById('view_cover');
+            const chkCenter = document.getElementById('view_center');
             const shotOwnerInputs = document.querySelectorAll('input[name="shotOwner"]');
             const shotTypeInputs = document.querySelectorAll('input[name="shotType"]');
             const shotType2Inputs = document.querySelectorAll('input[name="shotType2"]');
@@ -225,6 +249,13 @@
             window.__shotType2IsPassante__ = false; // default Palleggio (campo destro)
             window.__measureInMeters__ = false; // default Standard
             window.__leftForceRed__ = false; // in 2-colpi attacco: rosso solo come colore, non come logica
+            // Visualizzazione (tutti attivi di default)
+            window.__viewPlayer__ = true;
+            window.__viewShot__ = true;
+            window.__viewResponder__ = true;
+            window.__viewCover__ = true; // cerchio + valore linea blu
+            window.__viewCenter__ = true;
+            window.__prevViewCover__ = true; // memorizza l'ultima preferenza utente
 
             function setLineToYEnd(lineEl, x0, y0, x1, y1, endYSvg) {
                 if (!lineEl) return;
@@ -291,6 +322,11 @@
 
             function updateHorizontalMeasure(dotX, dotY, targets, yH) {
                 if (!hMeasure || !hMeasureLabel) return;
+                if (window.__viewResponder__ === false) {
+                    if (hMeasure) hMeasure.style.display = 'none';
+                    // badge/label governati da __viewCover__
+                    return;
+                }
                 const xLeft = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, yH);
                 const xRight = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, yH);
                 const x1 = Math.min(xLeft, xRight);
@@ -299,6 +335,7 @@
                 hMeasure.setAttribute('y1', String(yH));
                 hMeasure.setAttribute('x2', String(x2));
                 hMeasure.setAttribute('y2', String(yH));
+                hMeasure.style.display = '';
                 const delta = Math.max(0, x2 - x1);
                 const scale = 100 / 293;
                 const scaled = delta * scale;
@@ -318,12 +355,12 @@
                     if (hMeasureBadge) hMeasureBadge.style.display = 'none';
                 } else {
                     if (hMeasureLabel) {
-                        hMeasureLabel.style.display = '';
+                        hMeasureLabel.style.display = (window.__viewCover__ === false) ? 'none' : '';
                         hMeasureLabel.setAttribute('x', String(xClamped));
                         hMeasureLabel.setAttribute('y', String(yH));
                     }
                     if (hMeasureBadge) {
-                        hMeasureBadge.style.display = '';
+                        hMeasureBadge.style.display = (window.__viewCover__ === false) ? 'none' : '';
                         hMeasureBadge.setAttribute('cx', String(xClamped));
                         hMeasureBadge.setAttribute('cy', String(yH));
                     }
@@ -340,6 +377,7 @@
 
             function updateArrowHtmlPosition() {
                 if (!arrowHtml) return;
+                if (window.__viewResponder__ === false) { arrowHtml.style.display = 'none'; return; }
                 const wrap = svg.parentElement; // .svg-wrap
                 if (!wrap) return;
                 const wrapRect = wrap.getBoundingClientRect();
@@ -604,6 +642,7 @@
                 const rightEndX = setLineToYEnd(rightLine, dotX, dotY, RIGHT_X_SVG, targets.right, endYSvg);
                 const bisectorTarget = (targets.left + targets.right) / 2;
                 setBisectorToYEnd(bisectorLine, dotX, dotY, bisectorTarget, endYSvg);
+                if (bisectorLine) bisectorLine.style.display = (window.__viewCenter__ === false) ? 'none' : '';
                 if (wedge) {
                     wedge.setAttribute('points', `${dotX},${dotY} ${leftEndX},${endYSvg} ${rightEndX},${endYSvg}`);
                 }
@@ -617,7 +656,7 @@
 
                 // Aggiorna linea gialla: termina alla quota della freccia (y = currentMeasureY)
                 if (yellowLine) {
-                    yellowLine.style.display = '';
+                    yellowLine.style.display = (window.__viewShot__ === false) ? 'none' : '';
                     yellowLine.setAttribute('x1', String(dotX));
                     yellowLine.setAttribute('y1', String(dotY));
                     const xLeftAtH = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, currentMeasureY);
@@ -747,6 +786,7 @@
                 updateThemeColors();
                 updateLinesAndWedge(dotX, dotY);
                 setupSecondaryCourt(false);
+                applyViewToggles();
             })();
 
             svg.addEventListener('mousemove', onMove, { passive: true });
@@ -829,6 +869,74 @@
                 window.addEventListener('pointerup', onPointerUp);
                 window.addEventListener('resize', updateArrowHtmlPosition);
             })();
+
+            function applyViewToggles() {
+                if (dot) dot.style.display = (window.__viewPlayer__ === false) ? 'none' : '';
+                if (yellowLine) yellowLine.style.display = (window.__viewShot__ === false) ? 'none' : '';
+                if (bisectorLine) bisectorLine.style.display = (window.__viewCenter__ === false) ? 'none' : '';
+                if (hMeasure) hMeasure.style.display = (window.__viewResponder__ === false) ? 'none' : '';
+                if (hMeasureLabel) hMeasureLabel.style.display = (window.__viewCover__ === false) ? 'none' : '';
+                if (hMeasureBadge) hMeasureBadge.style.display = (window.__viewCover__ === false) ? 'none' : '';
+                if (arrowHtml) arrowHtml.style.display = (window.__viewResponder__ === false) ? 'none' : 'block';
+                updateSecondaryFromLeft();
+            }
+
+            // Visualizza: apertura/chiusura menu e checkbox
+            if (btnVisualizza && viewMenu) {
+                btnVisualizza.addEventListener('click', (e) => {
+                    const visible = viewMenu.style.display !== 'none';
+                    viewMenu.style.display = visible ? 'none' : 'block';
+                });
+                document.addEventListener('click', (e) => {
+                    const t = e.target;
+                    if (!viewMenu.contains(t) && t !== btnVisualizza) {
+                        viewMenu.style.display = 'none';
+                    }
+                });
+            }
+
+            function bindViewCheckbox(el, key) {
+                if (!el) return;
+                el.addEventListener('change', () => {
+                    window[key] = !!el.checked;
+                    applyViewToggles();
+                    const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                    const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                    updateLinesAndWedge(dotX, dotY);
+                });
+            }
+            bindViewCheckbox(chkPlayer, '__viewPlayer__');
+            bindViewCheckbox(chkShot, '__viewShot__');
+            bindViewCheckbox(chkResponder, '__viewResponder__');
+            bindViewCheckbox(chkCover, '__viewCover__');
+            bindViewCheckbox(chkCenter, '__viewCenter__');
+
+            // Vincolo: se "Posizione Risponditore" è OFF, forza OFF e disabilita "Campo da Coprire"
+            if (chkResponder && chkCover) {
+                const syncCoverWithResponder = () => {
+                    if (!chkResponder.checked) {
+                        window.__prevViewCover__ = window.__viewCover__;
+                        window.__viewCover__ = false;
+                        chkCover.checked = false;
+                        chkCover.disabled = true;
+                        applyViewToggles();
+                        const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                        const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                        updateLinesAndWedge(dotX, dotY);
+                    } else {
+                        chkCover.disabled = false;
+                        window.__viewCover__ = (window.__prevViewCover__ !== undefined) ? window.__prevViewCover__ : true;
+                        chkCover.checked = !!window.__viewCover__;
+                        applyViewToggles();
+                        const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                        const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                        updateLinesAndWedge(dotX, dotY);
+                    }
+                };
+                chkResponder.addEventListener('change', syncCoverWithResponder);
+                // inizializza stato coerente
+                syncCoverWithResponder();
+            }
 
             // Switch Tuo / Avversario con mirroring tra i lati del campo
             function mirrorAroundNet(ySvg) {
