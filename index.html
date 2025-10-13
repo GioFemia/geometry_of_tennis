@@ -10,7 +10,7 @@
             font-family: 'Roboto', Arial, sans-serif;
             margin: 0;
             min-height: 100vh;
-            background: linear-gradient(135deg, #e8f5e9 0%, #b3e5fc 100%);
+            background: linear-gradient(135deg, #b3e5fc 0%, #b3e5fc 100%);
         }
 
         .page-container { max-width: 1100px; margin: 0.5em auto; padding: 0 1em; display: grid; grid-template-columns: 1fr; gap: 1.2em; position: relative; }
@@ -49,7 +49,8 @@
         .app-title-wrap { text-align: center; margin: 0; position: absolute; top: 0; left: 0; right: 0; z-index: 10; }
         .app-title { margin: 0; font-weight: 900; color: #263238; letter-spacing: 0.4px; line-height: 1.05; }
         .app-title span { display: block; font-size: 28px; }
-        .three-cols > .panel:not(.court-container) { margin-top: 100px; }
+        .app-title img { height: 270px; width: auto; }
+        .three-cols > .panel:not(.court-container) { margin-top: 290px; }
         .side-controls .control-group.courts { --accent-color-courts: #00897b; background: #f3fbfb; border-color: #b2dfdb; margin-top: 36px; }
         .side-controls .control-group.courts input[type="radio"] { accent-color: var(--accent-color-courts); }
         .side-controls .control-group.courts .segment .seg-radio:checked + .seg-item { background: var(--accent-color-courts); color: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); }
@@ -65,9 +66,7 @@
     <div class="page-container three-cols">
         <div class="app-title-wrap" style="grid-column: 1 / -1;">
             <h2 class="app-title">
-                <span>Geometry</span>
-                <span>of</span>
-                <span>Tennis</span>
+                <img src="logo.png" alt="Geometry of Tennis" />
             </h2>
         </div>
         <div class="panel court-container">
