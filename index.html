@@ -47,9 +47,9 @@
         .side-controls .segment .seg-radio:checked + .seg-item { background: var(--accent-color); color: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); }
         #cursorDot { cursor: grab; }
         .app-title-wrap { text-align: center; margin: 0; position: absolute; top: 10px; left: 0; right: 0; z-index: 10; pointer-events: none; }
-        .app-title { margin: 0; font-weight: 900; color: #263238; letter-spacing: 0.4px; line-height: 1.05; }
+        .app-title { margin: 0; font-weight: 900; color: #263238; letter-spacing: 0.4px; line-height: 1.05; pointer-events: none; }
         .app-title span { display: block; font-size: 28px; }
-        .app-title img { height: 270px; width: auto; }
+        .app-title img { height: 270px; width: auto; pointer-events: none; }
         .header-actions { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 6px; pointer-events: auto; }
         .icon-btn { background: #ffffff; color: #263238; border: 1px solid #e0e0e0; border-radius: 999px; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.12); cursor: pointer; pointer-events: auto; }
         .icon-btn:hover { background: #f5f5f5; }
@@ -59,6 +59,7 @@
         .view-menu .item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; cursor: pointer; user-select: none; }
         .view-menu .item:hover { background: #f5f5f5; }
         .view-menu input[type="checkbox"] { accent-color: var(--accent-color); }
+        .view-menu input[type="radio"] { accent-color: var(--accent-color); }
         .three-cols > .panel:not(.court-container):not(.info-panel) { margin-top: 355px; }
         .three-cols > .info-panel { margin-top: 0; }
         .side-controls .control-group.courts { --accent-color-courts: #00897b; background: #f3fbfb; border-color: #b2dfdb; margin-top: 36px; }
@@ -76,7 +77,7 @@
         .lock-icon-wrapper { background: #ffffff; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
         .lock-icon { width: 40px; height: 40px; fill: #263238; }
         /* Pannello informativo destro */
-        .info-panel { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(44, 62, 80, 0.13); padding: 1.5em; display: none; height: calc(100vh - 65px); overflow-y: auto; }
+        .info-panel { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(44, 62, 80, 0.13); padding: 1.5em; display: none; height: calc(100vh - 98px); overflow-y: auto; position: relative; padding-bottom: 3.5em; z-index: 20; }
         .info-panel.visible { display: block; }
         .info-panel::-webkit-scrollbar { width: 8px; }
         .info-panel::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
@@ -84,8 +85,7 @@
         .info-panel::-webkit-scrollbar-thumb:hover { background: #90a4ae; }
         .info-section { margin-bottom: 1.5em; }
         .info-section:last-child { margin-bottom: 0; }
-        .info-section-title { font-size: 16px; font-weight: 700; color: #263238; margin: 0 0 0.8em 0; display: flex; align-items: center; gap: 8px; }
-        .info-section-title .emoji { font-size: 20px; }
+        .info-section-title { font-size: 16px; font-weight: 700; color: #263238; margin: 0 0 0.8em 0; }
         .info-section.collapsible .info-section-title { cursor: pointer; user-select: none; position: relative; padding-right: 24px; }
         .info-section.collapsible .info-section-title::after { content: '▼'; position: absolute; right: 0; font-size: 12px; transition: transform 0.2s ease; }
         .info-section.collapsible.collapsed .info-section-title::after { transform: rotate(-90deg); }
@@ -96,20 +96,22 @@
         .legend-symbol { font-size: 18px; flex-shrink: 0; width: 28px; text-align: center; }
         .legend-text { flex: 1; }
         .legend-text strong { color: #263238; display: block; margin-bottom: 2px; }
-        .legend-text small { color: #78909c; font-size: 12px; }
+        .legend-text small { color: #78909c; font-size: 12px; display: block; margin-bottom: 4px; }
+        .legend-text small:last-child { margin-bottom: 0; }
         .icon-line-yellow { display: inline-block; width: 24px; height: 3px; background: #ffd600; border-radius: 2px; }
         .icon-triangle-blue { display: inline-block; width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 12px solid #1976d2; }
         .color-indicator { display: inline-block; width: 20px; height: 3px; border-radius: 2px; vertical-align: middle; margin: 0 4px; }
         .color-indicator.blue { background: #1976d2; }
         .color-indicator.orange { background: #ff6f00; }
+        .info-panel-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 1em 1.5em; background: #f5f5f5; border-top: 1px solid #e0e0e0; border-radius: 0 0 18px 18px; text-align: center; font-size: 12px; color: #78909c; }
     </style>
 </head>
 <body>
     <div class="page-container three-cols">
         <div class="app-title-wrap" style="grid-column: 1 / -1;">
             <div class="header-actions" aria-label="Azioni intestazione">
-                <button type="button" class="icon-btn" id="btnGuide" title="Guida" aria-label="Guida">
-                    <span class="btn-label">?</span>
+                <button type="button" class="icon-btn" id="btnCampo" title="Campo" aria-label="Campo">
+                    <span class="btn-label">🎾</span>
                 </button>
                 <button type="button" class="icon-btn" id="btnVisualizza" title="Visualizza" aria-label="Visualizza">
                     <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -117,11 +119,16 @@
                     </svg>
                 </button>
             </div>
+            <div id="campoMenu" class="view-menu" role="menu" style="display:none;">
+                <label class="item" for="campo_cemento"><input id="campo_cemento" type="radio" name="campoType" value="cemento" checked /> <span>Cemento</span></label>
+                <label class="item" for="campo_terra"><input id="campo_terra" type="radio" name="campoType" value="terra" /> <span>Terra</span></label>
+                <label class="item" for="campo_erba"><input id="campo_erba" type="radio" name="campoType" value="erba" /> <span>Erba</span></label>
+            </div>
             <div id="viewMenu" class="view-menu" role="menu" style="display:none;">
                 <label class="item" for="view_player"><input id="view_player" type="checkbox" checked /> <span>Giocatore</span></label>
                 <label class="item" for="view_shot"><input id="view_shot" type="checkbox" checked /> <span>Colpo</span></label>
                 <label class="item" for="view_responder"><input id="view_responder" type="checkbox" checked /> <span>Posizione Risponditore</span></label>
-                <label class="item" for="view_cover"><input id="view_cover" type="checkbox" checked /> <span>Campo da Coprire</span></label>
+                <label class="item" for="view_cover"><input id="view_cover" type="checkbox" /> <span>Campo da Coprire</span></label>
                 <label class="item" for="view_center"><input id="view_center" type="checkbox" checked /> <span>Centro del Campo</span></label>
             </div>
             <h2 class="app-title">
@@ -130,10 +137,10 @@
         </div>
         <div class="panel court-container">
             <div class="svg-wrap primary">
-                <svg id="tennisCourt" width="100%" height="auto" viewBox="0 0 600 1006" style="background:#888; border-radius:20px; display:block;">
-                    <rect x="184" y="150" width="232" height="672" fill="#133c1e" stroke="#fff" stroke-width="5"/>
-                    <rect x="146" y="150" width="38" height="672" fill="#133c1e" stroke="#fff" stroke-width="5"/>
-                    <rect x="416" y="150" width="38" height="672" fill="#133c1e" stroke="#fff" stroke-width="5"/>
+                <svg id="tennisCourt" width="100%" height="auto" viewBox="0 0 600 1006" style="background:#1565c0; border-radius:20px; display:block;">
+                    <rect x="184" y="150" width="232" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
+                    <rect x="146" y="150" width="38" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
+                    <rect x="416" y="150" width="38" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
                     <rect x="146" y="150" width="308" height="672" fill="none" stroke="#fff" stroke-width="5"/>
                     <line x1="300" y1="318" x2="300" y2="654" stroke="#fff" stroke-width="5"/>
                     <line x1="184" y1="318" x2="416" y2="318" stroke="#fff" stroke-width="5"/>
@@ -202,7 +209,7 @@
                     </div>
                 </div>
                 <div class="control-group courts">
-                    <div class="control-title">Numero colpi</div>
+                    <div class="control-title">Numero di colpi</div>
                     <div class="segment" role="tablist" aria-label="Seleziona numero campi">
                         <input class="seg-radio" type="radio" id="numCourts_1" name="numCourts" value="1" checked />
                         <label class="seg-item" for="numCourts_1">1 colpo</label>
@@ -213,11 +220,8 @@
             </div>
         </div>
         <div class="panel info-panel" id="infoPanel">
-            <div class="info-section collapsible collapsed" id="sectionInstructions">
-                <h3 class="info-section-title">
-                    <span class="emoji">📖</span>
-                    <span>Come usare Geometry of Tennis</span>
-                </h3>
+            <div class="info-section collapsible" id="sectionInstructions">
+                <h3 class="info-section-title">Come usare Geometry of Tennis</h3>
                 <div class="info-content">
                     <div class="legend-item">
                         <div class="legend-symbol">🔴</div>
@@ -248,10 +252,7 @@
             </div>
             
             <div class="info-section collapsible collapsed" id="sectionLegend">
-                <h3 class="info-section-title">
-                    <span class="emoji">🎨</span>
-                    <span>Legenda</span>
-                </h3>
+                <h3 class="info-section-title">Legenda</h3>
                 <div class="info-content">
                     <div class="legend-item">
                         <div class="legend-symbol">🔴</div>
@@ -298,37 +299,35 @@
             </div>
             
             <div class="info-section collapsible collapsed" id="sectionSettings">
-                <h3 class="info-section-title">
-                    <span class="emoji">⚙️</span>
-                    <span>Impostazioni</span>
-                </h3>
+                <h3 class="info-section-title">Impostazioni</h3>
                 <div class="info-content">
                     <div class="legend-item">
                         <div class="legend-text">
                             <strong>Colpo</strong>
-                            <small><b>Tuo:</b> analizza quando esegui il colpo. <b>Avversario:</b> analizza quando ricevi il colpo dall'avversario</small>
+                            <small><b>Tuo:</b> analizza quando esegui il colpo</small>
+                            <small><b>Avversario:</b> analizza quando ricevi il colpo dall'avversario</small>
                         </div>
                     </div>
                     <div class="legend-item">
                         <div class="legend-text">
                             <strong>Tipo</strong>
-                            <small><b>Palleggio (blu):</b> scambio da fondo. <b>Passante (rosso):</b> l'avversario è a rete. <b>Attacco (2 colpi):</b> colpo di attacco seguito da passante</small>
+                            <small><b>Palleggio (blu):</b> scambio da fondo</small>
+                            <small><b>Passante (rosso):</b> l'avversario è a rete</small>
+                            <small><b>Attacco (2 colpi):</b> colpo di attacco seguito da passante</small>
                         </div>
                     </div>
                     <div class="legend-item">
                         <div class="legend-text">
-                            <strong>Numero colpi</strong>
-                            <small><b>1 COLPO:</b> analizza un singolo colpo. <b>2 COLPI:</b> visualizza anche la visuale sul colpo successivo</small>
+                            <strong>Numero di colpi</strong>
+                            <small><b>1 COLPO:</b> analizza un singolo colpo</small>
+                            <small><b>2 COLPI:</b> visualizza anche la visuale sul colpo successivo</small>
                         </div>
                     </div>
                 </div>
             </div>
             
             <div class="info-section collapsible collapsed" id="sectionObjective">
-                <h3 class="info-section-title">
-                    <span class="emoji">🎯</span>
-                    <span>Obiettivo</span>
-                </h3>
+                <h3 class="info-section-title">Obiettivo</h3>
                 <div class="info-content">
                     <div class="legend-item">
                         <div class="legend-text">
@@ -350,11 +349,14 @@
                     </div>
                     <div class="legend-item">
                         <div class="legend-text">
-                            <strong>Visuale 2 colpi</strong>
+                            <strong>Modalità 2 colpi</strong>
                             <small>Nella modalità 2 COLPI prevedi che visuale avrà il giocatore che riceve il primo colpo</small>
                         </div>
                     </div>
                 </div>
+            </div>
+            <div class="info-panel-footer">
+                App by Giovanni Femia
             </div>
         </div>
         <div class="panel court-container">
@@ -386,6 +388,8 @@
             const hMeasureLabel = document.getElementById('h-measure-label');
             const hMeasureBadge = document.getElementById('h-measure-badge');
             const arrowHtml = document.getElementById('measureArrowHtml');
+            const campoMenu = document.getElementById('campoMenu');
+            const btnCampo = document.getElementById('btnCampo');
             const viewMenu = document.getElementById('viewMenu');
             const btnVisualizza = document.getElementById('btnVisualizza');
             const chkPlayer = document.getElementById('view_player');
@@ -438,9 +442,16 @@
             window.__viewPlayer__ = true;
             window.__viewShot__ = true;
             window.__viewResponder__ = true;
-            window.__viewCover__ = true; // cerchio + valore linea blu
+            window.__viewCover__ = false; // cerchio + valore linea blu
             window.__viewCenter__ = true;
-            window.__prevViewCover__ = true; // memorizza l'ultima preferenza utente
+            window.__prevViewCover__ = false; // memorizza l'ultima preferenza utente
+            // Colori campo per le diverse superfici
+            const COURT_COLORS = {
+                cemento: { background: '#1565c0', court: '#42a5f5' },
+                terra: { background: '#c62828', court: '#e57373' },
+                erba: { background: '#2e7d32', court: '#66bb6a' }
+            };
+            window.__currentCourtType__ = 'cemento';
 
             function setLineToYEnd(lineEl, x0, y0, x1, y1, endYSvg) {
                 if (!lineEl) return;
@@ -582,16 +593,17 @@
                     if (secondaryContainer) secondaryContainer.style.display = 'block';
                     if (!secondary.querySelector('svg')) {
                         // Costruisci un SVG minimale per il campo destro
+                        const currentColors = COURT_COLORS[window.__currentCourtType__] || COURT_COLORS.cemento;
                         const svg2 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                         svg2.setAttribute('width', '100%');
                         svg2.setAttribute('height', 'auto');
                         svg2.setAttribute('viewBox', '0 0 600 1006');
-                        svg2.setAttribute('style', 'background:#888; border-radius:20px; display:block;');
+                        svg2.setAttribute('style', `background:${currentColors.background}; border-radius:20px; display:block;`);
                         // campo
                         const elems = [
-                            ['rect', { x: '184', y: '150', width: '232', height: '672', fill: '#133c1e', stroke: '#fff', 'stroke-width': '5' }],
-                            ['rect', { x: '146', y: '150', width: '38', height: '672', fill: '#133c1e', stroke: '#fff', 'stroke-width': '5' }],
-                            ['rect', { x: '416', y: '150', width: '38', height: '672', fill: '#133c1e', stroke: '#fff', 'stroke-width': '5' }],
+                            ['rect', { x: '184', y: '150', width: '232', height: '672', fill: currentColors.court, stroke: '#fff', 'stroke-width': '5' }],
+                            ['rect', { x: '146', y: '150', width: '38', height: '672', fill: currentColors.court, stroke: '#fff', 'stroke-width': '5' }],
+                            ['rect', { x: '416', y: '150', width: '38', height: '672', fill: currentColors.court, stroke: '#fff', 'stroke-width': '5' }],
                             ['rect', { x: '146', y: '150', width: '308', height: '672', fill: 'none', stroke: '#fff', 'stroke-width': '5' }],
                             ['line', { x1: '300', y1: '318', x2: '300', y2: '654', stroke: '#fff', 'stroke-width': '5' }],
                             ['line', { x1: '184', y1: '318', x2: '416', y2: '318', stroke: '#fff', 'stroke-width': '5' }],
@@ -689,6 +701,28 @@
                 if (l2) l2.setAttribute('stroke', color2);
                 if (r2) r2.setAttribute('stroke', color2);
                 if (b2) b2.setAttribute('stroke', color2);
+            }
+
+            function updateCourtColors(courtType) {
+                const colors = COURT_COLORS[courtType] || COURT_COLORS.cemento;
+                // Aggiorna campo principale
+                if (svg) {
+                    svg.style.background = colors.background;
+                    const rects = svg.querySelectorAll('rect[fill]:not([fill="none"])');
+                    rects.forEach(rect => {
+                        rect.setAttribute('fill', colors.court);
+                    });
+                }
+                // Aggiorna campo secondario
+                const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                if (svg2) {
+                    svg2.style.background = colors.background;
+                    const rects2 = svg2.querySelectorAll('rect[fill]:not([fill="none"])');
+                    rects2.forEach(rect => {
+                        rect.setAttribute('fill', colors.court);
+                    });
+                }
+                window.__currentCourtType__ = courtType;
             }
 
             function computePassYTargetsBaseRight(dotX, dotY) {
@@ -1104,12 +1138,31 @@
                 });
             }
 
+            // Campo: apertura/chiusura menu
+            if (btnCampo && campoMenu) {
+                btnCampo.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const visible = campoMenu.style.display !== 'none';
+                    campoMenu.style.display = visible ? 'none' : 'block';
+                    // Chiudi il menu visualizza se aperto
+                    if (viewMenu) viewMenu.style.display = 'none';
+                });
+                document.addEventListener('click', (e) => {
+                    const t = e.target;
+                    if (!campoMenu.contains(t) && !btnCampo.contains(t)) {
+                        campoMenu.style.display = 'none';
+                    }
+                });
+            }
+
             // Visualizza: apertura/chiusura menu e checkbox
             if (btnVisualizza && viewMenu) {
                 btnVisualizza.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const visible = viewMenu.style.display !== 'none';
                     viewMenu.style.display = visible ? 'none' : 'block';
+                    // Chiudi il menu campo se aperto
+                    if (campoMenu) campoMenu.style.display = 'none';
                 });
                 document.addEventListener('click', (e) => {
                     const t = e.target;
@@ -1134,6 +1187,17 @@
             bindViewCheckbox(chkResponder, '__viewResponder__');
             bindViewCheckbox(chkCover, '__viewCover__');
             bindViewCheckbox(chkCenter, '__viewCenter__');
+
+            // Gestione cambio tipo di campo
+            const campoTypeInputs = document.querySelectorAll('input[name="campoType"]');
+            if (campoTypeInputs && campoTypeInputs.length) {
+                campoTypeInputs.forEach((inp) => {
+                    inp.addEventListener('change', (e) => {
+                        const val = e.target && e.target.value ? e.target.value : 'cemento';
+                        updateCourtColors(val);
+                    });
+                });
+            }
 
             // Vincolo: se "Posizione Risponditore" è OFF, forza OFF e disabilita "Campo da Coprire"
             if (chkResponder && chkCover) {
