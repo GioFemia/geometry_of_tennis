@@ -77,20 +77,20 @@
         .lock-icon-wrapper { background: #ffffff; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
         .lock-icon { width: 40px; height: 40px; fill: #263238; }
         /* Pannello informativo destro */
-        .info-panel { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(44, 62, 80, 0.13); padding: 1.5em; display: none; height: calc(100vh - 98px); overflow-y: auto; position: relative; padding-bottom: 3.5em; z-index: 20; }
+        .info-panel { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(44, 62, 80, 0.13); padding: 1em; display: none; height: calc(100vh - 90px); overflow-y: auto; position: relative; padding-bottom: 3.5em; z-index: 20; }
         .info-panel.visible { display: block; }
         .info-panel::-webkit-scrollbar { width: 8px; }
         .info-panel::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         .info-panel::-webkit-scrollbar-thumb { background: #b0bec5; border-radius: 10px; }
         .info-panel::-webkit-scrollbar-thumb:hover { background: #90a4ae; }
-        .info-section { margin-bottom: 1.5em; }
+        .info-section { margin-bottom: 1em; }
         .info-section:last-child { margin-bottom: 0; }
-        .info-section-title { font-size: 16px; font-weight: 700; color: #263238; margin: 0 0 0.8em 0; }
+        .info-section-title { font-size: 14px; font-weight: 700; color: #263238; margin: 0 0 0.8em 0; }
         .info-section.collapsible .info-section-title { cursor: pointer; user-select: none; position: relative; padding-right: 24px; }
         .info-section.collapsible .info-section-title::after { content: '▼'; position: absolute; right: 0; font-size: 12px; transition: transform 0.2s ease; }
         .info-section.collapsible.collapsed .info-section-title::after { transform: rotate(-90deg); }
         .info-section.collapsible.collapsed .info-content { display: none; }
-        .info-content { font-size: 14px; color: #455a64; line-height: 1.6; }
+        .info-content { font-size: 12px; color: #455a64; line-height: 1.6; }
         .legend-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; padding: 8px; border-radius: 8px; background: #fafafa; }
         .legend-item:last-child { margin-bottom: 0; }
         .legend-symbol { font-size: 18px; flex-shrink: 0; width: 28px; text-align: center; }
@@ -282,14 +282,17 @@
             </div>
         </div>
         <div class="panel info-panel" id="infoPanel">
+            <p style="font-size: 15px; color: #263238; line-height: 1.6; margin: 0 0 1em 0; padding: 0.8em; background: #e3f2fd; border-radius: 10px;">
+                <b>Geometry of Tennis</b> attraverso il campo interattivo permette di capire le traiettorie, i movimenti e i posizionamenti nel tennis
+            </p>
             <div class="info-section collapsible" id="sectionInstructions">
-                <h3 class="info-section-title">Come usare Geometry of Tennis</h3>
+                <h3 class="info-section-title">come usare Geometry of Tennis</h3>
                 <div class="info-content">
                     <div class="legend-item">
                         <div class="legend-symbol">🔴</div>
                         <div class="legend-text">
                             <strong>Posiziona il giocatore</strong>
-                            <small>Trascina il pallino rosso per posizionare il giocatore sul campo</small>
+                            <small>Trascina il pallino rosso per individuare il punto d'impatto del colpo</small>
                         </div>
                     </div>
                     <div class="legend-item">
@@ -314,7 +317,7 @@
             </div>
             
             <div class="info-section collapsible collapsed" id="sectionLegend">
-                <h3 class="info-section-title">Legenda</h3>
+                <h3 class="info-section-title">legenda</h3>
                 <div class="info-content">
                     <div class="legend-item">
                         <div class="legend-symbol">🔴</div>
@@ -345,7 +348,7 @@
                         <div class="legend-symbol">- - -</div>
                         <div class="legend-text">
                             <strong>Linea tratteggiata</strong>
-                            <small>Centro del campo, dato che è il centro delle possibili traiettorie</small>
+                            <small>È la posizione centrale tra le possibili traiettorie</small>
                         </div>
                     </div>
                     <div class="legend-item">
@@ -354,28 +357,28 @@
                         </div>
                         <div class="legend-text">
                             <strong>Linea orizzonatale e freccia</strong>
-                            <small>Larghezza del campo da coprire in base alla distanza dalla riga</small>
+                            <small>Ampiezza del campo da coprire in base alla distanza dalla riga</small>
                         </div>
                     </div>
                 </div>
             </div>
             
             <div class="info-section collapsible collapsed" id="sectionSettings">
-                <h3 class="info-section-title">Impostazioni</h3>
+                <h3 class="info-section-title">impostazioni</h3>
                 <div class="info-content">
                     <div class="legend-item">
                         <div class="legend-text">
                             <strong>Colpo</strong>
-                            <small><b>Tuo:</b> analizza quando esegui il colpo</small>
-                            <small><b>Avversario:</b> analizza quando ricevi il colpo dall'avversario</small>
+                            <small><b>Tuo:</b> analizza un tuo colpo</small>
+                            <small><b>Avversario:</b> analizza un colpo dell'avversario</small>
                         </div>
                     </div>
                     <div class="legend-item">
                         <div class="legend-text">
                             <strong>Tipo</strong>
                             <small><b>Palleggio (blu):</b> scambio da fondo</small>
-                            <small><b>Passante (rosso):</b> l'avversario è a rete</small>
-                            <small><b>Attacco (2 colpi):</b> colpo di attacco seguito da passante</small>
+                            <small><b>Passante (rosso):</b> colpo con l'avversario a rete</small>
+                            <small><b>Attacco (2 colpi):</b> colpo di attacco seguito da un passante</small>
                         </div>
                     </div>
                     <div class="legend-item">
@@ -389,12 +392,12 @@
             </div>
             
             <div class="info-section collapsible collapsed" id="sectionObjective">
-                <h3 class="info-section-title">Obiettivo</h3>
+                <h3 class="info-section-title">obiettivo</h3>
                 <div class="info-content">
                     <div class="legend-item">
                         <div class="legend-text">
                             <strong>Direzioni possibili</strong>
-                            <small>Analizza le direzioni possibili in base a dove si colpisce</small>
+                            <small>Analizza le traiettorie possibili in base a dove si colpisce</small>
                         </div>
                     </div>
                     <div class="legend-item">
