@@ -25,6 +25,8 @@
             .svg-wrap svg { height: calc(100vh - 16px); }
         }
         .svg-wrap.secondary { display: none; }
+        .panel.court-container:last-child { display: none; }
+        .panel.court-container:last-child .svg-wrap.secondary { display: block; }
         .three-cols { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 12px; }
 
         .arrow-container { position: absolute; left: -10px; top: 0; width: 28px; height: 28px; transform: translateY(-50%); cursor: ns-resize; z-index: 25; display: none; }
@@ -57,7 +59,8 @@
         .view-menu .item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; cursor: pointer; user-select: none; }
         .view-menu .item:hover { background: #f5f5f5; }
         .view-menu input[type="checkbox"] { accent-color: var(--accent-color); }
-        .three-cols > .panel:not(.court-container) { margin-top: 355px; }
+        .three-cols > .panel:not(.court-container):not(.info-panel) { margin-top: 355px; }
+        .three-cols > .info-panel { margin-top: 0; }
         .side-controls .control-group.courts { --accent-color-courts: #00897b; background: #f3fbfb; border-color: #b2dfdb; margin-top: 36px; }
         .side-controls .control-group.courts input[type="radio"] { accent-color: var(--accent-color-courts); }
         .side-controls .control-group.courts .segment .seg-radio:checked + .seg-item { background: var(--accent-color-courts); color: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); }
@@ -72,6 +75,33 @@
         .court-lock-overlay.active { display: flex; }
         .lock-icon-wrapper { background: #ffffff; border-radius: 50%; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
         .lock-icon { width: 40px; height: 40px; fill: #263238; }
+        /* Pannello informativo destro */
+        .info-panel { background: #fff; border-radius: 18px; box-shadow: 0 4px 24px rgba(44, 62, 80, 0.13); padding: 1.5em; display: none; height: calc(100vh - 65px); overflow-y: auto; }
+        .info-panel.visible { display: block; }
+        .info-panel::-webkit-scrollbar { width: 8px; }
+        .info-panel::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .info-panel::-webkit-scrollbar-thumb { background: #b0bec5; border-radius: 10px; }
+        .info-panel::-webkit-scrollbar-thumb:hover { background: #90a4ae; }
+        .info-section { margin-bottom: 1.5em; }
+        .info-section:last-child { margin-bottom: 0; }
+        .info-section-title { font-size: 16px; font-weight: 700; color: #263238; margin: 0 0 0.8em 0; display: flex; align-items: center; gap: 8px; }
+        .info-section-title .emoji { font-size: 20px; }
+        .info-section.collapsible .info-section-title { cursor: pointer; user-select: none; position: relative; padding-right: 24px; }
+        .info-section.collapsible .info-section-title::after { content: '▼'; position: absolute; right: 0; font-size: 12px; transition: transform 0.2s ease; }
+        .info-section.collapsible.collapsed .info-section-title::after { transform: rotate(-90deg); }
+        .info-section.collapsible.collapsed .info-content { display: none; }
+        .info-content { font-size: 14px; color: #455a64; line-height: 1.6; }
+        .legend-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; padding: 8px; border-radius: 8px; background: #fafafa; }
+        .legend-item:last-child { margin-bottom: 0; }
+        .legend-symbol { font-size: 18px; flex-shrink: 0; width: 28px; text-align: center; }
+        .legend-text { flex: 1; }
+        .legend-text strong { color: #263238; display: block; margin-bottom: 2px; }
+        .legend-text small { color: #78909c; font-size: 12px; }
+        .icon-line-yellow { display: inline-block; width: 24px; height: 3px; background: #ffd600; border-radius: 2px; }
+        .icon-triangle-blue { display: inline-block; width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 12px solid #1976d2; }
+        .color-indicator { display: inline-block; width: 20px; height: 3px; border-radius: 2px; vertical-align: middle; margin: 0 4px; }
+        .color-indicator.blue { background: #1976d2; }
+        .color-indicator.orange { background: #ff6f00; }
     </style>
 </head>
 <body>
@@ -182,6 +212,151 @@
                 </div>
             </div>
         </div>
+        <div class="panel info-panel" id="infoPanel">
+            <div class="info-section collapsible collapsed" id="sectionInstructions">
+                <h3 class="info-section-title">
+                    <span class="emoji">📖</span>
+                    <span>Come usare Geometry of Tennis</span>
+                </h3>
+                <div class="info-content">
+                    <div class="legend-item">
+                        <div class="legend-symbol">🔴</div>
+                        <div class="legend-text">
+                            <strong>Posiziona il giocatore</strong>
+                            <small>Trascina il pallino rosso per posizionare il giocatore sul campo</small>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-symbol">
+                            <span class="icon-line-yellow"></span>
+                        </div>
+                        <div class="legend-text">
+                            <strong>Scegli la direzione</strong>
+                            <small>Trascina la linea gialla per scegliere la direzione del colpo</small>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-symbol">
+                            <span class="icon-triangle-blue"></span>
+                        </div>
+                        <div class="legend-text">
+                            <strong>Seleziona la distanza</strong>
+                            <small>Trascina la freccia blu per selezionare la distanza dalla riga del risponditore</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-section collapsible collapsed" id="sectionLegend">
+                <h3 class="info-section-title">
+                    <span class="emoji">🎨</span>
+                    <span>Legenda</span>
+                </h3>
+                <div class="info-content">
+                    <div class="legend-item">
+                        <div class="legend-symbol">🔴</div>
+                        <div class="legend-text">
+                            <strong>Pallino rosso</strong>
+                            <small>Posizione del giocatore che colpisce</small>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-symbol">
+                            <span class="icon-line-yellow"></span>
+                        </div>
+                        <div class="legend-text">
+                            <strong>Linea gialla</strong>
+                            <small>Traiettoria del colpo</small>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-symbol">
+                            <span class="color-indicator blue"></span>
+                        </div>
+                        <div class="legend-text">
+                            <strong>Area blu</strong>
+                            <small>Porzione di campo da coprire per il risponditore</small>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-symbol">- - -</div>
+                        <div class="legend-text">
+                            <strong>Linea tratteggiata</strong>
+                            <small>Centro del campo, dato che è il centro delle possibili traiettorie</small>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-symbol">
+                            <span class="icon-triangle-blue"></span>
+                        </div>
+                        <div class="legend-text">
+                            <strong>Linea orizzonatale e freccia</strong>
+                            <small>Larghezza del campo da coprire in base alla distanza dalla riga</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-section collapsible collapsed" id="sectionSettings">
+                <h3 class="info-section-title">
+                    <span class="emoji">⚙️</span>
+                    <span>Impostazioni</span>
+                </h3>
+                <div class="info-content">
+                    <div class="legend-item">
+                        <div class="legend-text">
+                            <strong>Colpo</strong>
+                            <small><b>Tuo:</b> analizza quando esegui il colpo. <b>Avversario:</b> analizza quando ricevi il colpo dall'avversario</small>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-text">
+                            <strong>Tipo</strong>
+                            <small><b>Palleggio (blu):</b> scambio da fondo. <b>Passante (rosso):</b> l'avversario è a rete. <b>Attacco (2 colpi):</b> colpo di attacco seguito da passante</small>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-text">
+                            <strong>Numero colpi</strong>
+                            <small><b>1 COLPO:</b> analizza un singolo colpo. <b>2 COLPI:</b> visualizza anche la visuale sul colpo successivo</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="info-section collapsible collapsed" id="sectionObjective">
+                <h3 class="info-section-title">
+                    <span class="emoji">🎯</span>
+                    <span>Obiettivo</span>
+                </h3>
+                <div class="info-content">
+                    <div class="legend-item">
+                        <div class="legend-text">
+                            <strong>Direzioni possibili</strong>
+                            <small>Analizza le direzioni possibili in base a dove si colpisce</small>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-text">
+                            <strong>Campo da coprire</strong>
+                            <small>Valuta come cambia la porzione di campo da coprire rispetto alla posizione dei due giocatori</small>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-text">
+                            <strong>Centro del campo</strong>
+                            <small>Studia come si sposta il centro del campo</small>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-text">
+                            <strong>Visuale 2 colpi</strong>
+                            <small>Nella modalità 2 COLPI prevedi che visuale avrà il giocatore che riceve il primo colpo</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="panel court-container">
             <div class="svg-wrap secondary">
                 <!-- Cloniamo in JS il contenuto del campo di sinistra quando richiesto -->
@@ -219,6 +394,7 @@
             const chkCover = document.getElementById('view_cover');
             const chkCenter = document.getElementById('view_center');
             const courtLockOverlay = document.getElementById('courtLockOverlay');
+            const infoPanel = document.getElementById('infoPanel');
             const shotOwnerInputs = document.querySelectorAll('input[name="shotOwner"]');
             const shotTypeInputs = document.querySelectorAll('input[name="shotType"]');
             const shotType2Inputs = document.querySelectorAll('input[name="shotType2"]');
@@ -398,9 +574,12 @@
 
             function setupSecondaryCourt(enabled) {
                 const secondary = document.querySelector('.svg-wrap.secondary');
+                const secondaryContainer = document.querySelector('.panel.court-container:last-child');
                 const primary = document.querySelector('.svg-wrap.primary');
                 if (!secondary || !primary) return;
                 if (enabled) {
+                    // Mostra il secondo campo
+                    if (secondaryContainer) secondaryContainer.style.display = 'block';
                     if (!secondary.querySelector('svg')) {
                         // Costruisci un SVG minimale per il campo destro
                         const svg2 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -479,6 +658,8 @@
                     secondary.style.display = 'block';
                 } else {
                     secondary.style.display = 'none';
+                    // Nascondi il secondo campo
+                    if (secondaryContainer) secondaryContainer.style.display = 'none';
                 }
             }
 
@@ -789,6 +970,9 @@
                 updateLinesAndWedge(dotX, dotY);
                 setupSecondaryCourt(false);
                 applyViewToggles();
+                initCollapsibleSections();
+                // mostra pannello info di default (modalità 1 colpo)
+                if (infoPanel) infoPanel.classList.add('visible');
             })();
 
             svg.addEventListener('mousemove', onMove, { passive: true });
@@ -897,6 +1081,27 @@
                 } else {
                     courtLockOverlay.classList.remove('active');
                 }
+            }
+
+            function initCollapsibleSections() {
+                const collapsibles = document.querySelectorAll('.info-section.collapsible');
+                collapsibles.forEach(section => {
+                    const title = section.querySelector('.info-section-title');
+                    if (title) {
+                        title.addEventListener('click', () => {
+                            // Se la sezione è già aperta, chiudila
+                            if (!section.classList.contains('collapsed')) {
+                                section.classList.add('collapsed');
+                            } else {
+                                // Altrimenti, chiudi tutte le altre sezioni e apri questa
+                                collapsibles.forEach(otherSection => {
+                                    otherSection.classList.add('collapsed');
+                                });
+                                section.classList.remove('collapsed');
+                            }
+                        });
+                    }
+                });
             }
 
             // Visualizza: apertura/chiusura menu e checkbox
@@ -1051,6 +1256,14 @@
                         const twoCourts = (val === '2');
                         window.__twoCourts__ = twoCourts;
                         setupSecondaryCourt(twoCourts);
+                        // Mostra/nascondi pannello informativo
+                        if (infoPanel) {
+                            if (twoCourts) {
+                                infoPanel.classList.remove('visible');
+                            } else {
+                                infoPanel.classList.add('visible');
+                            }
+                        }
                         const groupShot = document.getElementById('group-shot-owner');
                         const groupType1 = document.getElementById('group-type-1');
                         const groupType2 = document.getElementById('group-type-2');
