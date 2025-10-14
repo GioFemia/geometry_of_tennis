@@ -104,6 +104,68 @@
         .color-indicator.blue { background: #1976d2; }
         .color-indicator.orange { background: #ff6f00; }
         .info-panel-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 1em 1.5em; background: #f5f5f5; border-top: 1px solid #e0e0e0; border-radius: 0 0 18px 18px; text-align: center; font-size: 12px; color: #78909c; }
+        
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            body { background: linear-gradient(135deg, #b3e5fc 0%, #b3e5fc 100%); }
+            .page-container { grid-template-columns: 1fr !important; gap: 0.8em; padding: 0 0.5em; margin: 0.5em auto; }
+            .three-cols { display: flex !important; flex-direction: column; gap: 0.8em; }
+            .three-cols > .panel:not(.court-container):not(.info-panel) { margin-top: 0 !important; }
+            .three-cols > .info-panel { margin-top: 0 !important; }
+            .panel { padding: 1em; border-radius: 12px; }
+            
+            /* Logo e header */
+            .app-title-wrap { position: static; margin-bottom: 0.5em; }
+            .app-title img { height: 120px; }
+            .header-actions { gap: 6px; margin-bottom: 4px; }
+            .icon-btn { width: 32px; height: 32px; }
+            .icon-btn .icon { width: 14px; height: 14px; }
+            .icon-btn .btn-label { font-size: 16px; }
+            .view-menu { min-width: 180px; font-size: 14px; }
+            
+            /* Campo da tennis */
+            .svg-wrap svg { height: auto !important; width: 100%; max-height: 60vh; }
+            .panel.court-container { background: transparent; padding: 0; }
+            
+            /* Controlli laterali */
+            .side-controls { padding: 8px 10px; font-size: 13px; }
+            .side-controls .control-title { font-size: 11px; }
+            .side-controls .segment { padding: 2px; }
+            .side-controls .segment .seg-item { padding: 5px 10px; font-size: 13px; }
+            .side-controls .control-group { padding: 8px; gap: 8px; }
+            .side-controls .control-group + .control-group { margin-top: 8px; }
+            .side-controls .control-group.courts { margin-top: 12px; }
+            
+            /* Pannello info */
+            .info-panel { height: auto !important; max-height: none; padding: 1em; padding-bottom: 3em; }
+            .info-section { margin-bottom: 1em; }
+            .info-section-title { font-size: 15px; }
+            .info-content { font-size: 13px; }
+            .legend-item { padding: 6px; margin-bottom: 6px; }
+            .legend-symbol { font-size: 16px; width: 24px; }
+            
+            /* Elementi interattivi del campo */
+            #cursorDot { r: 14; }
+            .arrow-container { width: 32px; height: 32px; left: -12px; }
+            .arrow-container .arrow { border-top: 10px solid transparent; border-bottom: 10px solid transparent; border-left: 18px solid #ff6f00; }
+            
+            /* In modalità 2 colpi su mobile: stack verticale */
+            .panel.court-container:last-child { margin-top: 0.8em; }
+        }
+        
+        @media (max-width: 480px) {
+            .page-container { padding: 0 0.3em; }
+            .app-title img { height: 100px; }
+            .panel { padding: 0.8em; }
+            .side-controls { padding: 6px 8px; font-size: 12px; }
+            .side-controls .control-title { font-size: 10px; }
+            .side-controls .segment .seg-item { padding: 4px 8px; font-size: 12px; }
+            .side-controls .control-group { padding: 6px; }
+            .info-section-title { font-size: 14px; }
+            .info-content { font-size: 12px; }
+            .legend-item { padding: 5px; }
+            .svg-wrap svg { max-height: 55vh; }
+        }
     </style>
 </head>
 <body>
