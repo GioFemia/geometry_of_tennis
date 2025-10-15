@@ -85,25 +85,25 @@
         .info-panel::-webkit-scrollbar-thumb:hover { background: #90a4ae; }
         .info-section { margin-bottom: 1em; }
         .info-section:last-child { margin-bottom: 0; }
-        .info-section-title { font-size: 14px; font-weight: 700; color: #263238; margin: 0 0 0.8em 0; }
+        .info-section-title { font-family: 'Roboto', Arial, sans-serif; font-size: 14px; font-weight: 700; color: #263238; margin: 0 0 0.8em 0; }
         .info-section.collapsible .info-section-title { cursor: pointer; user-select: none; position: relative; padding-right: 24px; }
         .info-section.collapsible .info-section-title::after { content: '▼'; position: absolute; right: 0; font-size: 12px; transition: transform 0.2s ease; }
         .info-section.collapsible.collapsed .info-section-title::after { transform: rotate(-90deg); }
         .info-section.collapsible.collapsed .info-content { display: none; }
-        .info-content { font-size: 12px; color: #455a64; line-height: 1.6; }
+        .info-content { font-family: 'Roboto', Arial, sans-serif; font-size: 12px; color: #455a64; line-height: 1.6; }
         .legend-item { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; padding: 8px; border-radius: 8px; background: #fafafa; }
         .legend-item:last-child { margin-bottom: 0; }
         .legend-symbol { font-size: 18px; flex-shrink: 0; width: 28px; text-align: center; }
         .legend-text { flex: 1; }
-        .legend-text strong { color: #263238; display: block; margin-bottom: 2px; }
-        .legend-text small { color: #78909c; font-size: 12px; display: block; margin-bottom: 4px; }
+        .legend-text strong { font-family: 'Roboto', Arial, sans-serif; color: #263238; display: block; margin-bottom: 2px; }
+        .legend-text small { font-family: 'Roboto', Arial, sans-serif; color: #78909c; font-size: 12px; display: block; margin-bottom: 4px; }
         .legend-text small:last-child { margin-bottom: 0; }
         .icon-line-yellow { display: inline-block; width: 24px; height: 3px; background: #ffd600; border-radius: 2px; }
         .icon-triangle-blue { display: inline-block; width: 0; height: 0; border-top: 8px solid transparent; border-bottom: 8px solid transparent; border-left: 12px solid #1976d2; }
         .color-indicator { display: inline-block; width: 20px; height: 3px; border-radius: 2px; vertical-align: middle; margin: 0 4px; }
         .color-indicator.blue { background: #1976d2; }
         .color-indicator.orange { background: #ff6f00; }
-        .info-panel-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 1em 1.5em; background: #f5f5f5; border-top: 1px solid #e0e0e0; border-radius: 0 0 18px 18px; text-align: center; font-size: 12px; color: #78909c; }
+        .info-panel-footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 1em 1.5em; background: #f5f5f5; border-top: 1px solid #e0e0e0; border-radius: 0 0 18px 18px; text-align: center; font-family: 'Roboto', Arial, sans-serif; font-size: 12px; color: #78909c; }
         
         /* Mobile responsiveness */
         @media (max-width: 768px) {
@@ -323,7 +323,7 @@
                         <div class="legend-symbol">🔴</div>
                         <div class="legend-text">
                             <strong>Pallino rosso</strong>
-                            <small>Posizione del giocatore che colpisce</small>
+                            <small>Posizione in cui viene colpita la palla</small>
                         </div>
                     </div>
                     <div class="legend-item">
@@ -348,7 +348,7 @@
                         <div class="legend-symbol">- - -</div>
                         <div class="legend-text">
                             <strong>Linea tratteggiata</strong>
-                            <small>È la posizione centrale tra le possibili traiettorie</small>
+                            <small>Posizione centrale tra le possibili traiettorie</small>
                         </div>
                     </div>
                     <div class="legend-item">
@@ -421,7 +421,7 @@
                 </div>
             </div>
             <div class="info-panel-footer">
-                App by Giovanni Femia
+                Created by Giovanni Femia
             </div>
         </div>
         <div class="panel court-container">
