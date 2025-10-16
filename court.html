@@ -142,8 +142,7 @@
         /* Mobile responsiveness */
         @media (max-width: 1024px) {
             body {
-                overflow-x: auto;
-                overflow-y: hidden;
+                overflow: auto;
             }
             
             .page-container { 
@@ -151,8 +150,8 @@
                 flex-direction: row;
                 gap: 0.8em; 
                 padding: 0.5em; 
-                min-width: 100vw;
-                height: 100vh;
+                min-height: 100vh;
+                height: auto;
                 box-sizing: border-box;
             }
             
@@ -163,14 +162,25 @@
                 gap: 10px;
                 padding: 10px;
                 height: fit-content;
-                max-height: calc(100vh - 1em);
-                overflow-y: auto;
+                align-self: flex-start;
+                position: sticky;
+                top: 0.5em;
             }
             
             .court-container {
-                flex: 0 0 calc(50vw - 100px);
-                min-width: calc(50vw - 100px);
-                max-width: calc(50vw - 100px);
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                gap: 0.8em;
+                min-width: 0;
+            }
+            
+            .court-container:first-of-type {
+                order: 1;
+            }
+            
+            .court-container:last-of-type {
+                order: 2;
             }
             
             .control-section {
@@ -192,29 +202,7 @@
             .svg-wrap svg { 
                 height: auto !important; 
                 width: 100%; 
-                max-height: calc(100vh - 2em); 
-            }
-            
-            /* Scroll indicator per mobile */
-            .page-container::after {
-                content: '← Scorri orizzontalmente per vedere tutti i campi →';
-                position: fixed;
-                bottom: 10px;
-                left: 50%;
-                transform: translateX(-50%);
-                background: rgba(0, 0, 0, 0.7);
-                color: white;
-                padding: 8px 16px;
-                border-radius: 20px;
-                font-size: 12px;
-                z-index: 1000;
-                pointer-events: none;
-                animation: fadeInOut 3s ease-in-out infinite;
-            }
-            
-            @keyframes fadeInOut {
-                0%, 100% { opacity: 0.7; }
-                50% { opacity: 1; }
+                max-height: 45vh; 
             }
         }
         
@@ -228,9 +216,7 @@
             }
             
             .court-container {
-                flex: 0 0 calc(50vw - 80px);
-                min-width: calc(50vw - 80px);
-                max-width: calc(50vw - 80px);
+                flex: 1;
             }
             
             .control-section-title {
@@ -245,7 +231,12 @@
                 font-size: 11px;
                 height: 32px;
             }
+            
+            .svg-wrap svg { 
+                max-height: 40vh; 
+            }
         }
+        
         .back-btn {
             background: #1976d2;
             color: #ffffff;
