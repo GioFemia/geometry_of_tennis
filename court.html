@@ -176,11 +176,45 @@
                 max-height: 45vh; 
             }
         }
+        .back-btn {
+            background: #1976d2;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            width: 100%;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .back-btn:hover {
+            background: #1565c0;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+        }
+        
+        .back-btn .icon {
+            width: 16px;
+            height: 16px;
+        }
     </style>
 </head>
 <body>
     <div class="page-container">
         <div class="controls-sidebar">
+            <button type="button" class="back-btn" id="btnBackToIndex" title="Torna alla vista principale" aria-label="Torna alla vista principale">
+                <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
+                </svg>
+                <span>Torna alla vista principale</span>
+            </button>
             <!-- Colpitore -->
             <div class="control-section">
                 <h3 class="control-section-title">Colpitore</h3>
@@ -983,6 +1017,15 @@
             bindViewCheckbox(chkShot, '__viewShot__');
             bindViewCheckbox(chkResponder, '__viewResponder__');
             bindViewCheckbox(chkCenter, '__viewCenter__');
+
+            // Back to Index: navigazione a index.html
+            const btnBackToIndex = document.getElementById('btnBackToIndex');
+            if (btnBackToIndex) {
+                btnBackToIndex.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    window.location.href = 'index.html';
+                });
+            }
         })();
     </script>
 </body>
