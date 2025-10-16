@@ -46,22 +46,31 @@
         .side-controls .segment .seg-item:hover { background: #f5f5f5; }
         .side-controls .segment .seg-radio:checked + .seg-item { background: var(--accent-color); color: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); }
         #cursorDot { cursor: grab; }
-        .app-title-wrap { text-align: center; margin: 0; position: absolute; top: 10px; left: 0; right: 0; z-index: 10; pointer-events: none; }
+        .app-title-wrap { text-align: center; margin: 0; position: absolute; top: 10px; left: 0; right: 0; z-index: 10; pointer-events: none; transition: all 0.3s ease; grid-column: 1 / -1; }
+        .app-title-wrap.two-shot-mode { position: static; grid-column: 1 !important; grid-row: 1; margin-bottom: 1em; }
         .app-title { margin: 0; font-weight: 900; color: #263238; letter-spacing: 0.4px; line-height: 1.05; pointer-events: none; }
         .app-title span { display: block; font-size: 28px; }
-        .app-title img { height: 270px; width: auto; pointer-events: none; }
+        .app-title img { height: 270px; width: auto; pointer-events: none; transition: height 0.3s ease; }
         .header-actions { display: flex; justify-content: center; align-items: center; gap: 8px; margin-bottom: 6px; pointer-events: auto; }
         .icon-btn { background: #ffffff; color: #263238; border: 1px solid #e0e0e0; border-radius: 999px; width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 8px rgba(0,0,0,0.12); cursor: pointer; pointer-events: auto; }
         .icon-btn:hover { background: #f5f5f5; }
         .icon-btn .icon { width: 16px; height: 16px; }
         .icon-btn .btn-label { font-weight: 900; font-size: 18px; line-height: 1; }
         .view-menu { position: absolute; top: 46px; left: 50%; transform: translateX(-50%); background: #ffffff; border: 1px solid #e0e0e0; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.16); padding: 6px; z-index: 30; min-width: 220px; pointer-events: auto; }
+        .app-title-wrap.two-shot-mode .view-menu { position: absolute; }
         .view-menu .item { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 8px; cursor: pointer; user-select: none; }
         .view-menu .item:hover { background: #f5f5f5; }
         .view-menu input[type="checkbox"] { accent-color: var(--accent-color); }
         .view-menu input[type="radio"] { accent-color: var(--accent-color); }
         .three-cols > .panel:not(.court-container):not(.info-panel) { margin-top: 340px; }
         .three-cols > .info-panel { margin-top: 0; }
+        /* Modalità 2 colpi: layout con logo + controlli a sinistra, due campi a centro/destra */
+        body.two-courts-active .three-cols { grid-template-columns: auto 1fr 1fr; }
+        body.two-courts-active .app-title-wrap { position: static !important; grid-column: 1 !important; grid-row: 1; margin-bottom: 1em; }
+        body.two-courts-active .info-panel { display: none !important; }
+        body.two-courts-active .panel:not(.court-container):not(.info-panel) { margin-top: 0; grid-column: 1; grid-row: 2; }
+        body.two-courts-active .panel.court-container:nth-last-of-type(2) { grid-column: 2; grid-row: 1 / span 2; }
+        body.two-courts-active .panel.court-container:last-of-type { grid-column: 3; grid-row: 1 / span 2; display: block !important; }
         .side-controls .control-group.courts { --accent-color-courts: #00897b; background: #f3fbfb; border-color: #b2dfdb; margin-top: 36px; }
         .side-controls .control-group.courts input[type="radio"] { accent-color: var(--accent-color-courts); }
         .side-controls .control-group.courts .segment .seg-radio:checked + .seg-item { background: var(--accent-color-courts); color: #fff; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18); }
@@ -116,6 +125,7 @@
             
             /* Logo e header */
             .app-title-wrap { position: static; margin-bottom: 0.5em; }
+            .app-title-wrap.two-shot-mode { position: static; grid-column: auto; margin-bottom: 0.5em; }
             .app-title img { height: 120px; }
             .header-actions { gap: 6px; margin-bottom: 4px; }
             .icon-btn { width: 32px; height: 32px; }
@@ -151,6 +161,13 @@
             
             /* In modalità 2 colpi su mobile: stack verticale */
             .panel.court-container:last-child { margin-top: 0.8em; }
+            
+            /* Override layout 2 colpi su mobile: tutto in colonna singola */
+            body.two-courts-active .three-cols { grid-template-columns: 1fr !important; }
+            body.two-courts-active .app-title-wrap.two-shot-mode { grid-column: auto; grid-row: auto; }
+            body.two-courts-active .panel:not(.court-container):not(.info-panel) { grid-column: auto; grid-row: auto; }
+            body.two-courts-active .panel.court-container:nth-last-of-type(2) { grid-column: auto; grid-row: auto; }
+            body.two-courts-active .panel.court-container:last-of-type { grid-column: auto; grid-row: auto; }
         }
         
         @media (max-width: 480px) {
@@ -170,7 +187,7 @@
 </head>
 <body>
     <div class="page-container three-cols">
-        <div class="app-title-wrap" style="grid-column: 1 / -1;">
+        <div class="app-title-wrap">
             <div class="header-actions" aria-label="Azioni intestazione">
                 <button type="button" class="icon-btn" id="btnCourtView" title="Visione Semplificata" aria-label="Vista Campo">
                     <span class="btn-label">⭐</span>
@@ -197,90 +214,6 @@
             <h2 class="app-title">
                 <img src="logo.png" alt="Geometry of Tennis" />
             </h2>
-        </div>
-        <div class="panel court-container">
-            <div class="svg-wrap primary">
-                <svg id="tennisCourt" width="100%" height="auto" viewBox="0 0 600 1006" style="background:#1565c0; border-radius:20px; display:block;">
-                    <rect x="184" y="150" width="232" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
-                    <rect x="146" y="150" width="38" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
-                    <rect x="416" y="150" width="38" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
-                    <rect x="146" y="150" width="308" height="672" fill="none" stroke="#fff" stroke-width="5"/>
-                    <line x1="300" y1="318" x2="300" y2="654" stroke="#fff" stroke-width="5"/>
-                    <line x1="184" y1="318" x2="416" y2="318" stroke="#fff" stroke-width="5"/>
-                    <line x1="184" y1="654" x2="416" y2="654" stroke="#fff" stroke-width="5"/>
-                    <line x1="146" y1="150" x2="454" y2="150" stroke="#fff" stroke-width="5"/>
-                    <line x1="146" y1="822" x2="454" y2="822" stroke="#fff" stroke-width="5"/>
-                    <line x1="106" y1="486" x2="494" y2="486" stroke="#fff" stroke-width="10"/>
-                    <polygon id="wedgeFill" points="300,822 185,0 415,0" fill="#000" fill-opacity="0.15" />
-                    <line id="leftLine" x1="300" y1="822" x2="185" y2="0" stroke="#2196f3" stroke-width="3" stroke-linecap="round" />
-                    <line id="rightLine" x1="300" y1="822" x2="415" y2="0" stroke="#2196f3" stroke-width="3" stroke-linecap="round" />
-                    <line id="bisectorLine" x1="300" y1="822" x2="300" y2="0" stroke="#2196f3" stroke-width="2" stroke-dasharray="6 6" stroke-linecap="round" />
-                    <!-- Linea gialla interattiva: parte dal pallino rosso e arriva al bordo superiore/inferiore, di default sulla bisettrice -->
-                    <line id="yellowLine" x1="300" y1="822" x2="300" y2="0" stroke="#ffd600" stroke-width="4" stroke-linecap="round" opacity="0.9" style="cursor: ew-resize; display:none;" />
-                    <!-- Misura orizzontale a yB = -50 (Campo B) → ySVG = ORIGIN_TOP_Y - 50 = 100 -->
-                    <line id="h-measure" x1="300" y1="100" x2="300" y2="100" stroke="#ff6f00" stroke-width="4" opacity="0.9" />
-                    <circle id="h-measure-badge" cx="300" cy="90" r="18" fill="#fff" />
-                    <text id="h-measure-label" x="300" y="90" fill="#ff6f00" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="middle">0</text>
-
-                    <!-- Freccia/handle trascinabile per impostare l'altezza della misura su Campo B -->
-                    <g id="measureArrow" transform="translate(595,100)" style="display:none;">
-                        <line x1="-20" y1="0" x2="0" y2="0" stroke="#ff6f00" stroke-width="6" stroke-linecap="round" />
-                        <polygon points="-28,0 -12,-8 -12,8" fill="#ff6f00" />
-                    </g>
-                    <!-- Cerchietto rosso SEMPRE in cima per essere cliccabile -->
-                    <circle id="cursorDot" cx="300" cy="822" r="12" fill="#ff5252" stroke="#fff" stroke-width="2" />
-                </svg>
-                <div id="measureArrowHtml" class="arrow-container"><div class="arrow"></div></div>
-            </div>
-        </div>
-        <div class="panel">
-            <div class="side-controls">
-                <div class="control-group" id="group-shot-owner">
-                    <div class="control-title">Colpo</div>
-                    <div class="segment" role="tablist" aria-label="Seleziona colpo">
-                        <input class="seg-radio" type="radio" id="shotOwner_tuo" name="shotOwner" value="tuo" checked />
-                        <label class="seg-item" for="shotOwner_tuo">Tuo</label>
-                        <input class="seg-radio" type="radio" id="shotOwner_avv" name="shotOwner" value="avversario" />
-                        <label class="seg-item" for="shotOwner_avv">Avversario</label>
-                    </div>
-                </div>
-                <div class="control-group" id="group-type-1">
-                    <div class="control-title">Tipo</div>
-                    <div class="segment" role="tablist" aria-label="Seleziona tipo">
-                        <input class="seg-radio" type="radio" id="shotType_pal" name="shotType" value="palleggio" checked />
-                        <label class="seg-item" for="shotType_pal">Palleggio</label>
-                        <input class="seg-radio" type="radio" id="shotType_pas" name="shotType" value="passante" />
-                        <label class="seg-item" for="shotType_pas">Passante</label>
-                    </div>
-                </div>
-                <div class="control-group" id="group-type-2" style="display:none;">
-                    <div class="control-title">Tipo colpo 2</div>
-                    <div class="segment" role="tablist" aria-label="Seleziona tipo colpo 2">
-                        <input class="seg-radio" type="radio" id="shotType2_pal" name="shotType2" value="palleggio" checked />
-                        <label class="seg-item" for="shotType2_pal">Palleggio</label>
-                        <input class="seg-radio" type="radio" id="shotType2_pas" name="shotType2" value="passante" />
-                        <label class="seg-item" for="shotType2_pas">Passante</label>
-                    </div>
-                </div>
-                <div class="control-group" id="group-two-type" style="display:none;">
-                    <div class="control-title">Tipo</div>
-                    <div class="segment" role="tablist" aria-label="Seleziona tipo colpo 2-colpi">
-                        <input class="seg-radio" type="radio" id="twoType_pal" name="twoShotType" value="palleggio" checked />
-                        <label class="seg-item" for="twoType_pal">Palleggio</label>
-                        <input class="seg-radio" type="radio" id="twoType_att" name="twoShotType" value="attacco" />
-                        <label class="seg-item" for="twoType_att">Attacco</label>
-                    </div>
-                </div>
-                <div class="control-group courts">
-                    <div class="control-title">Numero di colpi</div>
-                    <div class="segment" role="tablist" aria-label="Seleziona numero campi">
-                        <input class="seg-radio" type="radio" id="numCourts_1" name="numCourts" value="1" checked />
-                        <label class="seg-item" for="numCourts_1">1 colpo</label>
-                        <input class="seg-radio" type="radio" id="numCourts_2" name="numCourts" value="2" />
-                        <label class="seg-item" for="numCourts_2">2 colpi</label>
-                    </div>
-                </div>
-            </div>
         </div>
         <div class="panel info-panel" id="infoPanel">
             <p style="font-size: 15px; color: #263238; line-height: 1.6; margin: 0 0 1em 0; padding: 0.8em; background: #e3f2fd; border-radius: 10px;">
@@ -423,6 +356,90 @@
             </div>
             <div class="info-panel-footer">
                 Created by Giovanni Femia
+            </div>
+        </div>
+        <div class="panel">
+            <div class="side-controls">
+                <div class="control-group" id="group-shot-owner">
+                    <div class="control-title">Colpo</div>
+                    <div class="segment" role="tablist" aria-label="Seleziona colpo">
+                        <input class="seg-radio" type="radio" id="shotOwner_tuo" name="shotOwner" value="tuo" checked />
+                        <label class="seg-item" for="shotOwner_tuo">Tuo</label>
+                        <input class="seg-radio" type="radio" id="shotOwner_avv" name="shotOwner" value="avversario" />
+                        <label class="seg-item" for="shotOwner_avv">Avversario</label>
+                    </div>
+                </div>
+                <div class="control-group" id="group-type-1">
+                    <div class="control-title">Tipo</div>
+                    <div class="segment" role="tablist" aria-label="Seleziona tipo">
+                        <input class="seg-radio" type="radio" id="shotType_pal" name="shotType" value="palleggio" checked />
+                        <label class="seg-item" for="shotType_pal">Palleggio</label>
+                        <input class="seg-radio" type="radio" id="shotType_pas" name="shotType" value="passante" />
+                        <label class="seg-item" for="shotType_pas">Passante</label>
+                    </div>
+                </div>
+                <div class="control-group" id="group-type-2" style="display:none;">
+                    <div class="control-title">Tipo colpo 2</div>
+                    <div class="segment" role="tablist" aria-label="Seleziona tipo colpo 2">
+                        <input class="seg-radio" type="radio" id="shotType2_pal" name="shotType2" value="palleggio" checked />
+                        <label class="seg-item" for="shotType2_pal">Palleggio</label>
+                        <input class="seg-radio" type="radio" id="shotType2_pas" name="shotType2" value="passante" />
+                        <label class="seg-item" for="shotType2_pas">Passante</label>
+                    </div>
+                </div>
+                <div class="control-group" id="group-two-type" style="display:none;">
+                    <div class="control-title">Tipo</div>
+                    <div class="segment" role="tablist" aria-label="Seleziona tipo colpo 2-colpi">
+                        <input class="seg-radio" type="radio" id="twoType_pal" name="twoShotType" value="palleggio" checked />
+                        <label class="seg-item" for="twoType_pal">Palleggio</label>
+                        <input class="seg-radio" type="radio" id="twoType_att" name="twoShotType" value="attacco" />
+                        <label class="seg-item" for="twoType_att">Attacco</label>
+                    </div>
+                </div>
+                <div class="control-group courts">
+                    <div class="control-title">Numero di colpi</div>
+                    <div class="segment" role="tablist" aria-label="Seleziona numero campi">
+                        <input class="seg-radio" type="radio" id="numCourts_1" name="numCourts" value="1" checked />
+                        <label class="seg-item" for="numCourts_1">1 colpo</label>
+                        <input class="seg-radio" type="radio" id="numCourts_2" name="numCourts" value="2" />
+                        <label class="seg-item" for="numCourts_2">2 colpi</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel court-container">
+            <div class="svg-wrap primary">
+                <svg id="tennisCourt" width="100%" height="auto" viewBox="0 0 600 1006" style="background:#1565c0; border-radius:20px; display:block;">
+                    <rect x="184" y="150" width="232" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
+                    <rect x="146" y="150" width="38" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
+                    <rect x="416" y="150" width="38" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
+                    <rect x="146" y="150" width="308" height="672" fill="none" stroke="#fff" stroke-width="5"/>
+                    <line x1="300" y1="318" x2="300" y2="654" stroke="#fff" stroke-width="5"/>
+                    <line x1="184" y1="318" x2="416" y2="318" stroke="#fff" stroke-width="5"/>
+                    <line x1="184" y1="654" x2="416" y2="654" stroke="#fff" stroke-width="5"/>
+                    <line x1="146" y1="150" x2="454" y2="150" stroke="#fff" stroke-width="5"/>
+                    <line x1="146" y1="822" x2="454" y2="822" stroke="#fff" stroke-width="5"/>
+                    <line x1="106" y1="486" x2="494" y2="486" stroke="#fff" stroke-width="10"/>
+                    <polygon id="wedgeFill" points="300,822 185,0 415,0" fill="#000" fill-opacity="0.15" />
+                    <line id="leftLine" x1="300" y1="822" x2="185" y2="0" stroke="#2196f3" stroke-width="3" stroke-linecap="round" />
+                    <line id="rightLine" x1="300" y1="822" x2="415" y2="0" stroke="#2196f3" stroke-width="3" stroke-linecap="round" />
+                    <line id="bisectorLine" x1="300" y1="822" x2="300" y2="0" stroke="#2196f3" stroke-width="2" stroke-dasharray="6 6" stroke-linecap="round" />
+                    <!-- Linea gialla interattiva: parte dal pallino rosso e arriva al bordo superiore/inferiore, di default sulla bisettrice -->
+                    <line id="yellowLine" x1="300" y1="822" x2="300" y2="0" stroke="#ffd600" stroke-width="4" stroke-linecap="round" opacity="0.9" style="cursor: ew-resize; display:none;" />
+                    <!-- Misura orizzontale a yB = -50 (Campo B) → ySVG = ORIGIN_TOP_Y - 50 = 100 -->
+                    <line id="h-measure" x1="300" y1="100" x2="300" y2="100" stroke="#ff6f00" stroke-width="4" opacity="0.9" />
+                    <circle id="h-measure-badge" cx="300" cy="90" r="18" fill="#fff" />
+                    <text id="h-measure-label" x="300" y="90" fill="#ff6f00" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="middle">0</text>
+
+                    <!-- Freccia/handle trascinabile per impostare l'altezza della misura su Campo B -->
+                    <g id="measureArrow" transform="translate(595,100)" style="display:none;">
+                        <line x1="-20" y1="0" x2="0" y2="0" stroke="#ff6f00" stroke-width="6" stroke-linecap="round" />
+                        <polygon points="-28,0 -12,-8 -12,8" fill="#ff6f00" />
+                    </g>
+                    <!-- Cerchietto rosso SEMPRE in cima per essere cliccabile -->
+                    <circle id="cursorDot" cx="300" cy="822" r="12" fill="#ff5252" stroke="#fff" stroke-width="2" />
+                </svg>
+                <div id="measureArrowHtml" class="arrow-container"><div class="arrow"></div></div>
             </div>
         </div>
         <div class="panel court-container">
@@ -1401,6 +1418,17 @@
                                 infoPanel.classList.remove('visible');
                             } else {
                                 infoPanel.classList.add('visible');
+                            }
+                        }
+                        // Sposta logo e pulsanti nella prima colonna in modalità 2 colpi
+                        const titleWrap = document.querySelector('.app-title-wrap');
+                        if (titleWrap) {
+                            if (twoCourts) {
+                                titleWrap.classList.add('two-shot-mode');
+                                document.body.classList.add('two-courts-active');
+                            } else {
+                                titleWrap.classList.remove('two-shot-mode');
+                                document.body.classList.remove('two-courts-active');
                             }
                         }
                         const groupShot = document.getElementById('group-shot-owner');
