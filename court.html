@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Geometry of Tennis - Court View</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(135deg, #b3e5fc 0%, #b3e5fc 100%);
+        }
+
+        .page-container { 
+            display: grid; 
+            grid-template-columns: auto 1fr 1fr; 
+            gap: 0.8em; 
+            height: 100vh;
+            padding: 0.8em;
+            box-sizing: border-box;
+            position: relative; 
+        }
+
+        .controls-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 16px;
+            background: #ffffff;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(44, 62, 80, 0.13);
+            min-width: 180px;
+            max-width: 220px;
+        }
+        
+        .control-section {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .control-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #607d8b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .control-options {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .control-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            user-select: none;
+        }
+        
+        .control-option:hover {
+            background: #f5f5f5;
+        }
+        
+        .control-option input[type="radio"],
+        .control-option input[type="checkbox"] {
+            accent-color: #1976d2;
+            cursor: pointer;
+        }
+        
+        .control-option label {
+            cursor: pointer;
+            flex: 1;
+            margin: 0;
+            font-size: 13px;
+            color: #263238;
+        }
+
+        .court-container { 
+            position: relative; 
+            background: transparent; 
+            padding: 0; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .svg-wrap { 
+            position: relative; 
+            width: auto; 
+            height: 95%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .svg-wrap svg { 
+            height: 100%; 
+            width: auto; 
+            max-width: 100%;
+        }
+
+        .arrow-container { 
+            position: absolute; 
+            left: -10px; 
+            top: 0; 
+            width: 28px; 
+            height: 28px; 
+            transform: translateY(-50%); 
+            cursor: ns-resize; 
+            z-index: 25; 
+            display: block; 
+        }
+        
+        .arrow-container .arrow { 
+            position: absolute; 
+            left: 0; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            width: 0; 
+            height: 0; 
+            border-top: 9px solid transparent; 
+            border-bottom: 9px solid transparent; 
+            border-left: 16px solid #ff6f00; 
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4)); 
+        }
+
+        #cursorDot { cursor: grab; }
+
+        /* Mobile responsiveness */
+        @media (max-width: 1024px) {
+            .page-container { 
+                grid-template-columns: 1fr !important; 
+                grid-template-rows: auto 1fr 1fr;
+                gap: 0.8em; 
+                padding: 0.5em; 
+            }
+            
+            .controls-sidebar {
+                max-width: 100%;
+                gap: 12px;
+                padding: 12px;
+            }
+            
+            .control-section {
+                gap: 8px;
+            }
+            
+            .control-section-title {
+                font-size: 12px;
+            }
+            
+            .control-option {
+                padding: 6px 10px;
+            }
+            
+            .control-option label {
+                font-size: 13px;
+            }
+            
+            .svg-wrap svg { 
+                height: auto !important; 
+                width: 100%; 
+                max-height: 45vh; 
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <div class="controls-sidebar">
+            <!-- Colpitore -->
+            <div class="control-section">
+                <h3 class="control-section-title">Colpitore</h3>
+                <div class="control-options">
+                    <label class="control-option" for="colpitore_tuo">
+                        <input id="colpitore_tuo" type="radio" name="colpitore" value="tuo" checked />
+                        <span>Tu</span>
+                    </label>
+                    <label class="control-option" for="colpitore_avv">
+                        <input id="colpitore_avv" type="radio" name="colpitore" value="avversario" />
+                        <span>Avversario</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Tipologia di Colpo -->
+            <div class="control-section">
+                <h3 class="control-section-title">Tipologia</h3>
+                <div class="control-options">
+                    <label class="control-option" for="tipo_pal">
+                        <input id="tipo_pal" type="radio" name="tipologia" value="palleggio" checked />
+                        <span>Palleggio</span>
+                    </label>
+                    <label class="control-option" for="tipo_pas">
+                        <input id="tipo_pas" type="radio" name="tipologia" value="passante" />
+                        <span>Passante</span>
+                    </label>
+                    <label class="control-option" for="tipo_att">
+                        <input id="tipo_att" type="radio" name="tipologia" value="attacco" />
+                        <span>Attacco</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Superficie Campo -->
+            <div class="control-section">
+                <h3 class="control-section-title">Superficie</h3>
+                <div class="control-options">
+                    <label class="control-option" for="campo_cemento">
+                        <input id="campo_cemento" type="radio" name="campoType" value="cemento" checked />
+                        <span>Cemento</span>
+                    </label>
+                    <label class="control-option" for="campo_terra">
+                        <input id="campo_terra" type="radio" name="campoType" value="terra" />
+                        <span>Terra</span>
+                    </label>
+                    <label class="control-option" for="campo_erba">
+                        <input id="campo_erba" type="radio" name="campoType" value="erba" />
+                        <span>Erba</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Visualizza -->
+            <div class="control-section">
+                <h3 class="control-section-title">Visualizza</h3>
+                <div class="control-options">
+                    <label class="control-option" for="view_player">
+                        <input id="view_player" type="checkbox" checked />
+                        <span>Giocatore</span>
+                    </label>
+                    <label class="control-option" for="view_shot">
+                        <input id="view_shot" type="checkbox" checked />
+                        <span>Colpo</span>
+                    </label>
+                    <label class="control-option" for="view_responder">
+                        <input id="view_responder" type="checkbox" checked />
+                        <span>Risponditore</span>
+                    </label>
+                    <label class="control-option" for="view_center">
+                        <input id="view_center" type="checkbox" checked />
+                        <span>Centro</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
+        <div class="court-container">
+            <div class="svg-wrap primary">
+                <svg id="tennisCourt" width="100%" height="auto" viewBox="0 0 600 1006" style="background:#1565c0; border-radius:20px; display:block;">
+                    <rect x="184" y="150" width="232" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
+                    <rect x="146" y="150" width="38" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
+                    <rect x="416" y="150" width="38" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
+                    <rect x="146" y="150" width="308" height="672" fill="none" stroke="#fff" stroke-width="5"/>
+                    <line x1="300" y1="318" x2="300" y2="654" stroke="#fff" stroke-width="5"/>
+                    <line x1="184" y1="318" x2="416" y2="318" stroke="#fff" stroke-width="5"/>
+                    <line x1="184" y1="654" x2="416" y2="654" stroke="#fff" stroke-width="5"/>
+                    <line x1="146" y1="150" x2="454" y2="150" stroke="#fff" stroke-width="5"/>
+                    <line x1="146" y1="822" x2="454" y2="822" stroke="#fff" stroke-width="5"/>
+                    <line x1="106" y1="486" x2="494" y2="486" stroke="#fff" stroke-width="10"/>
+                    <polygon id="wedgeFill" points="300,822 185,0 415,0" fill="#000" fill-opacity="0.15" />
+                    <line id="leftLine" x1="300" y1="822" x2="185" y2="0" stroke="#1976d2" stroke-width="3" stroke-linecap="round" />
+                    <line id="rightLine" x1="300" y1="822" x2="415" y2="0" stroke="#1976d2" stroke-width="3" stroke-linecap="round" />
+                    <line id="bisectorLine" x1="300" y1="822" x2="300" y2="0" stroke="#1976d2" stroke-width="2" stroke-dasharray="6 6" stroke-linecap="round" />
+                    <line id="yellowLine" x1="300" y1="822" x2="300" y2="0" stroke="#ffd600" stroke-width="4" stroke-linecap="round" opacity="0.9" style="cursor: ew-resize;" />
+                    <line id="h-measure" x1="300" y1="100" x2="300" y2="100" stroke="#ff6f00" stroke-width="4" opacity="0.9" />
+                    <circle id="cursorDot" cx="300" cy="822" r="12" fill="#ff5252" stroke="#fff" stroke-width="2" />
+                </svg>
+                <div id="measureArrowHtml" class="arrow-container"><div class="arrow"></div></div>
+            </div>
+        </div>
+        
+        <div class="court-container">
+            <div class="svg-wrap secondary">
+                <!-- Campo secondario generato in JS -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const svg = document.getElementById('tennisCourt');
+            if (!svg) return;
+            
+            const dot = document.getElementById('cursorDot');
+            const leftLine = document.getElementById('leftLine');
+            const rightLine = document.getElementById('rightLine');
+            const bisectorLine = document.getElementById('bisectorLine');
+            const yellowLine = document.getElementById('yellowLine');
+            const wedge = document.getElementById('wedgeFill');
+            const hMeasure = document.getElementById('h-measure');
+            const arrowHtml = document.getElementById('measureArrowHtml');
+            const chkPlayer = document.getElementById('view_player');
+            const chkShot = document.getElementById('view_shot');
+            const chkResponder = document.getElementById('view_responder');
+            const chkCenter = document.getElementById('view_center');
+
+            const COURT_X_MIN = 146;
+            const COURT_X_MAX = 454;
+            const COURT_Y_MIN = 150;
+            const COURT_Y_MAX = 822;
+            const NET_Y = 486;
+            const ORIGIN_X = 300;
+            const ORIGIN_TOP_Y = 150;
+            const ORIGIN_BOTTOM_Y = 822;
+            const SVG_X_MIN = 0;
+            const SVG_X_MAX = 600;
+            const SVG_Y_MIN = 0;
+            const SVG_Y_MAX = 1006;
+            const LEFT_X_SVG = ORIGIN_X - 115;
+            const RIGHT_X_SVG = ORIGIN_X + 115;
+            const END_Y_TOP = 0;
+            const END_Y_BOTTOM = SVG_Y_MAX;
+            const COLOR_PALLEGGIO = '#1976d2';
+            const COLOR_PASSANTE = '#d32f2f';
+
+            let currentMeasureY = ORIGIN_TOP_Y - 50;
+            let draggingArrow = false;
+            let isPlayer = true;
+            let draggingDot = false;
+            let draggingYellow = false;
+            let yellowEndX = null;
+            window.__shotTypeIsPassante__ = false;
+            window.__shotType2IsPassante__ = false;
+            window.__leftForceRed__ = false; // in modalità attacco: rosso solo come colore, non come logica
+            window.__viewPlayer__ = true;
+            window.__viewShot__ = true;
+            window.__viewResponder__ = true;
+            window.__viewCenter__ = true;
+            
+            const COURT_COLORS = {
+                cemento: { background: '#1565c0', court: '#42a5f5' },
+                terra: { background: '#c62828', court: '#e57373' },
+                erba: { background: '#2e7d32', court: '#66bb6a' }
+            };
+            window.__currentCourtType__ = 'cemento';
+
+            function setLineToYEnd(lineEl, x0, y0, x1, y1, endYSvg) {
+                if (!lineEl) return;
+                const dx = x1 - x0;
+                const dy = y1 - y0;
+                const EPS = 1e-6;
+                const denom = Math.abs(dy) < EPS ? (dy >= 0 ? EPS : -EPS) : dy;
+                const t = (endYSvg - y0) / denom;
+                const xEnd = x0 + t * dx;
+                lineEl.setAttribute('x1', String(x0));
+                lineEl.setAttribute('y1', String(y0));
+                lineEl.setAttribute('x2', String(xEnd));
+                lineEl.setAttribute('y2', String(endYSvg));
+                return xEnd;
+            }
+
+            function setBisectorToYEnd(lineEl, x0, y0, passYSvg, endYSvg) {
+                if (!lineEl) return;
+                const EPS = 1e-6;
+                const vLx = LEFT_X_SVG - x0;
+                const vLy = passYSvg - y0;
+                const vRx = RIGHT_X_SVG - x0;
+                const vRy = passYSvg - y0;
+                const lenL = Math.hypot(vLx, vLy) || EPS;
+                const lenR = Math.hypot(vRx, vRy) || EPS;
+                const ux = vLx / lenL + vRx / lenR;
+                const uy = vLy / lenL + vRy / lenR;
+                let xEnd;
+                if (Math.abs(uy) < EPS) {
+                    xEnd = x0;
+                } else {
+                    const t = (endYSvg - y0) / uy;
+                    xEnd = x0 + t * ux;
+                }
+                lineEl.setAttribute('x1', String(x0));
+                lineEl.setAttribute('y1', String(y0));
+                lineEl.setAttribute('x2', String(xEnd));
+                lineEl.setAttribute('y2', String(endYSvg));
+            }
+
+            function computeIntersectionX(x0, y0, xT, yT, yH) {
+                const dx = xT - x0;
+                const dy = yT - y0;
+                const EPS = 1e-6;
+                const denom = Math.abs(dy) < EPS ? (dy >= 0 ? EPS : -EPS) : dy;
+                const t = (yH - y0) / denom;
+                return x0 + t * dx;
+            }
+
+            function computeBisectorXAtY(x0, y0, passYSvg, yH) {
+                const EPS = 1e-6;
+                const vLx = LEFT_X_SVG - x0;
+                const vLy = passYSvg - y0;
+                const vRx = RIGHT_X_SVG - x0;
+                const vRy = passYSvg - y0;
+                const lenL = Math.hypot(vLx, vLy) || EPS;
+                const lenR = Math.hypot(vRx, vRy) || EPS;
+                const ux = vLx / lenL + vRx / lenR;
+                const uy = vLy / lenL + vRy / lenR;
+                if (Math.abs(uy) < EPS) return x0;
+                const t = (yH - y0) / uy;
+                return x0 + t * ux;
+            }
+
+            function updateHorizontalMeasure(dotX, dotY, targets, yH) {
+                if (!hMeasure) return;
+                if (window.__viewResponder__ === false) {
+                    if (hMeasure) hMeasure.style.display = 'none';
+                    return;
+                }
+                const xLeft = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, yH);
+                const xRight = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, yH);
+                const x1 = Math.min(xLeft, xRight);
+                const x2 = Math.max(xLeft, xRight);
+                hMeasure.setAttribute('x1', String(x1));
+                hMeasure.setAttribute('y1', String(yH));
+                hMeasure.setAttribute('x2', String(x2));
+                hMeasure.setAttribute('y2', String(yH));
+                hMeasure.style.display = '';
+            }
+
+            function svgYToClientY(ySvg) {
+                const pt = svg.createSVGPoint();
+                pt.x = 0; pt.y = ySvg;
+                const ctm = svg.getScreenCTM();
+                const p = pt.matrixTransform(ctm);
+                return p.y;
+            }
+
+            function updateArrowHtmlPosition() {
+                if (!arrowHtml) return;
+                if (window.__viewResponder__ === false) { arrowHtml.style.display = 'none'; return; }
+                const wrap = svg.parentElement;
+                if (!wrap) return;
+                const wrapRect = wrap.getBoundingClientRect();
+                const clientY = svgYToClientY(currentMeasureY);
+                const top = clientY - wrapRect.top;
+                arrowHtml.style.top = `${top}px`;
+                if (arrowHtml.style.display !== 'block') arrowHtml.style.display = 'block';
+            }
+
+            function setupSecondaryCourt() {
+                const secondary = document.querySelector('.svg-wrap.secondary');
+                const primary = document.querySelector('.svg-wrap.primary');
+                if (!secondary || !primary) return;
+                
+                if (!secondary.querySelector('svg')) {
+                    const currentColors = COURT_COLORS[window.__currentCourtType__] || COURT_COLORS.cemento;
+                    const svg2 = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    svg2.setAttribute('width', '100%');
+                    svg2.setAttribute('height', 'auto');
+                    svg2.setAttribute('viewBox', '0 0 600 1006');
+                    svg2.setAttribute('style', `background:${currentColors.background}; border-radius:20px; display:block;`);
+                    
+                    const elems = [
+                        ['rect', { x: '184', y: '150', width: '232', height: '672', fill: currentColors.court, stroke: '#fff', 'stroke-width': '5' }],
+                        ['rect', { x: '146', y: '150', width: '38', height: '672', fill: currentColors.court, stroke: '#fff', 'stroke-width': '5' }],
+                        ['rect', { x: '416', y: '150', width: '38', height: '672', fill: currentColors.court, stroke: '#fff', 'stroke-width': '5' }],
+                        ['rect', { x: '146', y: '150', width: '308', height: '672', fill: 'none', stroke: '#fff', 'stroke-width': '5' }],
+                        ['line', { x1: '300', y1: '318', x2: '300', y2: '654', stroke: '#fff', 'stroke-width': '5' }],
+                        ['line', { x1: '184', y1: '318', x2: '416', y2: '318', stroke: '#fff', 'stroke-width': '5' }],
+                        ['line', { x1: '184', y1: '654', x2: '416', y2: '654', stroke: '#fff', 'stroke-width': '5' }],
+                        ['line', { x1: '146', y1: '150', x2: '454', y2: '150', stroke: '#fff', 'stroke-width': '5' }],
+                        ['line', { x1: '146', y1: '822', x2: '454', y2: '822', stroke: '#fff', 'stroke-width': '5' }],
+                        ['line', { x1: '106', y1: '486', x2: '494', y2: '486', stroke: '#fff', 'stroke-width': '10' }]
+                    ];
+                    elems.forEach(([tag, attrs]) => {
+                        const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+                        Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+                        svg2.appendChild(el);
+                    });
+                    
+                    const left2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    left2.setAttribute('id', 'leftLine2');
+                    left2.setAttribute('stroke', COLOR_PALLEGGIO);
+                    left2.setAttribute('stroke-width', '3');
+                    left2.setAttribute('stroke-linecap', 'round');
+                    svg2.appendChild(left2);
+                    
+                    const right2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    right2.setAttribute('id', 'rightLine2');
+                    right2.setAttribute('stroke', COLOR_PALLEGGIO);
+                    right2.setAttribute('stroke-width', '3');
+                    right2.setAttribute('stroke-linecap', 'round');
+                    svg2.appendChild(right2);
+                    
+                    const bis2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    bis2.setAttribute('id', 'bisectorLine2');
+                    bis2.setAttribute('stroke', COLOR_PALLEGGIO);
+                    bis2.setAttribute('stroke-width', '2');
+                    bis2.setAttribute('stroke-dasharray', '6 6');
+                    bis2.setAttribute('stroke-linecap', 'round');
+                    svg2.appendChild(bis2);
+                    
+                    const wedge2 = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+                    wedge2.setAttribute('id', 'wedgeFill2');
+                    wedge2.setAttribute('fill', '#000');
+                    wedge2.setAttribute('fill-opacity', '0.15');
+                    svg2.appendChild(wedge2);
+                    
+                    const dot2 = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    dot2.setAttribute('id', 'cursorDot2');
+                    dot2.setAttribute('cx', '300');
+                    dot2.setAttribute('cy', '822');
+                    dot2.setAttribute('r', '12');
+                    dot2.setAttribute('fill', '#ff5252');
+                    dot2.setAttribute('stroke', '#fff');
+                    dot2.setAttribute('stroke-width', '2');
+                    svg2.appendChild(dot2);
+                    
+                    const dot2b = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    dot2b.setAttribute('id', 'cursorDotReplica2');
+                    dot2b.setAttribute('cx', '300');
+                    dot2b.setAttribute('cy', '822');
+                    dot2b.setAttribute('r', '12');
+                    dot2b.setAttribute('fill', '#ff5252');
+                    dot2b.setAttribute('stroke', '#fff');
+                    dot2b.setAttribute('stroke-width', '1.5');
+                    svg2.appendChild(dot2b);
+                    
+                    secondary.innerHTML = '';
+                    secondary.appendChild(svg2);
+                }
+                secondary.style.display = 'block';
+            }
+
+            function updateThemeColors() {
+                const color = window.__shotTypeIsPassante__ ? COLOR_PASSANTE : COLOR_PALLEGGIO;
+                if (hMeasure) hMeasure.setAttribute('stroke', color);
+                if (leftLine) leftLine.setAttribute('stroke', color);
+                if (rightLine) rightLine.setAttribute('stroke', color);
+                if (bisectorLine) bisectorLine.setAttribute('stroke', color);
+                if (arrowHtml) {
+                    const tip = arrowHtml.querySelector('.arrow');
+                    if (tip) tip.style.borderLeftColor = color;
+                }
+            }
+
+            function updateThemeColorsRight() {
+                const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                if (!svg2) return;
+                const color2 = window.__shotType2IsPassante__ ? COLOR_PASSANTE : COLOR_PALLEGGIO;
+                const l2 = svg2.querySelector('#leftLine2');
+                const r2 = svg2.querySelector('#rightLine2');
+                const b2 = svg2.querySelector('#bisectorLine2');
+                if (l2) l2.setAttribute('stroke', color2);
+                if (r2) r2.setAttribute('stroke', color2);
+                if (b2) b2.setAttribute('stroke', color2);
+            }
+
+            function updateCourtColors(courtType) {
+                const colors = COURT_COLORS[courtType] || COURT_COLORS.cemento;
+                if (svg) {
+                    svg.style.background = colors.background;
+                    const rects = svg.querySelectorAll('rect[fill]:not([fill="none"])');
+                    rects.forEach(rect => {
+                        rect.setAttribute('fill', colors.court);
+                    });
+                }
+                const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                if (svg2) {
+                    svg2.style.background = colors.background;
+                    const rects2 = svg2.querySelectorAll('rect[fill]:not([fill="none"])');
+                    rects2.forEach(rect => {
+                        rect.setAttribute('fill', colors.court);
+                    });
+                }
+                window.__currentCourtType__ = courtType;
+            }
+
+            function computePassYTargetsBaseRight(dotX, dotY) {
+                const xA = dotX - ORIGIN_X;
+                const yA = ORIGIN_BOTTOM_Y - dotY;
+                const isPassante = window.__shotType2IsPassante__;
+                const baseOffset = isPassante ? 150 : 105;
+                const baseCoeff = isPassante ? 0.15 : 0.4;
+                const effectCoeff = isPassante ? 0.5 : 0.4;
+                const base = baseOffset + baseCoeff * yA;
+                const effect = effectCoeff * Math.abs(xA);
+                const yA_min = ORIGIN_BOTTOM_Y - SVG_Y_MAX;
+                const yA_max = ORIGIN_BOTTOM_Y - NET_Y;
+                const denom = (yA_max - yA_min) || 1;
+                let t = (yA - yA_min) / denom;
+                if (t < 0) t = 0; else if (t > 1) t = 1;
+                const negScale = isPassante ? 1.3 * t : 4 * t - 1.5;
+
+                let leftB = base;
+                let rightB = base;
+                if (xA > 0) {
+                    leftB = base + effect;
+                    rightB = base - effect * negScale;
+                } else if (xA < 0) {
+                    leftB = base - effect * negScale;
+                    rightB = base + effect;
+                }
+                return { left: ORIGIN_TOP_Y + leftB, right: ORIGIN_TOP_Y + rightB };
+            }
+
+            function computePassYTargetsFor(dotX, dotY, isPlayerLocal) {
+                if (isPlayerLocal) {
+                    return computePassYTargetsBaseRight(dotX, dotY);
+                }
+                const dotX_m = 2 * ORIGIN_X - dotX;
+                const dotY_m = 2 * NET_Y - dotY;
+                const tTop = computePassYTargetsBaseRight(dotX_m, dotY_m);
+                return { left: 2 * NET_Y - tTop.right, right: 2 * NET_Y - tTop.left };
+            }
+
+            function updateSecondaryFromLeft() {
+                const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                if (!svg2) return;
+                const dot2 = svg2.querySelector('#cursorDot2');
+                const dot2b = svg2.querySelector('#cursorDotReplica2');
+                const l2 = svg2.querySelector('#leftLine2');
+                const r2 = svg2.querySelector('#rightLine2');
+                const b2 = svg2.querySelector('#bisectorLine2');
+                const w2 = svg2.querySelector('#wedgeFill2');
+                if (!(dot2 && dot2b && l2 && r2 && b2 && w2)) return;
+
+                const leftDotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                const leftDotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                const isPlayerRight = !isPlayer;
+                const endYSvgR = isPlayerRight ? END_Y_TOP : END_Y_BOTTOM;
+
+                const leftTargets = computePassYTargets(leftDotX, leftDotY);
+                const xLeftAtY = computeIntersectionX(leftDotX, leftDotY, LEFT_X_SVG, leftTargets.left, currentMeasureY);
+                const xRightAtY = computeIntersectionX(leftDotX, leftDotY, RIGHT_X_SVG, leftTargets.right, currentMeasureY);
+                const minXAtY = Math.min(xLeftAtY, xRightAtY);
+                const maxXAtY = Math.max(xLeftAtY, xRightAtY);
+                let xIntersect;
+                if (yellowEndX == null) {
+                    const bisTargetLeft = (leftTargets.left + leftTargets.right) / 2;
+                    xIntersect = computeBisectorXAtY(leftDotX, leftDotY, bisTargetLeft, currentMeasureY);
+                } else {
+                    xIntersect = computeIntersectionX(leftDotX, leftDotY, yellowEndX, currentMeasureY, currentMeasureY);
+                }
+                const clampedX = Math.max(minXAtY, Math.min(maxXAtY, xIntersect));
+
+                const mainY = currentMeasureY;
+                dot2.setAttribute('cx', String(clampedX));
+                dot2.setAttribute('cy', String(mainY));
+                dot2b.setAttribute('cx', String(leftDotX));
+                dot2b.setAttribute('cy', String(leftDotY));
+
+                const targetsR = computePassYTargetsFor(clampedX, mainY, isPlayerRight);
+                const leftEndX2 = setLineToYEnd(l2, clampedX, mainY, LEFT_X_SVG, targetsR.left, endYSvgR);
+                const rightEndX2 = setLineToYEnd(r2, clampedX, mainY, RIGHT_X_SVG, targetsR.right, endYSvgR);
+                const bisTargetR = (targetsR.left + targetsR.right) / 2;
+                setBisectorToYEnd(b2, clampedX, mainY, bisTargetR, endYSvgR);
+                if (b2) b2.style.display = (window.__viewCenter__ === false) ? 'none' : '';
+                w2.setAttribute('points', `${clampedX},${mainY} ${leftEndX2},${endYSvgR} ${rightEndX2},${endYSvgR}`);
+
+                // Apply visibility toggles
+                if (dot2) dot2.style.display = (window.__viewPlayer__ === false) ? 'none' : '';
+                if (dot2b) dot2b.style.display = (window.__viewPlayer__ === false) ? 'none' : '';
+                if (l2) l2.style.display = (window.__viewShot__ === false) ? 'none' : '';
+                if (r2) r2.style.display = (window.__viewShot__ === false) ? 'none' : '';
+                if (w2) w2.style.display = (window.__viewShot__ === false) ? 'none' : '';
+
+                updateThemeColorsRight();
+            }
+
+            function computePassYTargetsBase(dotX, dotY) {
+                const xA = dotX - ORIGIN_X;
+                const yA = ORIGIN_BOTTOM_Y - dotY;
+                const baseOffset = window.__shotTypeIsPassante__ ? 150 : 105;
+                const baseCoeff = window.__shotTypeIsPassante__ ? 0.15 : 0.4;
+                const effectCoeff = window.__shotTypeIsPassante__ ? 0.5 : 0.4;
+                const base = baseOffset + baseCoeff * yA;
+                const effect = effectCoeff * Math.abs(xA);
+                const yA_min = ORIGIN_BOTTOM_Y - SVG_Y_MAX;
+                const yA_max = ORIGIN_BOTTOM_Y - NET_Y;
+                const denom = (yA_max - yA_min) || 1;
+                let t = (yA - yA_min) / denom;
+                if (t < 0) t = 0; else if (t > 1) t = 1;
+                const negScale = window.__shotTypeIsPassante__ ? 1.3 * t : 4 * t - 1.5;
+
+                let leftB = base;
+                let rightB = base;
+                if (xA > 0) {
+                    leftB = base + effect;
+                    rightB = base - effect * negScale;
+                } else if (xA < 0) {
+                    leftB = base - effect * negScale;
+                    rightB = base + effect;
+                }
+                return { left: ORIGIN_TOP_Y + leftB, right: ORIGIN_TOP_Y + rightB };
+            }
+
+            function computePassYTargets(dotX, dotY) {
+                if (isPlayer) {
+                    return computePassYTargetsBase(dotX, dotY);
+                }
+                const dotX_m = 2 * ORIGIN_X - dotX;
+                const dotY_m = 2 * NET_Y - dotY;
+                const tTop = computePassYTargetsBase(dotX_m, dotY_m);
+                return { left: 2 * NET_Y - tTop.right, right: 2 * NET_Y - tTop.left };
+            }
+
+            function updateLinesAndWedge(dotX, dotY) {
+                const targets = computePassYTargets(dotX, dotY);
+                const endYSvg = isPlayer ? END_Y_TOP : END_Y_BOTTOM;
+                const leftEndX = setLineToYEnd(leftLine, dotX, dotY, LEFT_X_SVG, targets.left, endYSvg);
+                const rightEndX = setLineToYEnd(rightLine, dotX, dotY, RIGHT_X_SVG, targets.right, endYSvg);
+                const bisectorTarget = (targets.left + targets.right) / 2;
+                setBisectorToYEnd(bisectorLine, dotX, dotY, bisectorTarget, endYSvg);
+                if (bisectorLine) bisectorLine.style.display = (window.__viewCenter__ === false) ? 'none' : '';
+                if (wedge) {
+                    wedge.setAttribute('points', `${dotX},${dotY} ${leftEndX},${endYSvg} ${rightEndX},${endYSvg}`);
+                }
+                updateHorizontalMeasure(dotX, dotY, targets, currentMeasureY);
+                updateArrowHtmlPosition();
+
+                if (yellowLine) {
+                    yellowLine.style.display = (window.__viewShot__ === false) ? 'none' : '';
+                    yellowLine.setAttribute('x1', String(dotX));
+                    yellowLine.setAttribute('y1', String(dotY));
+                    const xLeftAtH = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, currentMeasureY);
+                    const xRightAtH = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, currentMeasureY);
+                    const minXAtH = Math.min(xLeftAtH, xRightAtH);
+                    const maxXAtH = Math.max(xLeftAtH, xRightAtH);
+                    if (yellowEndX == null) {
+                        const xOnBis = computeBisectorXAtY(dotX, dotY, bisectorTarget, currentMeasureY);
+                        const clamped = Math.max(minXAtH, Math.min(maxXAtH, xOnBis));
+                        yellowLine.setAttribute('x2', String(clamped));
+                        yellowLine.setAttribute('y2', String(currentMeasureY));
+                    } else {
+                        const clamped = Math.max(minXAtH, Math.min(maxXAtH, yellowEndX));
+                        yellowLine.setAttribute('x2', String(clamped));
+                        yellowLine.setAttribute('y2', String(currentMeasureY));
+                    }
+                }
+                updateSecondaryFromLeft();
+            }
+
+            function toSvgPoint(evt) {
+                const pt = svg.createSVGPoint();
+                pt.x = evt.clientX;
+                pt.y = evt.clientY;
+                const inv = svg.getScreenCTM().inverse();
+                return pt.matrixTransform(inv);
+            }
+
+            function onMove(evt) {
+                const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                updateLinesAndWedge(dotX, dotY);
+            }
+
+            function onLeave() {
+                const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                updateLinesAndWedge(dotX, dotY);
+            }
+
+            function onDotPointerDown(evt) {
+                draggingDot = true;
+                svg.setPointerCapture && svg.setPointerCapture(evt.pointerId);
+                if (dot) dot.style.cursor = 'grabbing';
+                evt.preventDefault();
+            }
+
+            function onDotPointerMove(evt) {
+                if (!draggingDot) return;
+                const p = toSvgPoint(evt);
+                const clampedX = Math.max(SVG_X_MIN, Math.min(SVG_X_MAX, p.x));
+                let clampedY = p.y;
+                if (isPlayer) {
+                    clampedY = Math.max(NET_Y + 1, Math.min(SVG_Y_MAX, p.y));
+                } else {
+                    clampedY = Math.max(SVG_Y_MIN, Math.min(NET_Y, p.y));
+                }
+                if (dot) {
+                    dot.setAttribute('cx', String(clampedX));
+                    dot.setAttribute('cy', String(clampedY));
+                    const dotX = parseFloat(dot.getAttribute('cx'));
+                    const dotY = parseFloat(dot.getAttribute('cy'));
+                    updateLinesAndWedge(dotX, dotY);
+                }
+            }
+
+            function onDotPointerUp(evt) {
+                draggingDot = false;
+                svg.releasePointerCapture && svg.releasePointerCapture(evt.pointerId);
+                if (dot) dot.style.cursor = 'grab';
+            }
+
+            function applyViewToggles() {
+                if (dot) dot.style.display = (window.__viewPlayer__ === false) ? 'none' : '';
+                if (yellowLine) yellowLine.style.display = (window.__viewShot__ === false) ? 'none' : '';
+                if (bisectorLine) bisectorLine.style.display = (window.__viewCenter__ === false) ? 'none' : '';
+                if (hMeasure) hMeasure.style.display = (window.__viewResponder__ === false) ? 'none' : '';
+                if (arrowHtml) arrowHtml.style.display = (window.__viewResponder__ === false) ? 'none' : 'block';
+                updateSecondaryFromLeft();
+            }
+
+            (function initGraphics() {
+                const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                updateArrowHtmlPosition();
+                updateThemeColors();
+                updateLinesAndWedge(dotX, dotY);
+                setupSecondaryCourt();
+                applyViewToggles();
+            })();
+
+            svg.addEventListener('mousemove', onMove, { passive: true });
+            svg.addEventListener('mouseleave', onLeave);
+            if (dot) {
+                dot.addEventListener('pointerdown', onDotPointerDown);
+                window.addEventListener('pointermove', onDotPointerMove);
+                window.addEventListener('pointerup', onDotPointerUp);
+            }
+
+            // Yellow line drag
+            function onYellowPointerDown(evt) {
+                if (!yellowLine) return;
+                draggingYellow = true;
+                yellowLine.setPointerCapture && yellowLine.setPointerCapture(evt.pointerId);
+                evt.preventDefault();
+            }
+            function onYellowPointerMove(evt) {
+                if (!draggingYellow || !yellowLine) return;
+                const p = toSvgPoint(evt);
+                const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                const targets = computePassYTargets(dotX, dotY);
+                const xLeftAtH = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, currentMeasureY);
+                const xRightAtH = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, currentMeasureY);
+                const minXAtH = Math.min(xLeftAtH, xRightAtH);
+                const maxXAtH = Math.max(xLeftAtH, xRightAtH);
+                const clampedX = Math.max(minXAtH, Math.min(maxXAtH, p.x));
+                yellowEndX = clampedX;
+                yellowLine.setAttribute('x1', String(dotX));
+                yellowLine.setAttribute('y1', String(dotY));
+                yellowLine.setAttribute('x2', String(clampedX));
+                yellowLine.setAttribute('y2', String(currentMeasureY));
+                updateSecondaryFromLeft();
+            }
+            function onYellowPointerUp(evt) {
+                if (!yellowLine) return;
+                draggingYellow = false;
+                yellowLine.releasePointerCapture && yellowLine.releasePointerCapture(evt.pointerId);
+            }
+            if (yellowLine) {
+                yellowLine.addEventListener('pointerdown', onYellowPointerDown);
+                window.addEventListener('pointermove', onYellowPointerMove);
+                window.addEventListener('pointerup', onYellowPointerUp);
+            }
+
+            // Arrow drag
+            (function initArrowDrag() {
+                if (!arrowHtml) return;
+                const onPointerDown = (evt) => {
+                    draggingArrow = true;
+                    arrowHtml.setPointerCapture && arrowHtml.setPointerCapture(evt.pointerId);
+                    evt.preventDefault();
+                };
+                const onPointerMove = (evt) => {
+                    if (!draggingArrow) return;
+                    const p = toSvgPoint(evt);
+                    let newY;
+                    if (isPlayer) {
+                        newY = Math.max(SVG_Y_MIN, Math.min(NET_Y, p.y));
+                    } else {
+                        newY = Math.max(NET_Y, Math.min(SVG_Y_MAX, p.y));
+                    }
+                    currentMeasureY = newY;
+                    updateArrowHtmlPosition();
+                    const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                    const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                    updateLinesAndWedge(dotX, dotY);
+                };
+                const onPointerUp = (evt) => {
+                    draggingArrow = false;
+                    arrowHtml.releasePointerCapture && arrowHtml.releasePointerCapture(evt.pointerId);
+                };
+                arrowHtml.addEventListener('pointerdown', onPointerDown);
+                window.addEventListener('pointermove', onPointerMove);
+                window.addEventListener('pointerup', onPointerUp);
+                window.addEventListener('resize', updateArrowHtmlPosition);
+            })();
+
+            // Colpitore change
+            const colpitoreInputs = document.querySelectorAll('input[name="colpitore"]');
+            if (colpitoreInputs && colpitoreInputs.length) {
+                colpitoreInputs.forEach((inp) => {
+                    inp.addEventListener('change', (e) => {
+                        const val = e.target && e.target.value ? e.target.value : 'tuo';
+                        isPlayer = (val === 'tuo');
+                        
+                        // Mirror measure Y
+                        currentMeasureY = 2 * NET_Y - currentMeasureY;
+                        if (isPlayer) {
+                            currentMeasureY = Math.max(SVG_Y_MIN, Math.min(NET_Y, currentMeasureY));
+                        } else {
+                            currentMeasureY = Math.max(NET_Y, Math.min(SVG_Y_MAX, currentMeasureY));
+                        }
+                        updateArrowHtmlPosition();
+
+                        // Reposition dot to origin
+                        if (dot) {
+                            const originY = isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
+                            dot.setAttribute('cx', String(ORIGIN_X));
+                            dot.setAttribute('cy', String(originY));
+                        }
+                        const dotX = ORIGIN_X;
+                        const dotY = isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
+                        updateLinesAndWedge(dotX, dotY);
+                    });
+                });
+            }
+
+            // Tipologia change
+            const tipologiaInputs = document.querySelectorAll('input[name="tipologia"]');
+            if (tipologiaInputs && tipologiaInputs.length) {
+                tipologiaInputs.forEach((inp) => {
+                    inp.addEventListener('change', (e) => {
+                        const val = e.target && e.target.value ? e.target.value : 'palleggio';
+                        window.__shotTypeIsPassante__ = (val === 'passante');
+                        window.__shotType2IsPassante__ = (val === 'passante');
+                        
+                        // In modalità attacco: sinistra palleggio (logica blu), destra passante (logica rossa)
+                        if (val === 'attacco') {
+                            window.__shotTypeIsPassante__ = false; // sinistra con logica palleggio
+                            window.__shotType2IsPassante__ = true;  // destra con logica passante
+                            window.__leftForceRed__ = false; // sinistra rimane blu
+                        } else {
+                            window.__leftForceRed__ = false; // rimuovi override colore
+                        }
+                        
+                        if (window.__shotTypeIsPassante__) {
+                            const targetYCampoB = 380;
+                            currentMeasureY = isPlayer ? targetYCampoB : (2 * NET_Y - targetYCampoB);
+                            updateArrowHtmlPosition();
+                        } else {
+                            const defaultYCampoB = ORIGIN_TOP_Y - 50;
+                            currentMeasureY = isPlayer ? defaultYCampoB : (2 * NET_Y - defaultYCampoB);
+                            updateArrowHtmlPosition();
+                        }
+                        
+                        updateThemeColors();
+                        updateThemeColorsRight();
+                        const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                        const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                        updateLinesAndWedge(dotX, dotY);
+                    });
+                });
+            }
+
+            // Campo type change
+            const campoTypeInputs = document.querySelectorAll('input[name="campoType"]');
+            if (campoTypeInputs && campoTypeInputs.length) {
+                campoTypeInputs.forEach((inp) => {
+                    inp.addEventListener('change', (e) => {
+                        const val = e.target && e.target.value ? e.target.value : 'cemento';
+                        updateCourtColors(val);
+                    });
+                });
+            }
+
+            // View toggles
+            function bindViewCheckbox(el, key) {
+                if (!el) return;
+                el.addEventListener('change', () => {
+                    window[key] = !!el.checked;
+                    applyViewToggles();
+                    const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                    const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                    updateLinesAndWedge(dotX, dotY);
+                });
+            }
+            bindViewCheckbox(chkPlayer, '__viewPlayer__');
+            bindViewCheckbox(chkShot, '__viewShot__');
+            bindViewCheckbox(chkResponder, '__viewResponder__');
+            bindViewCheckbox(chkCenter, '__viewCenter__');
+        })();
+    </script>
+</body>
+</html>
+
