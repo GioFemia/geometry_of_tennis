@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Geometry of Tennis</title>
+    <title>Geometry Tennis</title>
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -316,6 +316,47 @@
             color: #ffffff;
             font-family: 'Courier New', monospace;
         }
+        
+        .svg-wrap.secondary { 
+            position: relative; 
+        }
+        
+        .court-lock-overlay { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            width: 100%; 
+            height: 100%; 
+            background: rgba(255,255,255,0.75); 
+            display: none; 
+            align-items: center; 
+            justify-content: center; 
+            border-radius: 20px; 
+            z-index: 15; 
+            pointer-events: none; 
+        }
+        
+        .court-lock-overlay.active { 
+            display: flex; 
+        }
+        
+        .lock-icon-wrapper { 
+            background: #ffffff; 
+            border-radius: 50%; 
+            width: 80px; 
+            height: 80px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3); 
+        }
+        
+        .lock-icon { 
+            width: 40px; 
+            height: 40px; 
+            fill: #263238; 
+        }
     </style>
 </head>
 <body>
@@ -385,7 +426,7 @@
                 <div class="control-options">
                     <label class="control-option" for="view_player">
                         <input id="view_player" type="checkbox" checked />
-                        <span>Giocatore</span>
+                        <span>Colpitore</span>
                     </label>
                     <label class="control-option" for="view_shot">
                         <input id="view_shot" type="checkbox" checked />
@@ -393,7 +434,7 @@
                     </label>
                     <label class="control-option" for="view_responder">
                         <input id="view_responder" type="checkbox" checked />
-                        <span>Risponditore</span>
+                        <span>Ricevitore</span>
                     </label>
                     <label class="control-option" for="view_center">
                         <input id="view_center" type="checkbox" checked />
@@ -448,6 +489,13 @@
             <div class="svg-wrap secondary">
                 <!-- Campo secondario generato in JS -->
             </div>
+            <div id="courtLockOverlay" class="court-lock-overlay">
+                <div class="lock-icon-wrapper">
+                    <svg class="lock-icon" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill="currentColor" d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+                    </svg>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -472,6 +520,7 @@
             const tooltip = document.getElementById('coordinateTooltip');
             const fieldBCoords = document.getElementById('fieldB-coords');
             const fieldACoords = document.getElementById('fieldA-coords');
+            const courtLockOverlay = document.getElementById('courtLockOverlay');
 
             const COURT_X_MIN = 146;
             const COURT_X_MAX = 454;
@@ -995,6 +1044,17 @@
                 updateThemeColorsRight();
             }
 
+            function updateSecondaryCourtLock() {
+                if (!courtLockOverlay) return;
+                // Blocca il campo destro se uno dei 3 elementi critici è deselezionato
+                const allUnlocked = window.__viewPlayer__ && window.__viewShot__ && window.__viewResponder__;
+                if (allUnlocked) {
+                    courtLockOverlay.classList.remove('active');
+                } else {
+                    courtLockOverlay.classList.add('active');
+                }
+            }
+
             function computePassYTargetsBase(dotX, dotY) {
                 const xA = dotX - ORIGIN_X;
                 const yA = ORIGIN_BOTTOM_Y - dotY;
@@ -1142,6 +1202,7 @@
                         }
                     }
                 }
+                updateSecondaryCourtLock();
                 updateSecondaryFromLeft();
             }
 
@@ -1228,6 +1289,7 @@
                 if (bisectorLine) bisectorLine.style.display = (window.__viewCenter__ === false) ? 'none' : '';
                 if (hMeasure) hMeasure.style.display = (window.__viewResponder__ === false) ? 'none' : '';
                 if (arrowHtml) arrowHtml.style.display = (window.__viewResponder__ === false) ? 'none' : 'block';
+                updateSecondaryCourtLock();
                 updateSecondaryFromLeft();
             }
 
@@ -1289,6 +1351,7 @@
                 yellowLine.setAttribute('y1', String(dotY));
                 yellowLine.setAttribute('x2', String(clampedX));
                 yellowLine.setAttribute('y2', String(currentMeasureY));
+                updateSecondaryCourtLock();
                 updateSecondaryFromLeft();
             }
             function onYellowPointerUp(evt) {
