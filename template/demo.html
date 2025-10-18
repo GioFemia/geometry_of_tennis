@@ -353,6 +353,10 @@
                         <input id="tipo_att" type="radio" name="tipologia" value="attacco" />
                         <span>Attacco</span>
                     </label>
+                    <label class="control-option" for="tipo_ser">
+                        <input id="tipo_ser" type="radio" name="tipologia" value="servizio" />
+                        <span>Servizio</span>
+                    </label>
                 </div>
             </div>
             
@@ -503,6 +507,7 @@
             window.__shotTypeIsPassante__ = false;
             window.__shotType2IsPassante__ = false;
             window.__leftForceRed__ = false; // in modalità attacco: rosso solo come colore, non come logica
+            window.__shotTypeIsServizio__ = false;
             window.__viewPlayer__ = true;
             window.__viewShot__ = true;
             window.__viewResponder__ = true;
@@ -652,8 +657,18 @@
                     if (hMeasure) hMeasure.style.display = 'none';
                     return;
                 }
-                const xLeft = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, yH);
-                const xRight = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, yH);
+                
+                let xLeft, xRight;
+                if (window.__shotTypeIsServizio__) {
+                    // Servizio mode: use the actual target points
+                    xLeft = computeIntersectionX(dotX, dotY, targets.left.x, targets.left.y, yH);
+                    xRight = computeIntersectionX(dotX, dotY, targets.right.x, targets.right.y, yH);
+                } else {
+                    // Normal mode: use LEFT_X_SVG and RIGHT_X_SVG
+                    xLeft = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, yH);
+                    xRight = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, yH);
+                }
+                
                 const x1 = Math.min(xLeft, xRight);
                 const x2 = Math.max(xLeft, xRight);
                 hMeasure.setAttribute('x1', String(x1));
@@ -812,6 +827,66 @@
                 window.__currentCourtType__ = courtType;
             }
 
+            function computeServizioTargets(dotX, dotY) {
+                if (isPlayer) {
+                    // Tu mode: dot is in Campo A, targets are in Campo B
+                    const fieldA = calculateFieldACoordinates(dotX, dotY);
+                    const xA = fieldA.x;
+                    
+                    let leftTarget, rightTarget;
+                    if (xA >= 0) { // X = 0 treated as positive in Tu mode
+                        // X positive or zero in Campo A: left line passes through (-115, 220), right line through (0, 168)
+                        leftTarget = { x: FIELD_B_ORIGIN_X - 115, y: FIELD_B_ORIGIN_Y + 220 };
+                        rightTarget = { x: FIELD_B_ORIGIN_X, y: FIELD_B_ORIGIN_Y + 168 };
+                    } else {
+                        // X negative in Campo A: left line passes through (0, 168), right line through (115, 220)
+                        leftTarget = { x: FIELD_B_ORIGIN_X, y: FIELD_B_ORIGIN_Y + 168 };
+                        rightTarget = { x: FIELD_B_ORIGIN_X + 115, y: FIELD_B_ORIGIN_Y + 220 };
+                    }
+                    
+                    // Extend lines to field boundaries
+                    const leftEndY = END_Y_TOP; // Top of the field
+                    const rightEndY = END_Y_TOP;
+                    
+                    // Calculate intersection with top boundary
+                    const leftEndX = computeIntersectionX(dotX, dotY, leftTarget.x, leftTarget.y, leftEndY);
+                    const rightEndX = computeIntersectionX(dotX, dotY, rightTarget.x, rightTarget.y, rightEndY);
+                    
+                    return {
+                        left: { x: leftEndX, y: leftEndY },
+                        right: { x: rightEndX, y: rightEndY }
+                    };
+                } else {
+                    // Avversario mode: dot is in Campo B, targets are in Campo A
+                    const fieldB = calculateFieldBCoordinates(dotX, dotY);
+                    const xB = fieldB.x;
+                    
+                    let leftTarget, rightTarget;
+                    if (xB < 0) {
+                        // X negative in Campo B: left line passes through (115, 220), right line through (0, 168)
+                        leftTarget = { x: FIELD_A_ORIGIN_X + 115, y: FIELD_A_ORIGIN_Y - 220 };
+                        rightTarget = { x: FIELD_A_ORIGIN_X, y: FIELD_A_ORIGIN_Y - 168 };
+                    } else {
+                        // X positive in Campo B: left line passes through (0, 168), right line through (-115, 220)
+                        leftTarget = { x: FIELD_A_ORIGIN_X, y: FIELD_A_ORIGIN_Y - 168 };
+                        rightTarget = { x: FIELD_A_ORIGIN_X - 115, y: FIELD_A_ORIGIN_Y - 220 };
+                    }
+                    
+                    // Extend lines to field boundaries
+                    const leftEndY = END_Y_BOTTOM; // Bottom of the field
+                    const rightEndY = END_Y_BOTTOM;
+                    
+                    // Calculate intersection with bottom boundary
+                    const leftEndX = computeIntersectionX(dotX, dotY, leftTarget.x, leftTarget.y, leftEndY);
+                    const rightEndX = computeIntersectionX(dotX, dotY, rightTarget.x, rightTarget.y, rightEndY);
+                    
+                    return {
+                        left: { x: leftEndX, y: leftEndY },
+                        right: { x: rightEndX, y: rightEndY }
+                    };
+                }
+            }
+
             function computePassYTargetsBaseRight(dotX, dotY) {
                 const xA = dotX - ORIGIN_X;
                 const yA = ORIGIN_BOTTOM_Y - dotY;
@@ -864,17 +939,33 @@
                 const leftDotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
                 const leftDotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
                 const isPlayerRight = !isPlayer;
+
+                // Always use normal mode logic for secondary court
                 const endYSvgR = isPlayerRight ? END_Y_TOP : END_Y_BOTTOM;
 
                 const leftTargets = computePassYTargets(leftDotX, leftDotY);
-                const xLeftAtY = computeIntersectionX(leftDotX, leftDotY, LEFT_X_SVG, leftTargets.left, currentMeasureY);
-                const xRightAtY = computeIntersectionX(leftDotX, leftDotY, RIGHT_X_SVG, leftTargets.right, currentMeasureY);
+                
+                let xLeftAtY, xRightAtY;
+                if (window.__shotTypeIsServizio__) {
+                    // Servizio mode: use the actual target points for intersection calculation
+                    xLeftAtY = computeIntersectionX(leftDotX, leftDotY, leftTargets.left.x, leftTargets.left.y, currentMeasureY);
+                    xRightAtY = computeIntersectionX(leftDotX, leftDotY, leftTargets.right.x, leftTargets.right.y, currentMeasureY);
+                } else {
+                    // Normal mode: use LEFT_X_SVG and RIGHT_X_SVG
+                    xLeftAtY = computeIntersectionX(leftDotX, leftDotY, LEFT_X_SVG, leftTargets.left, currentMeasureY);
+                    xRightAtY = computeIntersectionX(leftDotX, leftDotY, RIGHT_X_SVG, leftTargets.right, currentMeasureY);
+                }
+                
                 const minXAtY = Math.min(xLeftAtY, xRightAtY);
                 const maxXAtY = Math.max(xLeftAtY, xRightAtY);
                 let xIntersect;
                 if (yellowEndX == null) {
                     const bisTargetLeft = (leftTargets.left + leftTargets.right) / 2;
-                    xIntersect = computeBisectorXAtY(leftDotX, leftDotY, bisTargetLeft, currentMeasureY);
+                    if (window.__shotTypeIsServizio__) {
+                        xIntersect = computeIntersectionX(leftDotX, leftDotY, bisTargetLeft.x, bisTargetLeft.y, currentMeasureY);
+                    } else {
+                        xIntersect = computeBisectorXAtY(leftDotX, leftDotY, bisTargetLeft, currentMeasureY);
+                    }
                 } else {
                     xIntersect = computeIntersectionX(leftDotX, leftDotY, yellowEndX, currentMeasureY, currentMeasureY);
                 }
@@ -932,6 +1023,9 @@
             }
 
             function computePassYTargets(dotX, dotY) {
+                if (window.__shotTypeIsServizio__) {
+                    return computeServizioTargets(dotX, dotY);
+                }
                 if (isPlayer) {
                     return computePassYTargetsBase(dotX, dotY);
                 }
@@ -943,35 +1037,109 @@
 
             function updateLinesAndWedge(dotX, dotY) {
                 const targets = computePassYTargets(dotX, dotY);
-                const endYSvg = isPlayer ? END_Y_TOP : END_Y_BOTTOM;
-                const leftEndX = setLineToYEnd(leftLine, dotX, dotY, LEFT_X_SVG, targets.left, endYSvg);
-                const rightEndX = setLineToYEnd(rightLine, dotX, dotY, RIGHT_X_SVG, targets.right, endYSvg);
-                const bisectorTarget = (targets.left + targets.right) / 2;
-                setBisectorToYEnd(bisectorLine, dotX, dotY, bisectorTarget, endYSvg);
-                if (bisectorLine) bisectorLine.style.display = (window.__viewCenter__ === false) ? 'none' : '';
-                if (wedge) {
-                    wedge.setAttribute('points', `${dotX},${dotY} ${leftEndX},${endYSvg} ${rightEndX},${endYSvg}`);
-                }
-                updateHorizontalMeasure(dotX, dotY, targets, currentMeasureY);
-                updateArrowHtmlPosition();
+                
+                if (window.__shotTypeIsServizio__) {
+                    // Servizio mode: use specific target points
+                    const leftEndX = targets.left.x;
+                    const rightEndX = targets.right.x;
+                    const leftEndY = targets.left.y;
+                    const rightEndY = targets.right.y;
+                    
+                    // Set left line
+                    if (leftLine) {
+                        leftLine.setAttribute('x1', String(dotX));
+                        leftLine.setAttribute('y1', String(dotY));
+                        leftLine.setAttribute('x2', String(leftEndX));
+                        leftLine.setAttribute('y2', String(leftEndY));
+                    }
+                    
+                    // Set right line
+                    if (rightLine) {
+                        rightLine.setAttribute('x1', String(dotX));
+                        rightLine.setAttribute('y1', String(dotY));
+                        rightLine.setAttribute('x2', String(rightEndX));
+                        rightLine.setAttribute('y2', String(rightEndY));
+                    }
+                    
+                    // Set bisector line
+                    const bisectorX = (leftEndX + rightEndX) / 2;
+                    const bisectorY = (leftEndY + rightEndY) / 2;
+                    if (bisectorLine) {
+                        bisectorLine.setAttribute('x1', String(dotX));
+                        bisectorLine.setAttribute('y1', String(dotY));
+                        bisectorLine.setAttribute('x2', String(bisectorX));
+                        bisectorLine.setAttribute('y2', String(bisectorY));
+                        bisectorLine.style.display = (window.__viewCenter__ === false) ? 'none' : '';
+                    }
+                    
+                    // Set wedge
+                    if (wedge) {
+                        wedge.setAttribute('points', `${dotX},${dotY} ${leftEndX},${leftEndY} ${rightEndX},${rightEndY}`);
+                    }
+                    
+                    // Show horizontal measure and arrow in Servizio mode
+                    updateHorizontalMeasure(dotX, dotY, targets, currentMeasureY);
+                    updateArrowHtmlPosition();
+                    
+                    // Show yellow line in Servizio mode
+                    if (yellowLine) {
+                        yellowLine.style.display = (window.__viewShot__ === false) ? 'none' : '';
+                        yellowLine.setAttribute('x1', String(dotX));
+                        yellowLine.setAttribute('y1', String(dotY));
+                        
+                        // Calculate intersection points with the blue lines at the measure height
+                        const xLeftAtH = computeIntersectionX(dotX, dotY, leftEndX, leftEndY, currentMeasureY);
+                        const xRightAtH = computeIntersectionX(dotX, dotY, rightEndX, rightEndY, currentMeasureY);
+                        const minXAtH = Math.min(xLeftAtH, xRightAtH);
+                        const maxXAtH = Math.max(xLeftAtH, xRightAtH);
+                        
+                        if (yellowEndX == null) {
+                            // Position yellow line at the bisector of the blue lines
+                            const bisectorX = (leftEndX + rightEndX) / 2;
+                            const bisectorY = (leftEndY + rightEndY) / 2;
+                            const xOnBis = computeIntersectionX(dotX, dotY, bisectorX, bisectorY, currentMeasureY);
+                            const clamped = Math.max(minXAtH, Math.min(maxXAtH, xOnBis));
+                            yellowLine.setAttribute('x2', String(clamped));
+                            yellowLine.setAttribute('y2', String(currentMeasureY));
+                        } else {
+                            // Clamp yellow line within the blue lines
+                            const clamped = Math.max(minXAtH, Math.min(maxXAtH, yellowEndX));
+                            yellowLine.setAttribute('x2', String(clamped));
+                            yellowLine.setAttribute('y2', String(currentMeasureY));
+                        }
+                    }
+                } else {
+                    // Normal mode
+                    const endYSvg = isPlayer ? END_Y_TOP : END_Y_BOTTOM;
+                    const leftEndX = setLineToYEnd(leftLine, dotX, dotY, LEFT_X_SVG, targets.left, endYSvg);
+                    const rightEndX = setLineToYEnd(rightLine, dotX, dotY, RIGHT_X_SVG, targets.right, endYSvg);
+                    const bisectorTarget = (targets.left + targets.right) / 2;
+                    setBisectorToYEnd(bisectorLine, dotX, dotY, bisectorTarget, endYSvg);
+                    if (bisectorLine) bisectorLine.style.display = (window.__viewCenter__ === false) ? 'none' : '';
+                    if (wedge) {
+                        wedge.setAttribute('points', `${dotX},${dotY} ${leftEndX},${endYSvg} ${rightEndX},${endYSvg}`);
+                    }
+                    updateHorizontalMeasure(dotX, dotY, targets, currentMeasureY);
+                    updateArrowHtmlPosition();
 
-                if (yellowLine) {
-                    yellowLine.style.display = (window.__viewShot__ === false) ? 'none' : '';
-                    yellowLine.setAttribute('x1', String(dotX));
-                    yellowLine.setAttribute('y1', String(dotY));
-                    const xLeftAtH = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, currentMeasureY);
-                    const xRightAtH = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, currentMeasureY);
-                    const minXAtH = Math.min(xLeftAtH, xRightAtH);
-                    const maxXAtH = Math.max(xLeftAtH, xRightAtH);
-                    if (yellowEndX == null) {
-                        const xOnBis = computeBisectorXAtY(dotX, dotY, bisectorTarget, currentMeasureY);
-                        const clamped = Math.max(minXAtH, Math.min(maxXAtH, xOnBis));
-                        yellowLine.setAttribute('x2', String(clamped));
-                        yellowLine.setAttribute('y2', String(currentMeasureY));
-                    } else {
-                        const clamped = Math.max(minXAtH, Math.min(maxXAtH, yellowEndX));
-                        yellowLine.setAttribute('x2', String(clamped));
-                        yellowLine.setAttribute('y2', String(currentMeasureY));
+                    if (yellowLine) {
+                        yellowLine.style.display = (window.__viewShot__ === false) ? 'none' : '';
+                        yellowLine.setAttribute('x1', String(dotX));
+                        yellowLine.setAttribute('y1', String(dotY));
+                        const xLeftAtH = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, currentMeasureY);
+                        const xRightAtH = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, currentMeasureY);
+                        const minXAtH = Math.min(xLeftAtH, xRightAtH);
+                        const maxXAtH = Math.max(xLeftAtH, xRightAtH);
+                        if (yellowEndX == null) {
+                            const xOnBis = computeBisectorXAtY(dotX, dotY, bisectorTarget, currentMeasureY);
+                            const clamped = Math.max(minXAtH, Math.min(maxXAtH, xOnBis));
+                            yellowLine.setAttribute('x2', String(clamped));
+                            yellowLine.setAttribute('y2', String(currentMeasureY));
+                        } else {
+                            const clamped = Math.max(minXAtH, Math.min(maxXAtH, yellowEndX));
+                            yellowLine.setAttribute('x2', String(clamped));
+                            yellowLine.setAttribute('y2', String(currentMeasureY));
+                        }
                     }
                 }
                 updateSecondaryFromLeft();
@@ -1016,13 +1184,29 @@
             function onDotPointerMove(evt) {
                 if (!draggingDot) return;
                 const p = toSvgPoint(evt);
-                const clampedX = Math.max(SVG_X_MIN, Math.min(SVG_X_MAX, p.x));
+                let clampedX = Math.max(SVG_X_MIN, Math.min(SVG_X_MAX, p.x));
                 let clampedY = p.y;
-                if (isPlayer) {
-                    clampedY = Math.max(NET_Y + 1, Math.min(SVG_Y_MAX, p.y));
+                
+                // Servizio mode: restrict to horizontal line only
+                if (window.__shotTypeIsServizio__) {
+                    if (isPlayer) {
+                        // Campo A: y = 0 (ORIGIN_BOTTOM_Y = 822), x between -115 and 115
+                        clampedY = ORIGIN_BOTTOM_Y;
+                        clampedX = Math.max(ORIGIN_X - 115, Math.min(ORIGIN_X + 115, p.x));
+                    } else {
+                        // Campo B: y = 0 (ORIGIN_TOP_Y = 150), x between -115 and 115
+                        clampedY = ORIGIN_TOP_Y;
+                        clampedX = Math.max(ORIGIN_X - 115, Math.min(ORIGIN_X + 115, p.x));
+                    }
                 } else {
-                    clampedY = Math.max(SVG_Y_MIN, Math.min(NET_Y, p.y));
+                    // Normal mode constraints
+                    if (isPlayer) {
+                        clampedY = Math.max(NET_Y + 1, Math.min(SVG_Y_MAX, p.y));
+                    } else {
+                        clampedY = Math.max(SVG_Y_MIN, Math.min(NET_Y, p.y));
+                    }
                 }
+                
                 if (dot) {
                     dot.setAttribute('cx', String(clampedX));
                     dot.setAttribute('cy', String(clampedY));
@@ -1085,8 +1269,18 @@
                 const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
                 const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
                 const targets = computePassYTargets(dotX, dotY);
-                const xLeftAtH = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, currentMeasureY);
-                const xRightAtH = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, currentMeasureY);
+                
+                let xLeftAtH, xRightAtH;
+                if (window.__shotTypeIsServizio__) {
+                    // Servizio mode: use the actual target points
+                    xLeftAtH = computeIntersectionX(dotX, dotY, targets.left.x, targets.left.y, currentMeasureY);
+                    xRightAtH = computeIntersectionX(dotX, dotY, targets.right.x, targets.right.y, currentMeasureY);
+                } else {
+                    // Normal mode: use LEFT_X_SVG and RIGHT_X_SVG
+                    xLeftAtH = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, currentMeasureY);
+                    xRightAtH = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, currentMeasureY);
+                }
+                
                 const minXAtH = Math.min(xLeftAtH, xRightAtH);
                 const maxXAtH = Math.max(xLeftAtH, xRightAtH);
                 const clampedX = Math.max(minXAtH, Math.min(maxXAtH, p.x));
@@ -1179,6 +1373,7 @@
                         const val = e.target && e.target.value ? e.target.value : 'palleggio';
                         window.__shotTypeIsPassante__ = (val === 'passante');
                         window.__shotType2IsPassante__ = (val === 'passante');
+                        window.__shotTypeIsServizio__ = (val === 'servizio');
                         
                         // In modalità attacco: sinistra palleggio (logica blu), destra passante (logica rossa)
                         if (val === 'attacco') {
@@ -1187,6 +1382,15 @@
                             window.__leftForceRed__ = false; // sinistra rimane blu
                         } else {
                             window.__leftForceRed__ = false; // rimuovi override colore
+                        }
+                        
+                        // Servizio mode: position dot on horizontal line
+                        if (window.__shotTypeIsServizio__) {
+                            if (dot) {
+                                const originY = isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
+                                dot.setAttribute('cx', String(ORIGIN_X));
+                                dot.setAttribute('cy', String(originY));
+                            }
                         }
                         
                         if (window.__shotTypeIsPassante__) {
