@@ -240,18 +240,18 @@
         }
         
         .settings-title {
-            font-size: 18px;
-            font-weight: 800;
+            font-size: 14px;
+            font-weight: 600;
             color: #ffffff;
             text-align: center;
             text-transform: uppercase;
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            padding: 16px 12px;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            padding: 10px 8px;
             background: linear-gradient(135deg, #1976d2 0%, #42a5f5 50%, #1976d2 100%);
-            border-radius: 12px;
+            border-radius: 8px;
             border: none;
-            box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
             position: relative;
             overflow: hidden;
         }
@@ -461,6 +461,11 @@
                     <line x1="146" y1="150" x2="454" y2="150" stroke="#fff" stroke-width="5"/>
                     <line x1="146" y1="822" x2="454" y2="822" stroke="#fff" stroke-width="5"/>
                     <line x1="106" y1="486" x2="494" y2="486" stroke="#fff" stroke-width="10"/>
+                    <!-- Coordinate system indicators -->
+                    <!-- Campo B origin (300, 150) - top horizontal line center -->
+                    <line x1="300" y1="150" x2="300" y2="160" stroke="#fff" stroke-width="5"/>
+                    <!-- Campo A origin (300, 822) - bottom horizontal line center -->
+                    <line x1="300" y1="822" x2="300" y2="812" stroke="#fff" stroke-width="5"/>
                     <polygon id="wedgeFill" points="300,822 185,0 415,0" fill="#000" fill-opacity="0.15" />
                     <line id="leftLine" x1="300" y1="822" x2="185" y2="0" stroke="#1976d2" stroke-width="3" stroke-linecap="round" />
                     <line id="rightLine" x1="300" y1="822" x2="415" y2="0" stroke="#1976d2" stroke-width="3" stroke-linecap="round" />
@@ -770,7 +775,10 @@
                         ['line', { x1: '184', y1: '654', x2: '416', y2: '654', stroke: '#fff', 'stroke-width': '5' }],
                         ['line', { x1: '146', y1: '150', x2: '454', y2: '150', stroke: '#fff', 'stroke-width': '5' }],
                         ['line', { x1: '146', y1: '822', x2: '454', y2: '822', stroke: '#fff', 'stroke-width': '5' }],
-                        ['line', { x1: '106', y1: '486', x2: '494', y2: '486', stroke: '#fff', 'stroke-width': '10' }]
+                        ['line', { x1: '106', y1: '486', x2: '494', y2: '486', stroke: '#fff', 'stroke-width': '10' }],
+                        // Coordinate system indicators
+                        ['line', { x1: '300', y1: '150', x2: '300', y2: '160', stroke: '#fff', 'stroke-width': '5'}],
+                        ['line', { x1: '300', y1: '822', x2: '300', y2: '812', stroke: '#fff', 'stroke-width': '5'}]
                     ];
                     elems.forEach(([tag, attrs]) => {
                         const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
