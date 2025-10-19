@@ -450,6 +450,163 @@
             height: 40px; 
             fill: #263238; 
         }
+        
+        .dinamico-panel {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            padding: 20px;
+            background: #ffffff;
+            border-radius: 18px;
+            box-shadow: 0 4px 24px rgba(44, 62, 80, 0.13);
+            align-items: center;
+            justify-content: center;
+            align-self: center;
+        }
+        
+        .dinamico-panel.active {
+            display: flex;
+        }
+        
+        .panel-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0;
+            padding: 12px 10px;
+            background: linear-gradient(135deg, #1976d2 0%, #42a5f5 50%, #1976d2 100%);
+            border-radius: 8px;
+            border: none;
+            box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
+            width: 100%;
+        }
+        
+        .control-field {
+            display: flex;
+            flex-direction: row;
+            gap: 12px;
+            width: 100%;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .control-field label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #607d8b;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        
+        .control-field .numero-display {
+            background: #ffffff;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #1976d2;
+            text-align: center;
+            min-width: 40px;
+            box-sizing: border-box;
+        }
+        
+        .colpo-button {
+            background: linear-gradient(135deg, #42a5f5 0%, #64b5f6 50%, #42a5f5 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 16px 32px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 12px;
+        }
+        
+        .colpo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(66, 165, 245, 0.4);
+        }
+        
+        .colpo-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
+        }
+        
+        .colpo-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .nuovo-scambio-button {
+            background: linear-gradient(135deg, #42a5f5 0%, #64b5f6 50%, #42a5f5 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 16px 32px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 12px;
+        }
+        
+        .nuovo-scambio-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(66, 165, 245, 0.4);
+        }
+        
+        .nuovo-scambio-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
+        }
+        
+        .visualizza-scambio-button {
+            background: linear-gradient(135deg, #42a5f5 0%, #64b5f6 50%, #42a5f5 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 16px 32px;
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 12px;
+        }
+        
+        .visualizza-scambio-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(66, 165, 245, 0.4);
+        }
+        
+        .visualizza-scambio-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
+        }
+        
+        .visualizza-scambio-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
     </style>
 </head>
 <body>
@@ -655,6 +812,7 @@
                     <line id="yellowLine" x1="300" y1="822" x2="300" y2="0" stroke="#ffd600" stroke-width="4" stroke-linecap="round" opacity="0.9" style="cursor: ew-resize;" />
                     <line id="h-measure" x1="300" y1="100" x2="300" y2="100" stroke="#ff6f00" stroke-width="4" opacity="0.9" />
                     <circle id="cursorDot" cx="300" cy="822" r="12" fill="#ff5252" stroke="#fff" stroke-width="2" />
+                    <circle id="intersectionDot" cx="300" cy="100" r="8" fill="#ff5252" stroke="#fff" stroke-width="2" style="display: none;" />
                 </svg>
                 <div id="measureArrowHtml" class="arrow-container"><div class="arrow"></div></div>
                 <div id="coordinateTooltip" class="coordinate-tooltip">
@@ -683,6 +841,16 @@
                     </svg>
                 </div>
             </div>
+            <div id="dinamicoPanel" class="dinamico-panel">
+                <div class="panel-title">CONTROLLI DINAMICO</div>
+                <div class="control-field">
+                    <label>NUMERO COLPO:</label>
+                    <div id="numeroColpo" class="numero-display">1</div>
+                </div>
+                <button id="colpoButton" class="colpo-button">COLPO</button>
+                <button id="visualizzaScambioButton" class="visualizza-scambio-button">VISUALIZZA SCAMBIO</button>
+                <button id="nuovoScambioButton" class="nuovo-scambio-button">NUOVO SCAMBIO</button>
+            </div>
         </div>
     </div>
 
@@ -692,6 +860,7 @@
             if (!svg) return;
             
             const dot = document.getElementById('cursorDot');
+            const intersectionDot = document.getElementById('intersectionDot');
             const leftLine = document.getElementById('leftLine');
             const rightLine = document.getElementById('rightLine');
             const bisectorLine = document.getElementById('bisectorLine');
@@ -708,6 +877,11 @@
             const fieldBCoords = document.getElementById('fieldB-coords');
             const fieldACoords = document.getElementById('fieldA-coords');
             const courtLockOverlay = document.getElementById('courtLockOverlay');
+            const dinamicoPanel = document.getElementById('dinamicoPanel');
+            const numeroColpoInput = document.getElementById('numeroColpo');
+            const colpoButton = document.getElementById('colpoButton');
+            const visualizzaScambioButton = document.getElementById('visualizzaScambioButton');
+            const nuovoScambioButton = document.getElementById('nuovoScambioButton');
 
             const COURT_X_MIN = 146;
             const COURT_X_MAX = 454;
@@ -750,6 +924,20 @@
             window.__viewCenter__ = true;
             window.__viewCoordinates__ = false;
             window.__modalita__ = '2colpi';
+            window.__numeroColpo__ = 1;
+            
+            // Variabile per memorizzare il cerchietto del colpo precedente
+            let previousShotDot = null;
+            
+            // Variabile per memorizzare la tipologia prima del cambio automatico
+            let savedTipologiaBeforeServizio = 'palleggio';
+            
+            // Variabile per tracciare se il colpo precedente era attacco o passante
+            let previousShotWasAttacco = false;
+            let previousShotWasPassante = false;
+            
+            // Array per memorizzare tutte le sequenze di colpi per la visualizzazione
+            let shotSequence = [];
             
             const COURT_COLORS = {
                 cemento: { background: '#1565c0', court: '#42a5f5' },
@@ -1023,6 +1211,52 @@
                 secondary.style.display = 'block';
             }
 
+            function updateIntersectionDot() {
+                if (!intersectionDot) return;
+                
+                // Show intersection dot only in Dinamico mode
+                if (window.__modalita__ === 'dinamico') {
+                    intersectionDot.style.display = '';
+                    
+                    // Position at the intersection of yellow line and horizontal measure
+                    const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                    const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                    const targets = computePassYTargets(dotX, dotY);
+                    
+                    let xLeftAtH, xRightAtH;
+                    if (window.__shotTypeIsServizio__) {
+                        xLeftAtH = computeIntersectionX(dotX, dotY, targets.left.x, targets.left.y, currentMeasureY);
+                        xRightAtH = computeIntersectionX(dotX, dotY, targets.right.x, targets.right.y, currentMeasureY);
+                    } else {
+                        xLeftAtH = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, currentMeasureY);
+                        xRightAtH = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, currentMeasureY);
+                    }
+                    
+                    const minXAtH = Math.min(xLeftAtH, xRightAtH);
+                    const maxXAtH = Math.max(xLeftAtH, xRightAtH);
+                    
+                    let intersectionX;
+                    if (yellowEndX == null) {
+                        if (window.__shotTypeIsServizio__) {
+                            const bisectorX = (targets.left.x + targets.right.x) / 2;
+                            const bisectorY = (targets.left.y + targets.right.y) / 2;
+                            intersectionX = computeIntersectionX(dotX, dotY, bisectorX, bisectorY, currentMeasureY);
+                        } else {
+                            const bisectorTarget = (targets.left + targets.right) / 2;
+                            intersectionX = computeBisectorXAtY(dotX, dotY, bisectorTarget, currentMeasureY);
+                        }
+                    } else {
+                        intersectionX = yellowEndX;
+                    }
+                    
+                    const clampedX = Math.max(minXAtH, Math.min(maxXAtH, intersectionX));
+                    intersectionDot.setAttribute('cx', String(clampedX));
+                    intersectionDot.setAttribute('cy', String(currentMeasureY));
+                } else {
+                    intersectionDot.style.display = 'none';
+                }
+            }
+
             function updateThemeColors() {
                 const color = window.__shotTypeIsPassante__ ? COLOR_PASSANTE : COLOR_PALLEGGIO;
                 if (hMeasure) hMeasure.setAttribute('stroke', color);
@@ -1237,12 +1471,45 @@
 
             function updateSecondaryCourtLock() {
                 if (!courtLockOverlay) return;
+                
+                // Il lucchetto viene gestito solo nella modalità 2 colpi
+                if (window.__modalita__ !== '2colpi') {
+                    courtLockOverlay.style.display = 'none';
+                    courtLockOverlay.classList.remove('active');
+                    return;
+                }
+                
                 // Blocca il campo destro se uno dei 3 elementi critici è deselezionato
                 const allUnlocked = window.__viewPlayer__ && window.__viewShot__ && window.__viewResponder__;
+                
                 if (allUnlocked) {
+                    // Tutti gli elementi sono presenti: nascondi completamente il lucchetto
                     courtLockOverlay.classList.remove('active');
+                    courtLockOverlay.style.display = 'none';
                 } else {
+                    // Manca almeno un elemento: mostra il lucchetto attivo
                     courtLockOverlay.classList.add('active');
+                    courtLockOverlay.style.display = 'flex';
+                }
+            }
+
+            function updateDinamicoPanel() {
+                if (!dinamicoPanel) return;
+                
+                const secondaryCourt = document.querySelector('.svg-wrap.secondary');
+                
+                if (window.__modalita__ === 'dinamico') {
+                    // Modalità Dinamico: mostra il pannello, nascondi il campo secondario
+                    dinamicoPanel.classList.add('active');
+                    if (secondaryCourt) secondaryCourt.style.display = 'none';
+                    if (courtLockOverlay) courtLockOverlay.style.display = 'none';
+                } else {
+                    // Altre modalità: nascondi il pannello, mostra il campo secondario (se in modalità 2colpi)
+                    dinamicoPanel.classList.remove('active');
+                    if (secondaryCourt) {
+                        secondaryCourt.style.display = (window.__modalita__ === '2colpi') ? 'block' : 'none';
+                    }
+                    // Non forzare la visibilità del courtLockOverlay qui - verrà gestita da updateSecondaryCourtLock()
                 }
             }
 
@@ -1395,6 +1662,7 @@
                 }
                 updateSecondaryCourtLock();
                 updateSecondaryFromLeft();
+                updateIntersectionDot();
             }
 
             function toSvgPoint(evt) {
@@ -1482,6 +1750,7 @@
                 if (arrowHtml) arrowHtml.style.display = (window.__viewResponder__ === false) ? 'none' : 'block';
                 updateSecondaryCourtLock();
                 updateSecondaryFromLeft();
+                updateIntersectionDot();
             }
 
             (function initGraphics() {
@@ -1491,7 +1760,9 @@
                 updateThemeColors();
                 updateLinesAndWedge(dotX, dotY);
                 setupSecondaryCourt();
+                updateDinamicoPanel();
                 applyViewToggles();
+                updateTipologiaAvailability();
             })();
 
             svg.addEventListener('mousemove', onMove, { passive: true });
@@ -1544,6 +1815,7 @@
                 yellowLine.setAttribute('y2', String(currentMeasureY));
                 updateSecondaryCourtLock();
                 updateSecondaryFromLeft();
+                updateIntersectionDot();
             }
             function onYellowPointerUp(evt) {
                 if (!yellowLine) return;
@@ -1693,14 +1965,23 @@
                             // Two shots mode - show both courts
                             document.querySelector('.court-container:last-of-type').style.display = 'flex';
                         } else if (val === 'dinamico') {
-                            // Dynamic mode - show both courts with enhanced interaction
+                            // Dynamic mode - show panel in right container
                             document.querySelector('.court-container:last-of-type').style.display = 'flex';
                         }
                         
                         // Update the display
+                        updateDinamicoPanel();
+                        updateSecondaryCourtLock();
+                        
+                        // Reset previousShotWasAttacco e previousShotWasPassante quando si cambia modalità
+                        previousShotWasAttacco = false;
+                        previousShotWasPassante = false;
+                        
+                        updateTipologiaAvailability();
                         const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
                         const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
                         updateLinesAndWedge(dotX, dotY);
+                        updateIntersectionDot();
                     });
                 });
             }
@@ -1844,6 +2125,512 @@
             
             // Initialize default settings
             initDefaultSettings();
+
+            // Numero Colpo display - non modificabile dall'utente
+            // Funzione helper per aggiornare il display del numero colpo
+            function updateNumeroColpoDisplay() {
+            if (numeroColpoInput) {
+                    numeroColpoInput.textContent = window.__numeroColpo__;
+                }
+            }
+            
+            // Funzione per gestire l'abilitazione/disabilitazione delle opzioni di tipologia
+            function updateTipologiaAvailability() {
+                const servizioRadio = document.getElementById('tipo_ser');
+                const servizioLabel = servizioRadio ? servizioRadio.closest('.control-option') : null;
+                
+                const palleggioRadio = document.getElementById('tipo_pal');
+                const palleggioLabel = palleggioRadio ? palleggioRadio.closest('.control-option') : null;
+                
+                const passanteRadio = document.getElementById('tipo_pas');
+                const passanteLabel = passanteRadio ? passanteRadio.closest('.control-option') : null;
+                
+                const attaccoRadio = document.getElementById('tipo_att');
+                const attaccoLabel = attaccoRadio ? attaccoRadio.closest('.control-option') : null;
+                
+                if (window.__modalita__ === 'dinamico') {
+                    // In modalità dinamico
+                    
+                    // Servizio: solo per colpo 1
+                    if (window.__numeroColpo__ > 1) {
+                        if (servizioRadio) {
+                            servizioRadio.disabled = true;
+                            if (servizioLabel) servizioLabel.style.opacity = '0.5';
+                        }
+                    } else {
+                        if (servizioRadio) {
+                            servizioRadio.disabled = false;
+                            if (servizioLabel) servizioLabel.style.opacity = '1';
+                        }
+                    }
+                    
+                    // Se il colpo precedente era attacco, forza passante e disabilita le altre
+                    if (previousShotWasAttacco) {
+                        // Disabilita palleggio, attacco, servizio
+                        if (palleggioRadio) {
+                            palleggioRadio.disabled = true;
+                            if (palleggioLabel) palleggioLabel.style.opacity = '0.5';
+                        }
+                        if (attaccoRadio) {
+                            attaccoRadio.disabled = true;
+                            if (attaccoLabel) attaccoLabel.style.opacity = '0.5';
+                        }
+                        if (servizioRadio) {
+                            servizioRadio.disabled = true;
+                            if (servizioLabel) servizioLabel.style.opacity = '0.5';
+                        }
+                        // Passante rimane abilitato (è l'unica opzione)
+                        if (passanteRadio) {
+                            passanteRadio.disabled = false;
+                            if (passanteLabel) passanteLabel.style.opacity = '1';
+                        }
+                    } else {
+                        // Abilita tutte le opzioni (tranne servizio se colpo > 1)
+                        if (palleggioRadio) {
+                            palleggioRadio.disabled = false;
+                            if (palleggioLabel) palleggioLabel.style.opacity = '1';
+                        }
+                        if (passanteRadio) {
+                            passanteRadio.disabled = false;
+                            if (passanteLabel) passanteLabel.style.opacity = '1';
+                        }
+                        if (attaccoRadio) {
+                            attaccoRadio.disabled = false;
+                            if (attaccoLabel) attaccoLabel.style.opacity = '1';
+                        }
+                    }
+                } else {
+                    // Non in modalità dinamico: abilita tutto
+                    if (servizioRadio) {
+                        servizioRadio.disabled = false;
+                        if (servizioLabel) servizioLabel.style.opacity = '1';
+                    }
+                    if (palleggioRadio) {
+                        palleggioRadio.disabled = false;
+                        if (palleggioLabel) palleggioLabel.style.opacity = '1';
+                    }
+                    if (passanteRadio) {
+                        passanteRadio.disabled = false;
+                        if (passanteLabel) passanteLabel.style.opacity = '1';
+                    }
+                    if (attaccoRadio) {
+                        attaccoRadio.disabled = false;
+                        if (attaccoLabel) attaccoLabel.style.opacity = '1';
+                    }
+                }
+            }
+            
+            // Mantieni la vecchia funzione per retrocompatibilità
+            function updateServizioAvailability() {
+                updateTipologiaAvailability();
+            }
+            
+            // Funzione per creare un cerchietto rosso per il colpo precedente
+            function createPreviousShotDot(x, y) {
+                // Rimuovi il cerchietto precedente se esiste
+                if (previousShotDot && previousShotDot.parentNode) {
+                    previousShotDot.parentNode.removeChild(previousShotDot);
+                }
+                
+                // Crea il nuovo cerchietto
+                const newDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                newDot.setAttribute('class', 'previous-shot-dot');
+                newDot.setAttribute('cx', String(x));
+                newDot.setAttribute('cy', String(y));
+                newDot.setAttribute('r', '12'); // Stesso raggio del cerchietto rosso grande
+                newDot.setAttribute('fill', '#ff5252');
+                newDot.setAttribute('stroke', '#fff');
+                newDot.setAttribute('stroke-width', '2');
+                newDot.setAttribute('opacity', '0.6'); // Leggermente trasparente per distinguerlo
+                svg.appendChild(newDot);
+                
+                // Salva il riferimento
+                previousShotDot = newDot;
+                return newDot;
+            }
+            
+            // Inizializza il display
+            updateNumeroColpoDisplay();
+
+            // Gestione pulsante NUOVO SCAMBIO
+            if (nuovoScambioButton) {
+                nuovoScambioButton.addEventListener('click', function() {
+                    // 1. Reset NUMERO COLPO a 1
+                    window.__numeroColpo__ = 1;
+                    updateNumeroColpoDisplay();
+                    
+                    // 2. Reset colpitore al default (o al valore di default salvato)
+                    const defaultColpitore = localStorage.getItem('default_colpitore') || 'tuo';
+                    isPlayer = (defaultColpitore === 'tuo');
+                    
+                    // Aggiorna il radio button del colpitore
+                    const colpitoreRadio = document.querySelector(`input[name="colpitore"][value="${defaultColpitore}"]`);
+                    if (colpitoreRadio) {
+                        colpitoreRadio.checked = true;
+                    }
+                    
+                    // 3. Reset posizione dot all'origine
+                    const originY = isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
+                    if (dot) {
+                        dot.setAttribute('cx', String(ORIGIN_X));
+                        dot.setAttribute('cy', String(originY));
+                    }
+                    
+                    // 4. Reset currentMeasureY al valore di default
+                    const defaultYCampoB = ORIGIN_TOP_Y - 50;
+                    currentMeasureY = isPlayer ? defaultYCampoB : (2 * NET_Y - defaultYCampoB);
+                    updateArrowHtmlPosition();
+                    
+                    // 5. Reset yellowEndX
+                    yellowEndX = null;
+                    
+                    // 6. Rimuovi il cerchietto del colpo precedente
+                    if (previousShotDot && previousShotDot.parentNode) {
+                        previousShotDot.parentNode.removeChild(previousShotDot);
+                        previousShotDot = null;
+                    }
+                    
+                    // 7. Reset previousShotWasAttacco e previousShotWasPassante
+                    previousShotWasAttacco = false;
+                    previousShotWasPassante = false;
+                    
+                    // 8. Reset shotSequence
+                    shotSequence = [];
+                    
+                    // 9. Riabilita le opzioni di tipologia (se in modalità dinamico)
+                    updateTipologiaAvailability();
+                    
+                    // 10. Ricalcola tutto
+                    updateLinesAndWedge(ORIGIN_X, originY);
+                    applyViewToggles();
+                });
+            }
+            
+            // Gestione pulsante VISUALIZZA SCAMBIO
+            if (visualizzaScambioButton) {
+                visualizzaScambioButton.addEventListener('click', function() {
+                    // Se non ci sono colpi da visualizzare, non fare nulla
+                    if (shotSequence.length === 0) return;
+                    
+                    // Disabilita tutti i pulsanti durante la visualizzazione
+                    if (colpoButton) colpoButton.disabled = true;
+                    if (visualizzaScambioButton) visualizzaScambioButton.disabled = true;
+                    if (nuovoScambioButton) nuovoScambioButton.disabled = true;
+                    
+                    // Nascondi tutti gli elementi tranne i cerchietti rossi
+                    const elementsToHide = [
+                        leftLine, rightLine, bisectorLine, yellowLine, 
+                        wedge, hMeasure, arrowHtml, dot, intersectionDot
+                    ];
+                    elementsToHide.forEach(el => {
+                        if (el) el.style.display = 'none';
+                    });
+                    
+                    // Nascondi il cerchietto del colpo precedente se esiste
+                    if (previousShotDot) previousShotDot.style.display = 'none';
+                    
+                    // Array per memorizzare i cerchietti rossi creati durante la visualizzazione
+                    const replayShotDots = [];
+                    
+                    // Funzione per animare un singolo colpo
+                    function animateShot(index) {
+                        if (index >= shotSequence.length) {
+                            // Animazione completata
+                            setTimeout(() => {
+                                // Rimuovi tutti i cerchietti rossi creati durante la visualizzazione
+                                replayShotDots.forEach(dotEl => {
+                                    if (dotEl && dotEl.parentNode) {
+                                        dotEl.parentNode.removeChild(dotEl);
+                                    }
+                                });
+                                
+                                // Ripristina gli elementi nascosti
+                                elementsToHide.forEach(el => {
+                                    if (el) {
+                                        if (el === arrowHtml) {
+                                            el.style.display = (window.__viewResponder__ === false) ? 'none' : 'block';
+                                        } else {
+                                            el.style.display = '';
+                                        }
+                                    }
+                                });
+                                
+                                // Ripristina il cerchietto del colpo precedente
+                                if (previousShotDot) previousShotDot.style.display = '';
+                                
+                                // Riapplica i toggle di visibilità
+                                applyViewToggles();
+                                
+                                // Ricalcola le linee
+                                const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                                const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                                updateLinesAndWedge(dotX, dotY);
+                                
+                                // Riabilita i pulsanti
+                                if (colpoButton) colpoButton.disabled = false;
+                                if (visualizzaScambioButton) visualizzaScambioButton.disabled = false;
+                                if (nuovoScambioButton) nuovoScambioButton.disabled = false;
+                            }, 500);
+                            return;
+                        }
+                        
+                        const shot = shotSequence[index];
+                        
+                        // Crea un cerchietto rosso nella posizione di partenza
+                        const startDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        startDot.setAttribute('cx', String(shot.startX));
+                        startDot.setAttribute('cy', String(shot.startY));
+                        startDot.setAttribute('r', '12');
+                        startDot.setAttribute('fill', '#ff5252');
+                        startDot.setAttribute('stroke', '#fff');
+                        startDot.setAttribute('stroke-width', '2');
+                        svg.appendChild(startDot);
+                        replayShotDots.push(startDot);
+                        
+                        // Crea la pallina gialla
+                        const yellowDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        yellowDot.setAttribute('cx', String(shot.startX));
+                        yellowDot.setAttribute('cy', String(shot.startY));
+                        yellowDot.setAttribute('r', '8');
+                        yellowDot.setAttribute('fill', '#ffd600');
+                        yellowDot.setAttribute('stroke', '#fff');
+                        yellowDot.setAttribute('stroke-width', '2');
+                        svg.appendChild(yellowDot);
+                        
+                        // Animazione della pallina gialla
+                        const duration = 1200;
+                        const startTime = performance.now();
+                        
+                        function animate(currentTime) {
+                            const elapsed = currentTime - startTime;
+                            const progress = Math.min(elapsed / duration, 1);
+                            
+                            const currentX = shot.startX + (shot.endX - shot.startX) * progress;
+                            const currentY = shot.startY + (shot.endY - shot.startY) * progress;
+                            
+                            yellowDot.setAttribute('cx', String(currentX));
+                            yellowDot.setAttribute('cy', String(currentY));
+                            
+                            if (progress < 1) {
+                                requestAnimationFrame(animate);
+                            } else {
+                                // Rimuovi la pallina gialla
+                                if (yellowDot && yellowDot.parentNode) {
+                                    yellowDot.parentNode.removeChild(yellowDot);
+                                }
+                                
+                                // Passa al colpo successivo dopo una breve pausa
+                                setTimeout(() => {
+                                    animateShot(index + 1);
+                                }, 200);
+                            }
+                        }
+                        
+                        requestAnimationFrame(animate);
+                    }
+                    
+                    // Inizia l'animazione dal primo colpo
+                    animateShot(0);
+                });
+            }
+            
+            // Gestione pulsante COLPO
+            if (colpoButton) {
+                colpoButton.addEventListener('click', function() {
+                    // Disabilita il pulsante durante l'animazione
+                    colpoButton.disabled = true;
+                    
+                    // Ottieni le posizioni dei due cerchietti rossi
+                    const startX = parseFloat(dot.getAttribute('cx'));
+                    const startY = parseFloat(dot.getAttribute('cy'));
+                    const endX = parseFloat(intersectionDot.getAttribute('cx'));
+                    const endY = parseFloat(intersectionDot.getAttribute('cy'));
+                    
+                    // Salva lo stato corrente del colpitore e della tipologia
+                    const currentIsPlayer = isPlayer;
+                    const currentTipologia = document.querySelector('input[name="tipologia"]:checked');
+                    const isCurrentAttacco = currentTipologia && currentTipologia.value === 'attacco';
+                    const isCurrentPassante = currentTipologia && currentTipologia.value === 'passante';
+                    
+                    // Salva la sequenza del colpo per la visualizzazione
+                    shotSequence.push({
+                        startX: startX,
+                        startY: startY,
+                        endX: endX,
+                        endY: endY
+                    });
+                    
+                    // Nascondi tutti gli elementi tranne i cerchietti rossi (corrente + precedenti)
+                    const elementsToHide = [
+                        leftLine, rightLine, bisectorLine, yellowLine, 
+                        wedge, hMeasure, arrowHtml
+                    ];
+                    elementsToHide.forEach(el => {
+                        if (el) el.style.display = 'none';
+                    });
+                    
+                    // I cerchietti dei colpi precedenti rimangono visibili durante l'animazione
+                    
+                    // Crea il cerchietto giallo
+                    const yellowDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    yellowDot.setAttribute('id', 'yellowAnimatedDot');
+                    yellowDot.setAttribute('cx', String(startX));
+                    yellowDot.setAttribute('cy', String(startY));
+                    yellowDot.setAttribute('r', '8'); // Stesso raggio del cerchietto rosso più piccolo
+                    yellowDot.setAttribute('fill', '#ffd600');
+                    yellowDot.setAttribute('stroke', '#fff');
+                    yellowDot.setAttribute('stroke-width', '2');
+                    svg.appendChild(yellowDot);
+                    
+                    // Animazione: muovi il cerchietto giallo in 1 secondo
+                    const duration = 1200; // 1 secondo
+                    const startTime = performance.now();
+                    
+                    function animate(currentTime) {
+                        const elapsed = currentTime - startTime;
+                        const progress = Math.min(elapsed / duration, 1);
+                        
+                        // Interpolazione lineare
+                        const currentX = startX + (endX - startX) * progress;
+                        const currentY = startY + (endY - startY) * progress;
+                        
+                        yellowDot.setAttribute('cx', String(currentX));
+                        yellowDot.setAttribute('cy', String(currentY));
+                        
+                        if (progress < 1) {
+                            requestAnimationFrame(animate);
+                        } else {
+                            // Animazione completata
+                            setTimeout(() => {
+                                // Rimuovi il cerchietto giallo
+                                if (yellowDot && yellowDot.parentNode) {
+                                    yellowDot.parentNode.removeChild(yellowDot);
+                                }
+                                
+                                // 1. Crea un cerchietto rosso nella posizione di partenza del colpo appena eseguito
+                                // Questo rimuoverà automaticamente il cerchietto precedente
+                                createPreviousShotDot(startX, startY);
+                                
+                                // 2. Incrementa il numero colpo
+                                window.__numeroColpo__++;
+                                updateNumeroColpoDisplay();
+                                
+                                // 2b. In modalità dinamico, gestisci cambio automatico di tipologia
+                                if (window.__modalita__ === 'dinamico') {
+                                    // Se era servizio e passiamo al colpo 2, cambia a palleggio
+                                    if (window.__numeroColpo__ === 2 && window.__shotTypeIsServizio__) {
+                                        window.__shotTypeIsServizio__ = false;
+                                        window.__shotTypeIsPassante__ = false;
+                                        window.__shotType2IsPassante__ = false;
+                                        window.__leftForceRed__ = false;
+                                        
+                                        // Aggiorna il radio button
+                                        const palleggioRadio = document.getElementById('tipo_pal');
+                                        if (palleggioRadio) {
+                                            palleggioRadio.checked = true;
+                                        }
+                                        
+                                        // Aggiorna i colori
+                                        updateThemeColors();
+                                        updateThemeColorsRight();
+                                    }
+                                    
+                                    // Se il colpo appena eseguito era attacco, forza passante per il prossimo
+                                    if (isCurrentAttacco) {
+                                        previousShotWasAttacco = true;
+                                        previousShotWasPassante = false;
+                                        
+                                        // Forza passante
+                                        window.__shotTypeIsPassante__ = true;
+                                        window.__shotType2IsPassante__ = true;
+                                        window.__shotTypeIsServizio__ = false;
+                                        window.__leftForceRed__ = false;
+                                        
+                                        // Aggiorna il radio button
+                                        const passanteRadio = document.getElementById('tipo_pas');
+                                        if (passanteRadio) {
+                                            passanteRadio.checked = true;
+                                        }
+                                        
+                                        // Aggiorna i colori
+                                        updateThemeColors();
+                                        updateThemeColorsRight();
+                                    } 
+                                    // Se il colpo appena eseguito era passante, forza palleggio per il prossimo
+                                    else if (isCurrentPassante) {
+                                        previousShotWasPassante = true;
+                                        previousShotWasAttacco = false;
+                                        
+                                        // Forza palleggio
+                                        window.__shotTypeIsPassante__ = false;
+                                        window.__shotType2IsPassante__ = false;
+                                        window.__shotTypeIsServizio__ = false;
+                                        window.__leftForceRed__ = false;
+                                        
+                                        // Aggiorna il radio button
+                                        const palleggioRadio = document.getElementById('tipo_pal');
+                                        if (palleggioRadio) {
+                                            palleggioRadio.checked = true;
+                                        }
+                                        
+                                        // Aggiorna i colori
+                                        updateThemeColors();
+                                        updateThemeColorsRight();
+                                    }
+                                    else {
+                                        // Il colpo non era né attacco né passante, reset dei flag
+                                        previousShotWasAttacco = false;
+                                        previousShotWasPassante = false;
+                                    }
+                                }
+                                
+                                // 2c. Aggiorna la disponibilità delle opzioni di tipologia
+                                updateTipologiaAvailability();
+                                
+                                // 3. Cambia il colpitore (TUO <-> AVVERSARIO)
+                                isPlayer = !currentIsPlayer;
+                                
+                                // Aggiorna il radio button del colpitore
+                                const newColpitoreValue = isPlayer ? 'tuo' : 'avversario';
+                                const colpitoreRadio = document.querySelector(`input[name="colpitore"][value="${newColpitoreValue}"]`);
+                                if (colpitoreRadio) {
+                                    colpitoreRadio.checked = true;
+                                }
+                                
+                                // 4. Posiziona il cerchietto rosso grande dove è arrivata la pallina gialla
+                                dot.setAttribute('cx', String(endX));
+                                dot.setAttribute('cy', String(endY));
+                                
+                                // 5. Posiziona la linea orizzontale blu al livello y di partenza della pallina
+                                currentMeasureY = startY;
+                                updateArrowHtmlPosition();
+                                
+                                // Ripristina gli elementi nascosti
+                                elementsToHide.forEach(el => {
+                                    if (el) {
+                                        if (el === arrowHtml) {
+                                            el.style.display = (window.__viewResponder__ === false) ? 'none' : 'block';
+                                        } else {
+                                            el.style.display = '';
+                                        }
+                                    }
+                                });
+                                
+                                // Riapplica i toggle di visibilità
+                                applyViewToggles();
+                                
+                                // Ricalcola le linee con la nuova configurazione
+                                updateLinesAndWedge(endX, endY);
+                                
+                                // Riabilita il pulsante
+                                colpoButton.disabled = false;
+                            }, 100);
+                        }
+                    }
+                    
+                    requestAnimationFrame(animate);
+                });
+            }
 
         })();
     </script>
