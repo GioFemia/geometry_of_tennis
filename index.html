@@ -11,7 +11,7 @@
             margin: 0;
             height: 100vh;
             overflow: hidden;
-            background: linear-gradient(135deg, #b3e5fc 0%, #b3e5fc 100%);
+            background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
         }
 
         .page-container { 
@@ -36,6 +36,9 @@
             min-width: 200px;
             max-width: 240px;
             margin-left: 8em;
+            max-height: calc(100vh - 1.6em);
+            overflow-y: auto;
+            overflow-x: hidden;
         }
         
         .control-section {
@@ -51,15 +54,94 @@
             text-transform: uppercase;
             letter-spacing: 0.4px;
             margin: 0;
-            padding-bottom: 4px;
+            padding: 8px 0 4px 0;
             border-bottom: 2px solid #e0e0e0;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+            transition: color 0.2s ease;
+        }
+        
+        .control-section-title:hover {
+            color: #1976d2;
+        }
+        
+        .control-section-title::after {
+            content: '▼';
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 10px;
+            transition: transform 0.3s ease;
+        }
+        
+        .control-section.collapsed .control-section-title::after {
+            transform: translateY(-50%) rotate(-90deg);
         }
         
         .control-options {
             display: flex;
             flex-direction: column;
             gap: 4px;
+            transition: all 0.3s ease;
+            overflow: hidden;
         }
+        
+        .control-section.collapsed .control-options {
+            max-height: 0;
+            opacity: 0;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .default-subsection {
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .default-subsection:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        
+        .default-subsection select {
+            background: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 10px;
+            color: #263238;
+            cursor: pointer;
+            min-width: 80px;
+            margin-left: auto;
+        }
+        
+        .default-subsection select:focus {
+            outline: none;
+            border-color: #1976d2;
+            box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+        }
+        
+        .default-subsection .control-option {
+            justify-content: space-between;
+        }
+        
+        .default-subsection:last-child .control-option {
+            justify-content: space-between;
+        }
+        
+        .default-subsection:last-child .control-option input[type="checkbox"] {
+            order: 2;
+            margin-left: auto;
+        }
+        
+        .default-subsection:last-child .control-option span {
+            order: 1;
+        }
+        
         
         .control-option {
             display: flex;
@@ -163,10 +245,13 @@
                 min-width: 180px;
                 gap: 10px;
                 padding: 10px;
-                height: fit-content;
+                height: calc(100vh - 1em);
+                max-height: calc(100vh - 1em);
                 align-self: flex-start;
                 position: sticky;
                 top: 0.5em;
+                overflow-y: auto;
+                overflow-x: hidden;
             }
             
             .court-container {
@@ -215,6 +300,10 @@
                 max-width: 160px;
                 min-width: 160px;
                 padding: 8px;
+                height: calc(100vh - 1em);
+                max-height: calc(100vh - 1em);
+                overflow-y: auto;
+                overflow-x: hidden;
             }
             
             .court-container {
@@ -247,13 +336,17 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 8px;
-            padding: 10px 8px;
+            padding: 12px 10px;
             background: linear-gradient(135deg, #1976d2 0%, #42a5f5 50%, #1976d2 100%);
             border-radius: 8px;
             border: none;
             box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
             position: relative;
             overflow: hidden;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .settings-title::before {
@@ -363,8 +456,28 @@
     <div class="page-container">
         <div class="controls-sidebar">
             <div class="settings-title">IMPOSTAZIONI</div>
+            
+            <!-- Modalità -->
+            <div class="control-section collapsed">
+                <h3 class="control-section-title">Modalità</h3>
+                <div class="control-options">
+                    <label class="control-option" for="modo_1colpo">
+                        <input id="modo_1colpo" type="radio" name="modalita" value="1colpo" />
+                        <span>1 Colpo</span>
+                    </label>
+                    <label class="control-option" for="modo_2colpi">
+                        <input id="modo_2colpi" type="radio" name="modalita" value="2colpi" checked />
+                        <span>2 Colpi</span>
+                    </label>
+                    <label class="control-option" for="modo_dinamico">
+                        <input id="modo_dinamico" type="radio" name="modalita" value="dinamico" />
+                        <span>Dinamico</span>
+                    </label>
+                </div>
+            </div>
+            
             <!-- Colpitore -->
-            <div class="control-section">
+            <div class="control-section collapsed">
                 <h3 class="control-section-title">Colpitore</h3>
                 <div class="control-options">
                     <label class="control-option" for="colpitore_tuo">
@@ -379,7 +492,7 @@
             </div>
             
             <!-- Tipologia di Colpo -->
-            <div class="control-section">
+            <div class="control-section collapsed">
                 <h3 class="control-section-title">Tipologia</h3>
                 <div class="control-options">
                     <label class="control-option" for="tipo_pal">
@@ -401,27 +514,8 @@
                 </div>
             </div>
             
-            <!-- Superficie Campo -->
-            <div class="control-section">
-                <h3 class="control-section-title">Superficie</h3>
-                <div class="control-options">
-                    <label class="control-option" for="campo_cemento">
-                        <input id="campo_cemento" type="radio" name="campoType" value="cemento" checked />
-                        <span>Cemento</span>
-                    </label>
-                    <label class="control-option" for="campo_terra">
-                        <input id="campo_terra" type="radio" name="campoType" value="terra" />
-                        <span>Terra</span>
-                    </label>
-                    <label class="control-option" for="campo_erba">
-                        <input id="campo_erba" type="radio" name="campoType" value="erba" />
-                        <span>Erba</span>
-                    </label>
-                </div>
-            </div>
-            
             <!-- Visualizza -->
-            <div class="control-section">
+            <div class="control-section collapsed">
                 <h3 class="control-section-title">Visualizza</h3>
                 <div class="control-options">
                     <label class="control-option" for="view_player">
@@ -444,6 +538,94 @@
                         <input id="view_coordinates" type="checkbox" />
                         <span>Coordinate</span>
                     </label>
+                </div>
+            </div>
+            
+            <!-- Superficie Campo -->
+            <div class="control-section collapsed">
+                <h3 class="control-section-title">Superficie</h3>
+                <div class="control-options">
+                    <label class="control-option" for="campo_cemento">
+                        <input id="campo_cemento" type="radio" name="campoType" value="cemento" checked />
+                        <span>Cemento</span>
+                    </label>
+                    <label class="control-option" for="campo_terra">
+                        <input id="campo_terra" type="radio" name="campoType" value="terra" />
+                        <span>Terra</span>
+                    </label>
+                    <label class="control-option" for="campo_erba">
+                        <input id="campo_erba" type="radio" name="campoType" value="erba" />
+                        <span>Erba</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Default -->
+            <div class="control-section collapsed">
+                <h3 class="control-section-title">Default</h3>
+                <div class="control-options">
+                    <div class="default-subsection">
+                        <label class="control-option" for="default_colpitore">
+                            <span>Colpitore:</span>
+                            <select id="default_colpitore" name="default_colpitore">
+                                <option value="tuo" selected>Tu</option>
+                                <option value="avversario">Avversario</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="default-subsection">
+                        <label class="control-option" for="default_modalita">
+                            <span>Modalità:</span>
+                            <select id="default_modalita" name="default_modalita">
+                                <option value="1colpo">1 Colpo</option>
+                                <option value="2colpi" selected>2 Colpi</option>
+                                <option value="dinamico">Dinamico</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="default-subsection">
+                        <label class="control-option" for="default_tipologia">
+                            <span>Tipologia:</span>
+                            <select id="default_tipologia" name="default_tipologia">
+                                <option value="palleggio" selected>Palleggio</option>
+                                <option value="passante">Passante</option>
+                                <option value="attacco">Attacco</option>
+                                <option value="servizio">Servizio</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="default-subsection">
+                        <label class="control-option" for="default_campoType">
+                            <span>Superficie:</span>
+                            <select id="default_campoType" name="default_campoType">
+                                <option value="cemento" selected>Cemento</option>
+                                <option value="terra">Terra</option>
+                                <option value="erba">Erba</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="default-subsection">
+                        <label class="control-option" for="default_view_player">
+                            <input id="default_view_player" type="checkbox" checked />
+                            <span>Visualizza: Colpitore</span>
+                        </label>
+                        <label class="control-option" for="default_view_shot">
+                            <input id="default_view_shot" type="checkbox" checked />
+                            <span>Visualizza: Colpo</span>
+                        </label>
+                        <label class="control-option" for="default_view_responder">
+                            <input id="default_view_responder" type="checkbox" checked />
+                            <span>Visualizza: Ricevitore</span>
+                        </label>
+                        <label class="control-option" for="default_view_center">
+                            <input id="default_view_center" type="checkbox" checked />
+                            <span>Visualizza: Centro</span>
+                        </label>
+                        <label class="control-option" for="default_view_coordinates">
+                            <input id="default_view_coordinates" type="checkbox" />
+                            <span>Visualizza: Coordinate</span>
+                        </label>
+                    </div>
                 </div>
             </div>
         </div>
@@ -567,6 +749,7 @@
             window.__viewResponder__ = true;
             window.__viewCenter__ = true;
             window.__viewCoordinates__ = false;
+            window.__modalita__ = '2colpi';
             
             const COURT_COLORS = {
                 cemento: { background: '#1565c0', court: '#42a5f5' },
@@ -1494,6 +1677,34 @@
                 });
             }
 
+            // Modalità change
+            const modalitaInputs = document.querySelectorAll('input[name="modalita"]');
+            if (modalitaInputs && modalitaInputs.length) {
+                modalitaInputs.forEach((inp) => {
+                    inp.addEventListener('change', (e) => {
+                        const val = e.target && e.target.value ? e.target.value : '1colpo';
+                        window.__modalita__ = val;
+                        
+                        // Handle different modes
+                        if (val === '1colpo') {
+                            // Single shot mode - show only primary court
+                            document.querySelector('.court-container:last-of-type').style.display = 'none';
+                        } else if (val === '2colpi') {
+                            // Two shots mode - show both courts
+                            document.querySelector('.court-container:last-of-type').style.display = 'flex';
+                        } else if (val === 'dinamico') {
+                            // Dynamic mode - show both courts with enhanced interaction
+                            document.querySelector('.court-container:last-of-type').style.display = 'flex';
+                        }
+                        
+                        // Update the display
+                        const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                        const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                        updateLinesAndWedge(dotX, dotY);
+                    });
+                });
+            }
+
             // View toggles
             function bindViewCheckbox(el, key) {
                 if (!el) return;
@@ -1517,6 +1728,122 @@
             bindViewCheckbox(chkResponder, '__viewResponder__');
             bindViewCheckbox(chkCenter, '__viewCenter__');
             bindViewCheckbox(chkCoordinates, '__viewCoordinates__');
+
+            // Collapsible sections
+            function initCollapsibleSections() {
+                const sectionTitles = document.querySelectorAll('.control-section-title');
+                sectionTitles.forEach(title => {
+                    title.addEventListener('click', () => {
+                        const section = title.parentElement;
+                        section.classList.toggle('collapsed');
+                    });
+                });
+            }
+            
+            // Initialize collapsible sections
+            initCollapsibleSections();
+
+            // Default settings functionality - Simplified approach
+            function initDefaultSettings() {
+                // Load and apply defaults on page load
+                loadAndApplyDefaults();
+                
+                // Add event listeners for default settings changes
+                addDefaultEventListeners();
+            }
+            
+            function loadAndApplyDefaults() {
+                // Load defaults from localStorage
+                const savedDefaults = {
+                    colpitore: localStorage.getItem('default_colpitore'),
+                    modalita: localStorage.getItem('default_modalita'),
+                    tipologia: localStorage.getItem('default_tipologia'),
+                    campoType: localStorage.getItem('default_campoType'),
+                    view_player: localStorage.getItem('default_view_player'),
+                    view_shot: localStorage.getItem('default_view_shot'),
+                    view_responder: localStorage.getItem('default_view_responder'),
+                    view_center: localStorage.getItem('default_view_center'),
+                    view_coordinates: localStorage.getItem('default_view_coordinates')
+                };
+                
+                // Apply to DEFAULT section
+                applyToDefaultSection(savedDefaults);
+                
+                // Apply to actual controls
+                applyToActualControls(savedDefaults);
+            }
+            
+            function applyToDefaultSection(defaults) {
+                // Apply to DEFAULT section controls
+                Object.keys(defaults).forEach(key => {
+                    if (defaults[key] !== null) {
+                        if (key.startsWith('view_')) {
+                            const checkbox = document.getElementById(`default_${key}`);
+                            if (checkbox) {
+                                checkbox.checked = defaults[key] === 'true';
+                            }
+                        } else {
+                            const select = document.getElementById(`default_${key}`);
+                            if (select) {
+                                select.value = defaults[key];
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function applyToActualControls(defaults) {
+                // Apply to actual control sections
+                Object.keys(defaults).forEach(key => {
+                    if (defaults[key] !== null) {
+                        if (key.startsWith('view_')) {
+                            const targetCheckbox = document.getElementById(key);
+                            if (targetCheckbox) {
+                                targetCheckbox.checked = defaults[key] === 'true';
+                                targetCheckbox.dispatchEvent(new Event('change'));
+                            }
+                        } else {
+                            const targetRadio = document.querySelector(`input[name="${key}"][value="${defaults[key]}"]`);
+                            if (targetRadio) {
+                                targetRadio.checked = true;
+                                targetRadio.dispatchEvent(new Event('change'));
+                            }
+                        }
+                    }
+                });
+            }
+            
+            function addDefaultEventListeners() {
+                // Listen for changes in DEFAULT section
+                const defaultControls = document.querySelectorAll('#default_colpitore, #default_modalita, #default_tipologia, #default_campoType, #default_view_player, #default_view_shot, #default_view_responder, #default_view_center, #default_view_coordinates');
+                
+                defaultControls.forEach(control => {
+                    control.addEventListener('change', function() {
+                        // Save the change
+                        const key = this.id.replace('default_', '');
+                        const value = this.type === 'checkbox' ? this.checked : this.value;
+                        localStorage.setItem(`default_${key}`, value);
+                        
+                        // Apply to actual control
+                        if (key.startsWith('view_')) {
+                            const targetCheckbox = document.getElementById(key);
+                            if (targetCheckbox) {
+                                targetCheckbox.checked = value;
+                                targetCheckbox.dispatchEvent(new Event('change'));
+                            }
+                        } else {
+                            const targetRadio = document.querySelector(`input[name="${key}"][value="${value}"]`);
+                            if (targetRadio) {
+                                targetRadio.checked = true;
+                                targetRadio.dispatchEvent(new Event('change'));
+                            }
+                        }
+                    });
+                });
+            }
+            
+            // Initialize default settings
+            initDefaultSettings();
 
         })();
     </script>
