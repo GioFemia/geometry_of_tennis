@@ -164,6 +164,15 @@
             cursor: pointer;
         }
         
+        .control-option input[type="checkbox"]:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .control-option:has(input[type="checkbox"]:disabled) {
+            opacity: 0.6;
+        }
+        
         .control-option label {
             cursor: pointer;
             flex: 1;
@@ -842,14 +851,13 @@
                 </div>
             </div>
             <div id="dinamicoPanel" class="dinamico-panel">
-                <div class="panel-title">CONTROLLI DINAMICO</div>
                 <div class="control-field">
                     <label>NUMERO COLPO:</label>
                     <div id="numeroColpo" class="numero-display">1</div>
                 </div>
                 <button id="colpoButton" class="colpo-button">COLPO</button>
-                <button id="visualizzaScambioButton" class="visualizza-scambio-button">VISUALIZZA SCAMBIO</button>
-                <button id="nuovoScambioButton" class="nuovo-scambio-button">NUOVO SCAMBIO</button>
+                <button id="visualizzaScambioButton" class="visualizza-scambio-button">VISUALIZZA PUNTO</button>
+                <button id="nuovoScambioButton" class="nuovo-scambio-button">NUOVO PUNTO</button>
             </div>
         </div>
     </div>
@@ -1763,6 +1771,7 @@
                 updateDinamicoPanel();
                 applyViewToggles();
                 updateTipologiaAvailability();
+                updateVisualizationCheckboxes();
             })();
 
             svg.addEventListener('mousemove', onMove, { passive: true });
@@ -1978,6 +1987,7 @@
                         previousShotWasPassante = false;
                         
                         updateTipologiaAvailability();
+                        updateVisualizationCheckboxes();
                         const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
                         const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
                         updateLinesAndWedge(dotX, dotY);
@@ -2131,6 +2141,36 @@
             function updateNumeroColpoDisplay() {
             if (numeroColpoInput) {
                     numeroColpoInput.textContent = window.__numeroColpo__;
+                }
+            }
+            
+            // Funzione per gestire i checkbox di visualizzazione in modalità DINAMICO
+            function updateVisualizationCheckboxes() {
+                if (window.__modalita__ === 'dinamico') {
+                    // In modalità DINAMICO, forza e disabilita i checkbox critici
+                    if (chkPlayer) {
+                        chkPlayer.checked = true;
+                        chkPlayer.disabled = true;
+                        window.__viewPlayer__ = true;
+                    }
+                    if (chkShot) {
+                        chkShot.checked = true;
+                        chkShot.disabled = true;
+                        window.__viewShot__ = true;
+                    }
+                    if (chkResponder) {
+                        chkResponder.checked = true;
+                        chkResponder.disabled = true;
+                        window.__viewResponder__ = true;
+                    }
+                    
+                    // Applica i cambiamenti
+                    applyViewToggles();
+                } else {
+                    // In altre modalità, riabilita i checkbox
+                    if (chkPlayer) chkPlayer.disabled = false;
+                    if (chkShot) chkShot.disabled = false;
+                    if (chkResponder) chkResponder.disabled = false;
                 }
             }
             
@@ -2300,7 +2340,10 @@
                     // 9. Riabilita le opzioni di tipologia (se in modalità dinamico)
                     updateTipologiaAvailability();
                     
-                    // 10. Ricalcola tutto
+                    // 10. Aggiorna i checkbox di visualizzazione
+                    updateVisualizationCheckboxes();
+                    
+                    // 11. Ricalcola tutto
                     updateLinesAndWedge(ORIGIN_X, originY);
                     applyViewToggles();
                 });
@@ -2586,6 +2629,11 @@
                                 
                                 // 2c. Aggiorna la disponibilità delle opzioni di tipologia
                                 updateTipologiaAvailability();
+                                
+                                // 2d. Assicurati che i checkbox rimangano forzati in modalità dinamico
+                                if (window.__modalita__ === 'dinamico') {
+                                    updateVisualizationCheckboxes();
+                                }
                                 
                                 // 3. Cambia il colpitore (TUO <-> AVVERSARIO)
                                 isPlayer = !currentIsPlayer;
