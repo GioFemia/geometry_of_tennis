@@ -10,7 +10,8 @@
             font-family: 'Roboto', Arial, sans-serif;
             margin: 0;
             height: 100vh;
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: hidden;
             background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
         }
 
@@ -23,6 +24,7 @@
             box-sizing: border-box;
             position: relative; 
             margin-right: 8em;
+            min-width: 1400px;
         }
 
         .controls-sidebar {
@@ -35,6 +37,7 @@
             box-shadow: 0 4px 24px rgba(44, 62, 80, 0.13);
             min-width: 200px;
             max-width: 240px;
+            width: 240px;
             margin-left: 8em;
             max-height: calc(100vh - 1.6em);
             overflow-y: auto;
@@ -188,6 +191,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            min-width: 400px;
         }
         
         .svg-wrap { 
@@ -197,12 +201,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            min-width: 400px;
         }
         
         .svg-wrap svg { 
             height: 100%; 
             width: auto; 
-            max-width: 100%;
+            min-width: 400px;
         }
 
         .arrow-container { 
@@ -232,108 +237,58 @@
 
         #cursorDot { cursor: grab; }
 
-        /* Mobile responsiveness */
-        @media (max-width: 1024px) {
-            body {
-                overflow: auto;
-            }
-            
-            .page-container { 
-                display: flex !important;
-                flex-direction: row;
-                gap: 0.8em; 
-                padding: 0.5em; 
-                min-height: 100vh;
-                height: auto;
-                box-sizing: border-box;
+        /* Mobile responsiveness - riduce spazi esterni e permette scroll orizzontale */
+        @media (max-width: 1600px) {
+            .page-container {
+                margin-right: 4em;
             }
             
             .controls-sidebar {
-                flex: 0 0 200px;
-                max-width: 200px;
-                min-width: 180px;
-                gap: 10px;
-                padding: 10px;
-                height: calc(100vh - 1em);
-                max-height: calc(100vh - 1em);
-                align-self: flex-start;
-                position: sticky;
-                top: 0.5em;
-                overflow-y: auto;
-                overflow-x: hidden;
-            }
-            
-            .court-container {
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                gap: 0.8em;
-                min-width: 0;
-            }
-            
-            .court-container:first-of-type {
-                order: 1;
-            }
-            
-            .court-container:last-of-type {
-                order: 2;
-            }
-            
-            .control-section {
-                gap: 6px;
-            }
-            
-            .control-section-title {
-                font-size: 11px;
-            }
-            
-            .control-option {
-                padding: 4px 8px;
-            }
-            
-            .control-option label {
-                font-size: 10px;
-            }
-            
-            .svg-wrap svg { 
-                height: auto !important; 
-                width: 100%; 
-                max-height: 45vh; 
+                margin-left: 4em;
             }
         }
         
-        /* Dispositivi molto piccoli */
-        @media (max-width: 480px) {
+        @media (max-width: 1400px) {
+            body {
+                overflow-x: auto;
+                overflow-y: hidden;
+            }
+            
+            .page-container {
+                min-width: 1200px;
+                margin-right: 2em;
+                gap: 0.5em;
+                padding: 0.5em;
+            }
+            
             .controls-sidebar {
-                flex: 0 0 160px;
-                max-width: 160px;
-                min-width: 160px;
-                padding: 8px;
-                height: calc(100vh - 1em);
-                max-height: calc(100vh - 1em);
-                overflow-y: auto;
-                overflow-x: hidden;
+                margin-left: 2em;
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .page-container {
+                min-width: 1100px;
+                margin-right: 1em;
+                gap: 0.4em;
+                padding: 0.4em;
             }
             
-            .court-container {
-                flex: 1;
+            .controls-sidebar {
+                margin-left: 1em;
+            }
+        }
+        
+        @media (max-width: 1100px) {
+            .page-container {
+                min-width: 1050px;
+                margin-right: 0.5em;
+                gap: 0.3em;
+                padding: 0.3em;
             }
             
-            .control-section-title {
-                font-size: 10px;
-            }
-            
-            .control-option label {
-                font-size: 9px;
-            }
-            
-            .back-btn {
-                font-size: 11px;
-                height: 32px;
-            }
-            
-            .svg-wrap svg { 
-                max-height: 40vh; 
+            .controls-sidebar {
+                margin-left: 0.5em;
             }
         }
         
@@ -471,6 +426,8 @@
             align-items: center;
             justify-content: center;
             align-self: center;
+            min-width: 300px;
+            width: 300px;
         }
         
         .dinamico-panel.active {
