@@ -574,7 +574,7 @@
             transform: none;
         }
         
-        /* Stili per la sezione Scrivi */
+        /* Stili per la sezione Disegna */
         .draw-buttons-container {
             display: flex;
             gap: 8px;
@@ -690,11 +690,43 @@
         }
         
         .erasing-cursor {
-            cursor: not-allowed !important;
+            cursor: pointer !important;
+        }
+        
+        /* Indicatore visivo per la gomma */
+        .eraser-indicator {
+            pointer-events: none;
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            border: 1.5px solid #ff5252;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 82, 82, 0.25) 0%, rgba(255, 82, 82, 0.05) 70%, transparent 100%);
+            transform: translate(-50%, -50%);
+            z-index: 9999;
+            display: none;
+            box-shadow: 0 0 8px rgba(255, 82, 82, 0.4), inset 0 0 3px rgba(255, 255, 255, 0.3);
+            animation: eraserPulse 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes eraserPulse {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.9;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.1);
+                opacity: 1;
+            }
+        }
+        
+        .erasing-cursor ~ .eraser-indicator {
+            display: block;
         }
     </style>
 </head>
 <body>
+    <div id="eraserIndicator" class="eraser-indicator"></div>
     <div class="page-container">
         <div class="controls-sidebar">
             <div class="settings-title">IMPOSTAZIONI</div>
@@ -756,14 +788,24 @@
                 </div>
             </div>
             
-            <!-- Scrivi -->
-            <div class="control-section collapsed">
-                <h3 class="control-section-title">Scrivi</h3>
+            <!-- Disegna -->
+            <div class="control-section collapsed" id="draw-section">
+                <h3 class="control-section-title">Disegna</h3>
                 <div class="control-options">
                     <div class="draw-buttons-container">
                         <button id="draw_pen_btn" class="draw-tool-button" title="Matita - Disegna sul campo">
                             <svg viewBox="0 0 24 24" width="20" height="20">
                                 <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
+                            </svg>
+                        </button>
+                        <button id="draw_arrow_btn" class="draw-tool-button" title="Freccia - Disegna frecce">
+                            <svg viewBox="0 0 24 24" width="20" height="20">
+                                <path fill="currentColor" d="M4,12 L18,12 M18,12 L13,7 M18,12 L13,17" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                        <button id="draw_line_btn" class="draw-tool-button" title="Linea - Disegna linee dritte">
+                            <svg viewBox="0 0 24 24" width="20" height="20">
+                                <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4,20 L20,4"/>
                             </svg>
                         </button>
                         <button id="draw_eraser_btn" class="draw-tool-button" title="Gomma - Cancella disegni">
@@ -777,7 +819,7 @@
                     </div>
                     <div class="draw-color-picker">
                         <label class="draw-label">Colore:</label>
-                        <input type="color" id="draw_color" value="#FF0000" />
+                        <input type="color" id="draw_color" value="#000000" />
                     </div>
                     <div class="draw-width-picker">
                         <label class="draw-label">Spessore:</label>
@@ -2134,6 +2176,29 @@
                     title.addEventListener('click', () => {
                         const section = title.parentElement;
                         section.classList.toggle('collapsed');
+                        
+                        // Se la sezione disegna viene chiusa, disabilita il disegno
+                        if (section.id === 'draw-section' && section.classList.contains('collapsed')) {
+                            // Disabilita la modalità disegno
+                            if (window.drawingEnabled) {
+                                window.drawingEnabled = false;
+                                // Rimuovi la classe active da tutti i pulsanti
+                                const drawButtons = ['draw_pen_btn', 'draw_arrow_btn', 'draw_line_btn', 'draw_eraser_btn'];
+                                drawButtons.forEach(btnId => {
+                                    const btn = document.getElementById(btnId);
+                                    if (btn) btn.classList.remove('active');
+                                });
+                                // Rimuovi i cursori personalizzati
+                                const svg1 = document.getElementById('tennisCourt');
+                                const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                                if (svg1) {
+                                    svg1.classList.remove('drawing-cursor', 'erasing-cursor');
+                                }
+                                if (svg2) {
+                                    svg2.classList.remove('drawing-cursor', 'erasing-cursor');
+                                }
+                            }
+                        }
                     });
                 });
             }
@@ -2789,15 +2854,17 @@
 
             // ==================== FUNZIONALITÀ DI DISEGNO ====================
             
-            // Variabili per il disegno
-            let drawingMode = 'pen'; // 'pen' o 'eraser'
+            // Variabili per il disegno (alcune esposte globalmente)
+            let drawingMode = 'pen'; // 'pen', 'arrow', 'line' o 'eraser'
             let isDrawing = false;
-            let drawingEnabled = false; // Disattivo di default per non interferire
+            window.drawingEnabled = false; // Disattivo di default per non interferire (globale per controlli esterni)
             let currentPath = null;
-            let drawColor = '#FF0000';
+            let currentElement = null; // Per linee e frecce
+            let startPoint = null; // Punto iniziale per linee e frecce
+            let drawColor = '#000000';
             let drawWidth = 3;
             
-            // Gruppo SVG per contenere tutti i disegni
+            // Gruppo SVG per contenere tutti i disegni (campo primario)
             let drawingGroup = document.getElementById('drawingGroup');
             if (!drawingGroup) {
                 drawingGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -2805,38 +2872,131 @@
                 svg.appendChild(drawingGroup);
             }
             
+            // Funzione per ottenere/creare il gruppo di disegno per il secondo SVG
+            function getSecondaryDrawingGroup() {
+                const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                if (!svg2) return null;
+                
+                let drawingGroup2 = svg2.querySelector('#drawingGroup2');
+                if (!drawingGroup2) {
+                    drawingGroup2 = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    drawingGroup2.id = 'drawingGroup2';
+                    svg2.appendChild(drawingGroup2);
+                }
+                return drawingGroup2;
+            }
+            
             // Riferimenti agli elementi
             const penButton = document.getElementById('draw_pen_btn');
+            const arrowButton = document.getElementById('draw_arrow_btn');
+            const lineButton = document.getElementById('draw_line_btn');
             const eraserButton = document.getElementById('draw_eraser_btn');
             const clearButton = document.getElementById('draw_clear_btn');
             const colorInput = document.getElementById('draw_color');
             const widthInput = document.getElementById('draw_width');
             const widthValue = document.getElementById('draw_width_value');
+            const eraserIndicator = document.getElementById('eraserIndicator');
             
             // Funzione per convertire coordinate del mouse in coordinate SVG
-            function getSvgCoordinates(evt) {
-                const pt = svg.createSVGPoint();
+            function getSvgCoordinates(evt, targetSvg) {
+                const svgElement = targetSvg || svg;
+                const pt = svgElement.createSVGPoint();
                 pt.x = evt.clientX;
                 pt.y = evt.clientY;
-                return pt.matrixTransform(svg.getScreenCTM().inverse());
+                return pt.matrixTransform(svgElement.getScreenCTM().inverse());
+            }
+            
+            // Funzione per controllare se la sezione disegna è aperta
+            function isDrawSectionOpen() {
+                const drawSection = document.getElementById('draw-section');
+                return drawSection && !drawSection.classList.contains('collapsed');
             }
             
             // Gestione del pulsante matita
             if (penButton) {
                 penButton.addEventListener('click', () => {
-                    if (drawingMode === 'pen' && drawingEnabled) {
+                    if (!isDrawSectionOpen()) return; // Non permettere se la sezione è chiusa
+                    
+                    if (drawingMode === 'pen' && window.drawingEnabled) {
                         // Disattiva la modalità disegno
-                        drawingEnabled = false;
+                        window.drawingEnabled = false;
                         penButton.classList.remove('active');
                         svg.classList.remove('drawing-cursor');
+                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                        if (svg2) svg2.classList.remove('drawing-cursor');
                     } else {
                         // Attiva la modalità matita
                         drawingMode = 'pen';
-                        drawingEnabled = true;
+                        window.drawingEnabled = true;
                         penButton.classList.add('active');
+                        arrowButton.classList.remove('active');
+                        lineButton.classList.remove('active');
                         eraserButton.classList.remove('active');
                         svg.classList.add('drawing-cursor');
                         svg.classList.remove('erasing-cursor');
+                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                        if (svg2) {
+                            svg2.classList.add('drawing-cursor');
+                            svg2.classList.remove('erasing-cursor');
+                        }
+                    }
+                });
+            }
+            
+            // Gestione del pulsante freccia
+            if (arrowButton) {
+                arrowButton.addEventListener('click', () => {
+                    if (!isDrawSectionOpen()) return;
+                    
+                    if (drawingMode === 'arrow' && window.drawingEnabled) {
+                        window.drawingEnabled = false;
+                        arrowButton.classList.remove('active');
+                        svg.classList.remove('drawing-cursor');
+                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                        if (svg2) svg2.classList.remove('drawing-cursor');
+                    } else {
+                        drawingMode = 'arrow';
+                        window.drawingEnabled = true;
+                        arrowButton.classList.add('active');
+                        penButton.classList.remove('active');
+                        lineButton.classList.remove('active');
+                        eraserButton.classList.remove('active');
+                        svg.classList.add('drawing-cursor');
+                        svg.classList.remove('erasing-cursor');
+                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                        if (svg2) {
+                            svg2.classList.add('drawing-cursor');
+                            svg2.classList.remove('erasing-cursor');
+                        }
+                    }
+                });
+            }
+            
+            // Gestione del pulsante linea
+            if (lineButton) {
+                lineButton.addEventListener('click', () => {
+                    if (!isDrawSectionOpen()) return;
+                    
+                    if (drawingMode === 'line' && window.drawingEnabled) {
+                        window.drawingEnabled = false;
+                        lineButton.classList.remove('active');
+                        svg.classList.remove('drawing-cursor');
+                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                        if (svg2) svg2.classList.remove('drawing-cursor');
+                    } else {
+                        drawingMode = 'line';
+                        window.drawingEnabled = true;
+                        lineButton.classList.add('active');
+                        penButton.classList.remove('active');
+                        arrowButton.classList.remove('active');
+                        eraserButton.classList.remove('active');
+                        svg.classList.add('drawing-cursor');
+                        svg.classList.remove('erasing-cursor');
+                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                        if (svg2) {
+                            svg2.classList.add('drawing-cursor');
+                            svg2.classList.remove('erasing-cursor');
+                        }
                     }
                 });
             }
@@ -2844,19 +3004,28 @@
             // Gestione del pulsante gomma
             if (eraserButton) {
                 eraserButton.addEventListener('click', () => {
-                    if (drawingMode === 'eraser' && drawingEnabled) {
-                        // Disattiva la modalità disegno
-                        drawingEnabled = false;
+                    if (!isDrawSectionOpen()) return;
+                    
+                    if (drawingMode === 'eraser' && window.drawingEnabled) {
+                        window.drawingEnabled = false;
                         eraserButton.classList.remove('active');
                         svg.classList.remove('erasing-cursor');
+                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                        if (svg2) svg2.classList.remove('erasing-cursor');
                     } else {
-                        // Attiva la modalità gomma
                         drawingMode = 'eraser';
-                        drawingEnabled = true;
+                        window.drawingEnabled = true;
                         eraserButton.classList.add('active');
                         penButton.classList.remove('active');
+                        arrowButton.classList.remove('active');
+                        lineButton.classList.remove('active');
                         svg.classList.add('erasing-cursor');
                         svg.classList.remove('drawing-cursor');
+                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                        if (svg2) {
+                            svg2.classList.add('erasing-cursor');
+                            svg2.classList.remove('drawing-cursor');
+                        }
                     }
                 });
             }
@@ -2864,11 +3033,17 @@
             // Gestione del pulsante cancella tutto
             if (clearButton) {
                 clearButton.addEventListener('click', () => {
+                    // Cancella disegni dal campo primario
                     if (drawingGroup && drawingGroup.children.length > 0) {
-                        if (confirm('Sei sicuro di voler cancellare tutti i disegni?')) {
-                            while (drawingGroup.firstChild) {
-                                drawingGroup.removeChild(drawingGroup.firstChild);
-                            }
+                        while (drawingGroup.firstChild) {
+                            drawingGroup.removeChild(drawingGroup.firstChild);
+                        }
+                    }
+                    // Cancella disegni dal campo secondario
+                    const drawingGroup2 = getSecondaryDrawingGroup();
+                    if (drawingGroup2 && drawingGroup2.children.length > 0) {
+                        while (drawingGroup2.firstChild) {
+                            drawingGroup2.removeChild(drawingGroup2.firstChild);
                         }
                     }
                 });
@@ -2889,16 +3064,17 @@
                 });
             }
             
-            // Event listeners per il disegno sul canvas SVG
-            svg.addEventListener('mousedown', (evt) => {
-                if (!drawingEnabled) return;
-                
-                // Previeni l'interferenza con altre funzionalità
-                evt.preventDefault();
-                evt.stopPropagation();
-                
-                isDrawing = true;
-                const coords = getSvgCoordinates(evt);
+            // Funzione per aggiungere event listeners a un SVG specifico
+            function addDrawingListeners(svgElement, targetDrawingGroup) {
+                svgElement.addEventListener('mousedown', (evt) => {
+                    if (!window.drawingEnabled) return;
+                    
+                    // Previeni l'interferenza con altre funzionalità
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                    
+                    isDrawing = true;
+                    const coords = getSvgCoordinates(evt, svgElement);
                 
                 if (drawingMode === 'pen') {
                     // Crea un nuovo path per il disegno
@@ -2910,58 +3086,185 @@
                     currentPath.setAttribute('stroke-linejoin', 'round');
                     currentPath.setAttribute('d', `M ${coords.x} ${coords.y}`);
                     currentPath.classList.add('user-drawing');
-                    drawingGroup.appendChild(currentPath);
+                    targetDrawingGroup.appendChild(currentPath);
+                } else if (drawingMode === 'arrow') {
+                    // Salva il punto iniziale per la freccia
+                    startPoint = coords;
+                    // Crea un gruppo per contenere linea e punta della freccia
+                    currentElement = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    currentElement.classList.add('user-drawing');
+                    
+                    // Crea la linea della freccia
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', coords.x);
+                    line.setAttribute('y1', coords.y);
+                    line.setAttribute('x2', coords.x);
+                    line.setAttribute('y2', coords.y);
+                    line.setAttribute('stroke', drawColor);
+                    line.setAttribute('stroke-width', drawWidth);
+                    line.setAttribute('stroke-linecap', 'round');
+                    line.classList.add('arrow-line');
+                    currentElement.appendChild(line);
+                    
+                    // Crea la punta della freccia
+                    const arrowhead = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    arrowhead.setAttribute('fill', drawColor);
+                    arrowhead.setAttribute('stroke', 'none');
+                    arrowhead.classList.add('arrow-head');
+                    currentElement.appendChild(arrowhead);
+                    
+                    targetDrawingGroup.appendChild(currentElement);
+                } else if (drawingMode === 'line') {
+                    // Salva il punto iniziale per la linea
+                    startPoint = coords;
+                    // Crea una linea
+                    currentElement = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    currentElement.setAttribute('x1', coords.x);
+                    currentElement.setAttribute('y1', coords.y);
+                    currentElement.setAttribute('x2', coords.x);
+                    currentElement.setAttribute('y2', coords.y);
+                    currentElement.setAttribute('stroke', drawColor);
+                    currentElement.setAttribute('stroke-width', drawWidth);
+                    currentElement.setAttribute('stroke-linecap', 'round');
+                    currentElement.classList.add('user-drawing');
+                    targetDrawingGroup.appendChild(currentElement);
                 } else if (drawingMode === 'eraser') {
-                    // Trova e rimuovi l'elemento sotto il cursore
-                    const elementsAtPoint = document.elementsFromPoint(evt.clientX, evt.clientY);
-                    for (let elem of elementsAtPoint) {
-                        if (elem.classList.contains('user-drawing')) {
-                            elem.remove();
-                            break;
+                    // Trova e rimuovi elementi vicini al cursore con un raggio più ampio
+                    const eraserRadius = 15; // Raggio di cancellazione
+                    const drawings = targetDrawingGroup.querySelectorAll('.user-drawing');
+                    
+                    for (let drawing of drawings) {
+                        let shouldRemove = false;
+                        
+                        // Controlla diversi punti intorno al cursore
+                        for (let offsetX = -eraserRadius; offsetX <= eraserRadius; offsetX += 5) {
+                            for (let offsetY = -eraserRadius; offsetY <= eraserRadius; offsetY += 5) {
+                                const testX = evt.clientX + offsetX;
+                                const testY = evt.clientY + offsetY;
+                                const elementsAtPoint = document.elementsFromPoint(testX, testY);
+                                
+                                for (let elem of elementsAtPoint) {
+                                    if (elem === drawing || elem.parentElement === drawing || 
+                                        elem.classList.contains('arrow-line') || 
+                                        elem.classList.contains('arrow-head')) {
+                                        shouldRemove = true;
+                                        break;
+                                    }
+                                }
+                                if (shouldRemove) break;
+                            }
+                            if (shouldRemove) break;
+                        }
+                        
+                        if (shouldRemove) {
+                            drawing.remove();
+                            break; // Rimuovi un elemento alla volta per un controllo migliore
                         }
                     }
                 }
             });
             
-            svg.addEventListener('mousemove', (evt) => {
-                if (!isDrawing || !drawingEnabled) return;
+            svgElement.addEventListener('mousemove', (evt) => {
+                if (!isDrawing || !window.drawingEnabled) return;
                 
                 evt.preventDefault();
                 evt.stopPropagation();
                 
-                const coords = getSvgCoordinates(evt);
+                const coords = getSvgCoordinates(evt, svgElement);
                 
                 if (drawingMode === 'pen' && currentPath) {
                     // Continua il path
                     const currentD = currentPath.getAttribute('d');
                     currentPath.setAttribute('d', `${currentD} L ${coords.x} ${coords.y}`);
+                } else if (drawingMode === 'arrow' && currentElement && startPoint) {
+                    // Aggiorna la linea della freccia
+                    const line = currentElement.querySelector('.arrow-line');
+                    if (line) {
+                        line.setAttribute('x2', coords.x);
+                        line.setAttribute('y2', coords.y);
+                    }
+                    
+                    // Calcola e aggiorna la punta della freccia (più grande e più evidente)
+                    const arrowhead = currentElement.querySelector('.arrow-head');
+                    if (arrowhead) {
+                        const dx = coords.x - startPoint.x;
+                        const dy = coords.y - startPoint.y;
+                        const angle = Math.atan2(dy, dx);
+                        
+                        // Freccia molto più grande e più larga (angolo più ampio)
+                        const arrowSize = Math.max(20, drawWidth * 5); // Dimensione aumentata
+                        const arrowAngle = Math.PI / 4.5; // Angolo più ampio per rendere la freccia più evidente
+                        
+                        // Calcola i punti della punta della freccia (triangolo più grande)
+                        const x1 = coords.x - arrowSize * Math.cos(angle - arrowAngle);
+                        const y1 = coords.y - arrowSize * Math.sin(angle - arrowAngle);
+                        const x2 = coords.x - arrowSize * Math.cos(angle + arrowAngle);
+                        const y2 = coords.y - arrowSize * Math.sin(angle + arrowAngle);
+                        
+                        arrowhead.setAttribute('d', `M ${coords.x} ${coords.y} L ${x1} ${y1} L ${x2} ${y2} Z`);
+                        arrowhead.setAttribute('stroke', drawColor);
+                        arrowhead.setAttribute('stroke-width', '1');
+                        arrowhead.setAttribute('stroke-linejoin', 'miter');
+                    }
+                } else if (drawingMode === 'line' && currentElement) {
+                    // Aggiorna la linea
+                    currentElement.setAttribute('x2', coords.x);
+                    currentElement.setAttribute('y2', coords.y);
                 } else if (drawingMode === 'eraser') {
                     // Continua a cancellare mentre si muove con il mouse premuto
-                    const elementsAtPoint = document.elementsFromPoint(evt.clientX, evt.clientY);
-                    for (let elem of elementsAtPoint) {
-                        if (elem.classList.contains('user-drawing')) {
-                            elem.remove();
-                            break;
+                    const eraserRadius = 15; // Raggio di cancellazione
+                    const drawings = targetDrawingGroup.querySelectorAll('.user-drawing');
+                    
+                    for (let drawing of drawings) {
+                        let shouldRemove = false;
+                        
+                        // Controlla diversi punti intorno al cursore
+                        for (let offsetX = -eraserRadius; offsetX <= eraserRadius; offsetX += 5) {
+                            for (let offsetY = -eraserRadius; offsetY <= eraserRadius; offsetY += 5) {
+                                const testX = evt.clientX + offsetX;
+                                const testY = evt.clientY + offsetY;
+                                const elementsAtPoint = document.elementsFromPoint(testX, testY);
+                                
+                                for (let elem of elementsAtPoint) {
+                                    if (elem === drawing || elem.parentElement === drawing || 
+                                        elem.classList.contains('arrow-line') || 
+                                        elem.classList.contains('arrow-head')) {
+                                        shouldRemove = true;
+                                        break;
+                                    }
+                                }
+                                if (shouldRemove) break;
+                            }
+                            if (shouldRemove) break;
+                        }
+                        
+                        if (shouldRemove) {
+                            drawing.remove();
+                            break; // Rimuovi un elemento alla volta per un controllo migliore
                         }
                     }
                 }
             });
             
-            svg.addEventListener('mouseup', () => {
-                if (!drawingEnabled) return;
+            svgElement.addEventListener('mouseup', () => {
+                if (!window.drawingEnabled) return;
                 isDrawing = false;
                 currentPath = null;
+                currentElement = null;
+                startPoint = null;
             });
             
-            svg.addEventListener('mouseleave', () => {
-                if (!drawingEnabled) return;
+            svgElement.addEventListener('mouseleave', () => {
+                if (!window.drawingEnabled) return;
                 isDrawing = false;
                 currentPath = null;
+                currentElement = null;
+                startPoint = null;
             });
             
             // Supporto touch per dispositivi mobili
-            svg.addEventListener('touchstart', (evt) => {
-                if (!drawingEnabled) return;
+            svgElement.addEventListener('touchstart', (evt) => {
+                if (!window.drawingEnabled) return;
                 evt.preventDefault();
                 
                 const touch = evt.touches[0];
@@ -2969,11 +3272,11 @@
                     clientX: touch.clientX,
                     clientY: touch.clientY
                 });
-                svg.dispatchEvent(mouseEvent);
+                svgElement.dispatchEvent(mouseEvent);
             }, { passive: false });
             
-            svg.addEventListener('touchmove', (evt) => {
-                if (!drawingEnabled) return;
+            svgElement.addEventListener('touchmove', (evt) => {
+                if (!window.drawingEnabled) return;
                 evt.preventDefault();
                 
                 const touch = evt.touches[0];
@@ -2981,16 +3284,54 @@
                     clientX: touch.clientX,
                     clientY: touch.clientY
                 });
-                svg.dispatchEvent(mouseEvent);
+                svgElement.dispatchEvent(mouseEvent);
             }, { passive: false });
             
-            svg.addEventListener('touchend', (evt) => {
-                if (!drawingEnabled) return;
+            svgElement.addEventListener('touchend', (evt) => {
+                if (!window.drawingEnabled) return;
                 evt.preventDefault();
                 
                 const mouseEvent = new MouseEvent('mouseup', {});
-                svg.dispatchEvent(mouseEvent);
+                svgElement.dispatchEvent(mouseEvent);
             }, { passive: false });
+        }
+            
+            // Applica i listener al campo primario
+            addDrawingListeners(svg, drawingGroup);
+            
+            // Applica i listener al campo secondario (se esiste e viene creato in modalità 2 colpi)
+            function setupSecondaryDrawing() {
+                const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                if (svg2) {
+                    const drawingGroup2 = getSecondaryDrawingGroup();
+                    if (drawingGroup2) {
+                        addDrawingListeners(svg2, drawingGroup2);
+                    }
+                }
+            }
+            
+            // Configura il disegno sul secondo campo quando viene creato
+            setupSecondaryDrawing();
+            
+            // Observer per rilevare quando il secondo SVG viene aggiunto
+            const secondaryWrap = document.querySelector('.svg-wrap.secondary');
+            if (secondaryWrap) {
+                const observer = new MutationObserver(() => {
+                    setupSecondaryDrawing();
+                });
+                observer.observe(secondaryWrap, { childList: true, subtree: true });
+            }
+            
+            // Gestione dell'indicatore visivo della gomma
+            document.addEventListener('mousemove', (evt) => {
+                if (drawingMode === 'eraser' && window.drawingEnabled && eraserIndicator) {
+                    eraserIndicator.style.display = 'block';
+                    eraserIndicator.style.left = evt.clientX + 'px';
+                    eraserIndicator.style.top = evt.clientY + 'px';
+                } else if (eraserIndicator) {
+                    eraserIndicator.style.display = 'none';
+                }
+            });
 
         })();
     </script>
