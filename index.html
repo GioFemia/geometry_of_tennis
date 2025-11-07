@@ -573,6 +573,125 @@
             cursor: not-allowed;
             transform: none;
         }
+        
+        /* Stili per la sezione Scrivi */
+        .draw-buttons-container {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .draw-tool-button {
+            flex: 1;
+            min-width: 45px;
+            height: 45px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #607d8b;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            padding: 0;
+        }
+        
+        .draw-tool-button:hover {
+            background: #f5f5f5;
+            border-color: #1976d2;
+            color: #1976d2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.2);
+        }
+        
+        .draw-tool-button.active {
+            background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+            border-color: #1976d2;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+        }
+        
+        .draw-tool-button:active {
+            transform: translateY(0);
+        }
+        
+        .draw-clear-button {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #f44336;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #f44336;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .draw-clear-button:hover {
+            background: #f44336;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
+        }
+        
+        .draw-clear-button:active {
+            transform: translateY(0);
+        }
+        
+        .draw-color-picker,
+        .draw-width-picker {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .draw-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #607d8b;
+            min-width: 70px;
+        }
+        
+        #draw_color {
+            flex: 1;
+            height: 35px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+        
+        #draw_color:hover {
+            border-color: #1976d2;
+        }
+        
+        #draw_width {
+            flex: 1;
+            cursor: pointer;
+        }
+        
+        #draw_width_value {
+            min-width: 20px;
+            text-align: center;
+            font-weight: 600;
+            color: #1976d2;
+            font-size: 14px;
+        }
+        
+        /* Cursore personalizzato per la modalità disegno */
+        .drawing-cursor {
+            cursor: crosshair !important;
+        }
+        
+        .erasing-cursor {
+            cursor: not-allowed !important;
+        }
     </style>
 </head>
 <body>
@@ -634,6 +753,37 @@
                         <input id="tipo_ser" type="radio" name="tipologia" value="servizio" />
                         <span>Servizio</span>
                     </label>
+                </div>
+            </div>
+            
+            <!-- Scrivi -->
+            <div class="control-section collapsed">
+                <h3 class="control-section-title">Scrivi</h3>
+                <div class="control-options">
+                    <div class="draw-buttons-container">
+                        <button id="draw_pen_btn" class="draw-tool-button" title="Matita - Disegna sul campo">
+                            <svg viewBox="0 0 24 24" width="20" height="20">
+                                <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
+                            </svg>
+                        </button>
+                        <button id="draw_eraser_btn" class="draw-tool-button" title="Gomma - Cancella disegni">
+                            <svg viewBox="0 0 24 24" width="20" height="20">
+                                <path fill="currentColor" d="M16.24,3.56L21.19,8.5C21.97,9.29 21.97,10.55 21.19,11.34L12,20.53C10.44,22.09 7.91,22.09 6.34,20.53L2.81,17C2.03,16.21 2.03,14.95 2.81,14.16L13.41,3.56C14.2,2.78 15.46,2.78 16.24,3.56M4.22,15.58L7.76,19.11C8.54,19.9 9.8,19.9 10.59,19.11L14.12,15.58L9.17,10.63L4.22,15.58Z" />
+                            </svg>
+                        </button>
+                        <button id="draw_clear_btn" class="draw-clear-button" title="Cancella tutto">
+                            Cancella tutto
+                        </button>
+                    </div>
+                    <div class="draw-color-picker">
+                        <label class="draw-label">Colore:</label>
+                        <input type="color" id="draw_color" value="#FF0000" />
+                    </div>
+                    <div class="draw-width-picker">
+                        <label class="draw-label">Spessore:</label>
+                        <input type="range" id="draw_width" min="1" max="10" value="3" />
+                        <span id="draw_width_value">3</span>
+                    </div>
                 </div>
             </div>
             
@@ -2636,6 +2786,211 @@
                     requestAnimationFrame(animate);
                 });
             }
+
+            // ==================== FUNZIONALITÀ DI DISEGNO ====================
+            
+            // Variabili per il disegno
+            let drawingMode = 'pen'; // 'pen' o 'eraser'
+            let isDrawing = false;
+            let drawingEnabled = false; // Disattivo di default per non interferire
+            let currentPath = null;
+            let drawColor = '#FF0000';
+            let drawWidth = 3;
+            
+            // Gruppo SVG per contenere tutti i disegni
+            let drawingGroup = document.getElementById('drawingGroup');
+            if (!drawingGroup) {
+                drawingGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                drawingGroup.id = 'drawingGroup';
+                svg.appendChild(drawingGroup);
+            }
+            
+            // Riferimenti agli elementi
+            const penButton = document.getElementById('draw_pen_btn');
+            const eraserButton = document.getElementById('draw_eraser_btn');
+            const clearButton = document.getElementById('draw_clear_btn');
+            const colorInput = document.getElementById('draw_color');
+            const widthInput = document.getElementById('draw_width');
+            const widthValue = document.getElementById('draw_width_value');
+            
+            // Funzione per convertire coordinate del mouse in coordinate SVG
+            function getSvgCoordinates(evt) {
+                const pt = svg.createSVGPoint();
+                pt.x = evt.clientX;
+                pt.y = evt.clientY;
+                return pt.matrixTransform(svg.getScreenCTM().inverse());
+            }
+            
+            // Gestione del pulsante matita
+            if (penButton) {
+                penButton.addEventListener('click', () => {
+                    if (drawingMode === 'pen' && drawingEnabled) {
+                        // Disattiva la modalità disegno
+                        drawingEnabled = false;
+                        penButton.classList.remove('active');
+                        svg.classList.remove('drawing-cursor');
+                    } else {
+                        // Attiva la modalità matita
+                        drawingMode = 'pen';
+                        drawingEnabled = true;
+                        penButton.classList.add('active');
+                        eraserButton.classList.remove('active');
+                        svg.classList.add('drawing-cursor');
+                        svg.classList.remove('erasing-cursor');
+                    }
+                });
+            }
+            
+            // Gestione del pulsante gomma
+            if (eraserButton) {
+                eraserButton.addEventListener('click', () => {
+                    if (drawingMode === 'eraser' && drawingEnabled) {
+                        // Disattiva la modalità disegno
+                        drawingEnabled = false;
+                        eraserButton.classList.remove('active');
+                        svg.classList.remove('erasing-cursor');
+                    } else {
+                        // Attiva la modalità gomma
+                        drawingMode = 'eraser';
+                        drawingEnabled = true;
+                        eraserButton.classList.add('active');
+                        penButton.classList.remove('active');
+                        svg.classList.add('erasing-cursor');
+                        svg.classList.remove('drawing-cursor');
+                    }
+                });
+            }
+            
+            // Gestione del pulsante cancella tutto
+            if (clearButton) {
+                clearButton.addEventListener('click', () => {
+                    if (drawingGroup && drawingGroup.children.length > 0) {
+                        if (confirm('Sei sicuro di voler cancellare tutti i disegni?')) {
+                            while (drawingGroup.firstChild) {
+                                drawingGroup.removeChild(drawingGroup.firstChild);
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Gestione del cambio colore
+            if (colorInput) {
+                colorInput.addEventListener('input', (e) => {
+                    drawColor = e.target.value;
+                });
+            }
+            
+            // Gestione del cambio spessore
+            if (widthInput && widthValue) {
+                widthInput.addEventListener('input', (e) => {
+                    drawWidth = parseInt(e.target.value);
+                    widthValue.textContent = drawWidth;
+                });
+            }
+            
+            // Event listeners per il disegno sul canvas SVG
+            svg.addEventListener('mousedown', (evt) => {
+                if (!drawingEnabled) return;
+                
+                // Previeni l'interferenza con altre funzionalità
+                evt.preventDefault();
+                evt.stopPropagation();
+                
+                isDrawing = true;
+                const coords = getSvgCoordinates(evt);
+                
+                if (drawingMode === 'pen') {
+                    // Crea un nuovo path per il disegno
+                    currentPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    currentPath.setAttribute('fill', 'none');
+                    currentPath.setAttribute('stroke', drawColor);
+                    currentPath.setAttribute('stroke-width', drawWidth);
+                    currentPath.setAttribute('stroke-linecap', 'round');
+                    currentPath.setAttribute('stroke-linejoin', 'round');
+                    currentPath.setAttribute('d', `M ${coords.x} ${coords.y}`);
+                    currentPath.classList.add('user-drawing');
+                    drawingGroup.appendChild(currentPath);
+                } else if (drawingMode === 'eraser') {
+                    // Trova e rimuovi l'elemento sotto il cursore
+                    const elementsAtPoint = document.elementsFromPoint(evt.clientX, evt.clientY);
+                    for (let elem of elementsAtPoint) {
+                        if (elem.classList.contains('user-drawing')) {
+                            elem.remove();
+                            break;
+                        }
+                    }
+                }
+            });
+            
+            svg.addEventListener('mousemove', (evt) => {
+                if (!isDrawing || !drawingEnabled) return;
+                
+                evt.preventDefault();
+                evt.stopPropagation();
+                
+                const coords = getSvgCoordinates(evt);
+                
+                if (drawingMode === 'pen' && currentPath) {
+                    // Continua il path
+                    const currentD = currentPath.getAttribute('d');
+                    currentPath.setAttribute('d', `${currentD} L ${coords.x} ${coords.y}`);
+                } else if (drawingMode === 'eraser') {
+                    // Continua a cancellare mentre si muove con il mouse premuto
+                    const elementsAtPoint = document.elementsFromPoint(evt.clientX, evt.clientY);
+                    for (let elem of elementsAtPoint) {
+                        if (elem.classList.contains('user-drawing')) {
+                            elem.remove();
+                            break;
+                        }
+                    }
+                }
+            });
+            
+            svg.addEventListener('mouseup', () => {
+                if (!drawingEnabled) return;
+                isDrawing = false;
+                currentPath = null;
+            });
+            
+            svg.addEventListener('mouseleave', () => {
+                if (!drawingEnabled) return;
+                isDrawing = false;
+                currentPath = null;
+            });
+            
+            // Supporto touch per dispositivi mobili
+            svg.addEventListener('touchstart', (evt) => {
+                if (!drawingEnabled) return;
+                evt.preventDefault();
+                
+                const touch = evt.touches[0];
+                const mouseEvent = new MouseEvent('mousedown', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                svg.dispatchEvent(mouseEvent);
+            }, { passive: false });
+            
+            svg.addEventListener('touchmove', (evt) => {
+                if (!drawingEnabled) return;
+                evt.preventDefault();
+                
+                const touch = evt.touches[0];
+                const mouseEvent = new MouseEvent('mousemove', {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                svg.dispatchEvent(mouseEvent);
+            }, { passive: false });
+            
+            svg.addEventListener('touchend', (evt) => {
+                if (!drawingEnabled) return;
+                evt.preventDefault();
+                
+                const mouseEvent = new MouseEvent('mouseup', {});
+                svg.dispatchEvent(mouseEvent);
+            }, { passive: false });
 
         })();
     </script>
