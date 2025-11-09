@@ -871,6 +871,10 @@
                         <input id="view_responder" type="checkbox" checked />
                         <span>Ricevitore</span>
                     </label>
+                    <label class="control-option" for="view_cover">
+                        <input id="view_cover" type="checkbox" />
+                        <span>Campo da Coprire</span>
+                    </label>
                     <label class="control-option" for="view_center">
                         <input id="view_center" type="checkbox" checked />
                         <span>Centro</span>
@@ -958,6 +962,10 @@
                             <input id="default_view_responder" type="checkbox" checked />
                             <span>Visualizza: Ricevitore</span>
                         </label>
+                        <label class="control-option" for="default_view_cover">
+                            <input id="default_view_cover" type="checkbox" />
+                            <span>Visualizza: Campo da Coprire</span>
+                        </label>
                         <label class="control-option" for="default_view_center">
                             <input id="default_view_center" type="checkbox" checked />
                             <span>Visualizza: Centro</span>
@@ -995,6 +1003,8 @@
                     <line id="bisectorLine" x1="300" y1="822" x2="300" y2="0" stroke="#1976d2" stroke-width="2" stroke-dasharray="6 6" stroke-linecap="round" />
                     <line id="yellowLine" x1="300" y1="822" x2="300" y2="0" stroke="#ffd600" stroke-width="4" stroke-linecap="round" opacity="0.9" style="cursor: ew-resize;" />
                     <line id="h-measure" x1="300" y1="100" x2="300" y2="100" stroke="#ff6f00" stroke-width="4" opacity="0.9" />
+                    <rect id="h-measure-badge" x="280" y="89" width="40" height="22" fill="#fff" stroke="#ff6f00" stroke-width="1" rx="4" />
+                    <text id="h-measure-label" x="300" y="100" fill="#ff6f00" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle">0.0m</text>
                     <circle id="cursorDot" cx="300" cy="822" r="12" fill="#ff5252" stroke="#fff" stroke-width="2" />
                     <circle id="intersectionDot" cx="300" cy="100" r="8" fill="#ff5252" stroke="#fff" stroke-width="2" style="display: none;" />
                 </svg>
@@ -1050,10 +1060,13 @@
             const yellowLine = document.getElementById('yellowLine');
             const wedge = document.getElementById('wedgeFill');
             const hMeasure = document.getElementById('h-measure');
+            const hMeasureLabel = document.getElementById('h-measure-label');
+            const hMeasureBadge = document.getElementById('h-measure-badge');
             const arrowHtml = document.getElementById('measureArrowHtml');
             const chkPlayer = document.getElementById('view_player');
             const chkShot = document.getElementById('view_shot');
             const chkResponder = document.getElementById('view_responder');
+            const chkCover = document.getElementById('view_cover');
             const chkCenter = document.getElementById('view_center');
             const chkCoordinates = document.getElementById('view_coordinates');
             const tooltip = document.getElementById('coordinateTooltip');
@@ -1104,8 +1117,10 @@
             window.__viewPlayer__ = true;
             window.__viewShot__ = true;
             window.__viewResponder__ = true;
+            window.__viewCover__ = false;
             window.__viewCenter__ = true;
             window.__viewCoordinates__ = false;
+            window.__prevViewCover__ = false;
             window.__modalita__ = '2colpi';
             window.__numeroColpo__ = 1;
             
@@ -1260,9 +1275,10 @@
             }
 
             function updateHorizontalMeasure(dotX, dotY, targets, yH) {
-                if (!hMeasure) return;
+                if (!hMeasure || !hMeasureLabel) return;
                 if (window.__viewResponder__ === false) {
                     if (hMeasure) hMeasure.style.display = 'none';
+                    // badge/label governati da __viewCover__
                     return;
                 }
                 
@@ -1284,6 +1300,42 @@
                 hMeasure.setAttribute('x2', String(x2));
                 hMeasure.setAttribute('y2', String(yH));
                 hMeasure.style.display = '';
+                
+                // Calcola e mostra il valore della misura in metri
+                const delta = Math.max(0, x2 - x1);
+                const scale = 100 / 293;
+                const scaled = delta * scale;
+                const meters = scaled / 9.65;
+                const lengthText = meters > 25.0 ? '25+m' : meters.toFixed(1) + 'm';
+                hMeasureLabel.textContent = lengthText;
+                
+                // Posiziona il badge al centro della linea
+                const bisectorTarget = window.__shotTypeIsServizio__ 
+                    ? ((targets.left.y + targets.right.y) / 2)
+                    : ((targets.left + targets.right) / 2);
+                let xOnBisector;
+                if (window.__shotTypeIsServizio__) {
+                    xOnBisector = (targets.left.x + targets.right.x) / 2;
+                } else {
+                    xOnBisector = computeBisectorXAtY(dotX, dotY, bisectorTarget, yH);
+                }
+                const xClamped = Math.max(COURT_X_MIN, Math.min(COURT_X_MAX, xOnBisector));
+                
+                if (hMeasureLabel) {
+                    hMeasureLabel.style.display = (window.__viewCover__ === false) ? 'none' : '';
+                    hMeasureLabel.setAttribute('x', String(xClamped));
+                    hMeasureLabel.setAttribute('y', String(yH));
+                }
+                if (hMeasureBadge) {
+                    hMeasureBadge.style.display = (window.__viewCover__ === false) ? 'none' : '';
+                    // Calcola dimensioni del rettangolo basandosi sulla lunghezza del testo (come il righello)
+                    const textWidth = lengthText.length * 11; // Approssimazione basata su font-size 18
+                    const textHeight = 22;
+                    hMeasureBadge.setAttribute('x', String(xClamped - textWidth / 2 - 4));
+                    hMeasureBadge.setAttribute('y', String(yH - textHeight / 2 - 2));
+                    hMeasureBadge.setAttribute('width', String(textWidth + 8));
+                    hMeasureBadge.setAttribute('height', String(textHeight + 4));
+                }
             }
 
             function svgYToClientY(ySvg) {
@@ -1443,6 +1495,8 @@
             function updateThemeColors() {
                 const color = window.__shotTypeIsPassante__ ? COLOR_PASSANTE : COLOR_PALLEGGIO;
                 if (hMeasure) hMeasure.setAttribute('stroke', color);
+                if (hMeasureLabel) hMeasureLabel.setAttribute('fill', color);
+                if (hMeasureBadge) hMeasureBadge.setAttribute('stroke', color);
                 if (leftLine) leftLine.setAttribute('stroke', color);
                 if (rightLine) rightLine.setAttribute('stroke', color);
                 if (bisectorLine) bisectorLine.setAttribute('stroke', color);
@@ -1930,6 +1984,8 @@
                 if (yellowLine) yellowLine.style.display = (window.__viewShot__ === false) ? 'none' : '';
                 if (bisectorLine) bisectorLine.style.display = (window.__viewCenter__ === false) ? 'none' : '';
                 if (hMeasure) hMeasure.style.display = (window.__viewResponder__ === false) ? 'none' : '';
+                if (hMeasureLabel) hMeasureLabel.style.display = (window.__viewCover__ === false) ? 'none' : '';
+                if (hMeasureBadge) hMeasureBadge.style.display = (window.__viewCover__ === false) ? 'none' : '';
                 if (arrowHtml) arrowHtml.style.display = (window.__viewResponder__ === false) ? 'none' : 'block';
                 updateSecondaryCourtLock();
                 updateSecondaryFromLeft();
@@ -2192,8 +2248,36 @@
             bindViewCheckbox(chkPlayer, '__viewPlayer__');
             bindViewCheckbox(chkShot, '__viewShot__');
             bindViewCheckbox(chkResponder, '__viewResponder__');
+            bindViewCheckbox(chkCover, '__viewCover__');
             bindViewCheckbox(chkCenter, '__viewCenter__');
             bindViewCheckbox(chkCoordinates, '__viewCoordinates__');
+
+            // Vincolo: se "Ricevitore" è OFF, forza OFF e disabilita "Campo da Coprire"
+            if (chkResponder && chkCover) {
+                const syncCoverWithResponder = () => {
+                    if (!chkResponder.checked) {
+                        window.__prevViewCover__ = window.__viewCover__;
+                        window.__viewCover__ = false;
+                        chkCover.checked = false;
+                        chkCover.disabled = true;
+                        applyViewToggles();
+                        const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                        const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                        updateLinesAndWedge(dotX, dotY);
+                    } else {
+                        chkCover.disabled = false;
+                        window.__viewCover__ = (window.__prevViewCover__ !== undefined) ? window.__prevViewCover__ : false;
+                        chkCover.checked = !!window.__viewCover__;
+                        applyViewToggles();
+                        const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                        const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                        updateLinesAndWedge(dotX, dotY);
+                    }
+                };
+                chkResponder.addEventListener('change', syncCoverWithResponder);
+                // Inizializza stato coerente
+                syncCoverWithResponder();
+            }
 
             // Collapsible sections
             function initCollapsibleSections() {
@@ -2257,6 +2341,7 @@
                     view_player: localStorage.getItem('default_view_player'),
                     view_shot: localStorage.getItem('default_view_shot'),
                     view_responder: localStorage.getItem('default_view_responder'),
+                    view_cover: localStorage.getItem('default_view_cover'),
                     view_center: localStorage.getItem('default_view_center'),
                     view_coordinates: localStorage.getItem('default_view_coordinates')
                 };
@@ -2310,7 +2395,7 @@
             
             function addDefaultEventListeners() {
                 // Listen for changes in DEFAULT section
-                const defaultControls = document.querySelectorAll('#default_colpitore, #default_modalita, #default_tipologia, #default_campoType, #default_view_player, #default_view_shot, #default_view_responder, #default_view_center, #default_view_coordinates');
+                const defaultControls = document.querySelectorAll('#default_colpitore, #default_modalita, #default_tipologia, #default_campoType, #default_view_player, #default_view_shot, #default_view_responder, #default_view_cover, #default_view_center, #default_view_coordinates');
                 
                 defaultControls.forEach(control => {
                     control.addEventListener('change', function() {
@@ -3361,9 +3446,24 @@
                     line.classList.add('ruler-line');
                     currentElement.appendChild(line);
                     
+                    // Crea i segmentini perpendicolari alle estremità
+                    const tick1 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    tick1.setAttribute('stroke', drawColor);
+                    tick1.setAttribute('stroke-width', drawWidth);
+                    tick1.setAttribute('stroke-linecap', 'round');
+                    tick1.classList.add('ruler-tick-1');
+                    currentElement.appendChild(tick1);
+                    
+                    const tick2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    tick2.setAttribute('stroke', drawColor);
+                    tick2.setAttribute('stroke-width', drawWidth);
+                    tick2.setAttribute('stroke-linecap', 'round');
+                    tick2.classList.add('ruler-tick-2');
+                    currentElement.appendChild(tick2);
+                    
                     // Crea il rettangolo di sfondo per la misura
                     const measureBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-                    measureBg.setAttribute('fill', 'rgba(255, 255, 255, 0.9)');
+                    measureBg.setAttribute('fill', '#fff');
                     measureBg.setAttribute('stroke', drawColor);
                     measureBg.setAttribute('stroke-width', '1');
                     measureBg.setAttribute('rx', '4');
@@ -3378,7 +3478,7 @@
                     measureText.setAttribute('font-weight', '700');
                     measureText.setAttribute('text-anchor', 'middle');
                     measureText.setAttribute('dominant-baseline', 'middle');
-                    measureText.textContent = '0';
+                    measureText.textContent = '0.0m';
                     measureText.classList.add('ruler-measure');
                     currentElement.appendChild(measureText);
                     
@@ -3488,11 +3588,13 @@
                         currentElement._cachedElements = {
                             line: currentElement.querySelector('.ruler-line'),
                             measureText: currentElement.querySelector('.ruler-measure'),
-                            measureBg: currentElement.querySelector('.ruler-measure-bg')
+                            measureBg: currentElement.querySelector('.ruler-measure-bg'),
+                            tick1: currentElement.querySelector('.ruler-tick-1'),
+                            tick2: currentElement.querySelector('.ruler-tick-2')
                         };
                     }
                     
-                    const { line, measureText, measureBg } = currentElement._cachedElements;
+                    const { line, measureText, measureBg, tick1, tick2 } = currentElement._cachedElements;
                     
                     // Aggiorna la linea del righello
                     if (line) {
@@ -3505,9 +3607,40 @@
                     const dy = coords.y - startPoint.y;
                     const length = Math.sqrt(dx * dx + dy * dy);
                     
-                    // Aggiorna il testo della misura
+                    // Calcola l'angolo della linea
+                    const angle = Math.atan2(dy, dx);
+                    
+                    // Aggiorna i segmentini perpendicolari alle estremità
+                    const tickLength = 10; // Lunghezza del segmentino
+                    if (tick1) {
+                        // Segmentino all'inizio
+                        const perpAngle = angle + Math.PI / 2; // Perpendicolare
+                        const tick1x1 = startPoint.x - Math.cos(perpAngle) * tickLength;
+                        const tick1y1 = startPoint.y - Math.sin(perpAngle) * tickLength;
+                        const tick1x2 = startPoint.x + Math.cos(perpAngle) * tickLength;
+                        const tick1y2 = startPoint.y + Math.sin(perpAngle) * tickLength;
+                        tick1.setAttribute('x1', tick1x1);
+                        tick1.setAttribute('y1', tick1y1);
+                        tick1.setAttribute('x2', tick1x2);
+                        tick1.setAttribute('y2', tick1y2);
+                    }
+                    if (tick2) {
+                        // Segmentino alla fine
+                        const perpAngle = angle + Math.PI / 2; // Perpendicolare
+                        const tick2x1 = coords.x - Math.cos(perpAngle) * tickLength;
+                        const tick2y1 = coords.y - Math.sin(perpAngle) * tickLength;
+                        const tick2x2 = coords.x + Math.cos(perpAngle) * tickLength;
+                        const tick2y2 = coords.y + Math.sin(perpAngle) * tickLength;
+                        tick2.setAttribute('x1', tick2x1);
+                        tick2.setAttribute('y1', tick2y1);
+                        tick2.setAttribute('x2', tick2x2);
+                        tick2.setAttribute('y2', tick2y2);
+                    }
+                    
+                    // Aggiorna il testo della misura (converti in metri)
                     if (measureText && measureBg) {
-                        const lengthText = length.toFixed(1);
+                        const lengthInMeters = length / 28.20;
+                        const lengthText = lengthInMeters.toFixed(1) + 'm';
                         measureText.textContent = lengthText;
                         
                         // Posiziona il testo al centro della linea
@@ -3515,7 +3648,6 @@
                         const midY = (startPoint.y + coords.y) / 2;
                         
                         // Calcola l'angolo della linea per posizionare il testo perpendicolarmente
-                        const angle = Math.atan2(dy, dx);
                         const offset = 15; // Distanza dalla linea
                         const textX = midX - Math.sin(angle) * offset;
                         const textY = midY + Math.cos(angle) * offset;
