@@ -3285,80 +3285,44 @@
                         textElement.classList.add('user-drawing', 'draggable-text');
                         textElement.style.cursor = 'move';
                         
-                        // Aggiungi funzionalità di trascinamento e modifica
-                        let isDraggingText = false;
-                        let hasMoved = false;
-                        let dragStartX, dragStartY, textStartX, textStartY;
+                        // Sistema ottimizzato di trascinamento (evita accumulo di event listener)
+                        // I dati vengono salvati nell'elemento, mentre i listener mousemove/mouseup
+                        // sono gestiti centralmente dall'SVG parent (uno solo per tutti i testi)
+                        textElement._draggableData = {
+                            isDragging: false,
+                            hasMoved: false,
+                            startX: 0,
+                            startY: 0,
+                            textStartX: 0,
+                            textStartY: 0,
+                            svgElement: svgElement
+                        };
                         
-                        const onMouseDown = (e) => {
+                        // Mousedown sul testo per iniziare il trascinamento
+                        textElement.addEventListener('mousedown', (e) => {
                             e.stopPropagation();
-                            isDraggingText = true;
-                            hasMoved = false;
-                            const coords = getSvgCoordinates(e, svgElement);
-                            dragStartX = coords.x;
-                            dragStartY = coords.y;
-                            textStartX = parseFloat(textElement.getAttribute('x'));
-                            textStartY = parseFloat(textElement.getAttribute('y'));
-                        };
-                        
-                        const onMouseMove = (e) => {
-                            if (isDraggingText) {
-                                hasMoved = true;
-                                const coords = getSvgCoordinates(e, svgElement);
-                                const dx = coords.x - dragStartX;
-                                const dy = coords.y - dragStartY;
-                                textElement.setAttribute('x', textStartX + dx);
-                                textElement.setAttribute('y', textStartY + dy);
-                            }
-                        };
-                        
-                        const onMouseUp = () => {
-                            isDraggingText = false;
-                        };
+                            const data = textElement._draggableData;
+                            data.isDragging = true;
+                            data.hasMoved = false;
+                            const coords = getSvgCoordinates(e, data.svgElement);
+                            data.startX = coords.x;
+                            data.startY = coords.y;
+                            data.textStartX = parseFloat(textElement.getAttribute('x'));
+                            data.textStartY = parseFloat(textElement.getAttribute('y'));
+                            
+                            // Salva l'elemento corrente che sta venendo trascinato
+                            data.svgElement._currentDraggingText = textElement;
+                        });
                         
                         // Click per modificare il testo (solo se non è stato trascinato)
-                        const onClick = (e) => {
-                            if (!hasMoved) {
+                        textElement.addEventListener('click', (e) => {
+                            const data = textElement._draggableData;
+                            if (!data.hasMoved) {
                                 e.stopPropagation();
                                 const newText = prompt('Modifica il testo:', textElement.textContent);
                                 if (newText !== null && newText.trim() !== '') {
                                     textElement.textContent = newText;
                                 }
-                            }
-                        };
-                        
-                        textElement.addEventListener('mousedown', onMouseDown);
-                        svgElement.addEventListener('mousemove', onMouseMove);
-                        svgElement.addEventListener('mouseup', onMouseUp);
-                        textElement.addEventListener('click', onClick);
-                        
-                        // Supporto touch per dispositivi mobili
-                        textElement.addEventListener('touchstart', (e) => {
-                            const touch = e.touches[0];
-                            const mouseEvent = new MouseEvent('mousedown', {
-                                clientX: touch.clientX,
-                                clientY: touch.clientY,
-                                bubbles: true
-                            });
-                            onMouseDown(mouseEvent);
-                        });
-                        
-                        svgElement.addEventListener('touchmove', (e) => {
-                            if (isDraggingText) {
-                                e.preventDefault();
-                                const touch = e.touches[0];
-                                const mouseEvent = new MouseEvent('mousemove', {
-                                    clientX: touch.clientX,
-                                    clientY: touch.clientY,
-                                    bubbles: true
-                                });
-                                onMouseMove(mouseEvent);
-                            }
-                        });
-                        
-                        svgElement.addEventListener('touchend', () => {
-                            if (isDraggingText) {
-                                onMouseUp();
                             }
                         });
                         
@@ -3456,6 +3420,23 @@
             });
             
             svgElement.addEventListener('mousemove', (evt) => {
+                // Gestione centralizzata del trascinamento testo (ottimizzato per performance)
+                // Invece di aggiungere listener per ogni testo, usiamo UN SOLO listener globale
+                // che controlla quale testo sta venendo trascinato
+                if (svgElement._currentDraggingText) {
+                    const textElement = svgElement._currentDraggingText;
+                    const data = textElement._draggableData;
+                    if (data && data.isDragging) {
+                        data.hasMoved = true;
+                        const coords = getSvgCoordinates(evt, svgElement);
+                        const dx = coords.x - data.startX;
+                        const dy = coords.y - data.startY;
+                        textElement.setAttribute('x', data.textStartX + dx);
+                        textElement.setAttribute('y', data.textStartY + dy);
+                        return;
+                    }
+                }
+                
                 if (!isDrawing || !window.drawingEnabled) return;
                 
                 evt.preventDefault();
@@ -3502,8 +3483,18 @@
                     currentElement.setAttribute('x2', coords.x);
                     currentElement.setAttribute('y2', coords.y);
                 } else if (drawingMode === 'ruler' && currentElement && startPoint) {
+                    // Ottimizzazione: usa riferimenti cached invece di querySelector ripetuti
+                    if (!currentElement._cachedElements) {
+                        currentElement._cachedElements = {
+                            line: currentElement.querySelector('.ruler-line'),
+                            measureText: currentElement.querySelector('.ruler-measure'),
+                            measureBg: currentElement.querySelector('.ruler-measure-bg')
+                        };
+                    }
+                    
+                    const { line, measureText, measureBg } = currentElement._cachedElements;
+                    
                     // Aggiorna la linea del righello
-                    const line = currentElement.querySelector('.ruler-line');
                     if (line) {
                         line.setAttribute('x2', coords.x);
                         line.setAttribute('y2', coords.y);
@@ -3515,10 +3506,9 @@
                     const length = Math.sqrt(dx * dx + dy * dy);
                     
                     // Aggiorna il testo della misura
-                    const measureText = currentElement.querySelector('.ruler-measure');
-                    const measureBg = currentElement.querySelector('.ruler-measure-bg');
                     if (measureText && measureBg) {
-                        measureText.textContent = length.toFixed(1);
+                        const lengthText = length.toFixed(1);
+                        measureText.textContent = lengthText;
                         
                         // Posiziona il testo al centro della linea
                         const midX = (startPoint.x + coords.x) / 2;
@@ -3533,12 +3523,14 @@
                         measureText.setAttribute('x', textX);
                         measureText.setAttribute('y', textY);
                         
-                        // Dimensiona e posiziona il rettangolo di sfondo
-                        const bbox = measureText.getBBox();
-                        measureBg.setAttribute('x', bbox.x - 4);
-                        measureBg.setAttribute('y', bbox.y - 2);
-                        measureBg.setAttribute('width', bbox.width + 8);
-                        measureBg.setAttribute('height', bbox.height + 4);
+                        // Dimensiona il rettangolo di sfondo basandosi sulla lunghezza del testo
+                        // Stima approssimativa per evitare getBBox() che è costoso in performance
+                        const textWidth = lengthText.length * 11; // Approssimazione basata su font-size 18
+                        const textHeight = 22;
+                        measureBg.setAttribute('x', textX - textWidth / 2 - 4);
+                        measureBg.setAttribute('y', textY - textHeight / 2 - 2);
+                        measureBg.setAttribute('width', textWidth + 8);
+                        measureBg.setAttribute('height', textHeight + 4);
                     }
                 } else if (drawingMode === 'eraser') {
                     // Continua a cancellare mentre si muove con il mouse premuto
@@ -3577,6 +3569,16 @@
             });
             
             svgElement.addEventListener('mouseup', () => {
+                // Gestione fine trascinamento testo
+                if (svgElement._currentDraggingText) {
+                    const textElement = svgElement._currentDraggingText;
+                    const data = textElement._draggableData;
+                    if (data) {
+                        data.isDragging = false;
+                    }
+                    svgElement._currentDraggingText = null;
+                }
+                
                 if (!window.drawingEnabled) return;
                 isDrawing = false;
                 currentPath = null;
@@ -3585,6 +3587,16 @@
             });
             
             svgElement.addEventListener('mouseleave', () => {
+                // Gestione fine trascinamento testo se si esce dall'SVG
+                if (svgElement._currentDraggingText) {
+                    const textElement = svgElement._currentDraggingText;
+                    const data = textElement._draggableData;
+                    if (data) {
+                        data.isDragging = false;
+                    }
+                    svgElement._currentDraggingText = null;
+                }
+                
                 if (!window.drawingEnabled) return;
                 isDrawing = false;
                 currentPath = null;
