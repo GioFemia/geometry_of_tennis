@@ -583,7 +583,7 @@
         }
         
         .draw-tool-button {
-            flex: 1;
+            flex: 0 0 calc(33.333% - 6px);
             min-width: 45px;
             height: 45px;
             border: 2px solid #e0e0e0;
@@ -644,7 +644,8 @@
         }
         
         .draw-color-picker,
-        .draw-width-picker {
+        .draw-width-picker,
+        .draw-font-size-picker {
             display: flex;
             align-items: center;
             gap: 8px;
@@ -655,7 +656,17 @@
             font-size: 12px;
             font-weight: 600;
             color: #607d8b;
-            min-width: 70px;
+            min-width: 90px;
+        }
+        
+        .draggable-text {
+            cursor: move !important;
+            user-select: none;
+            transition: opacity 0.2s ease;
+        }
+        
+        .draggable-text:hover {
+            opacity: 0.8;
         }
         
         #draw_color {
@@ -793,22 +804,32 @@
                 <h3 class="control-section-title">Disegna</h3>
                 <div class="control-options">
                     <div class="draw-buttons-container">
-                        <button id="draw_pen_btn" class="draw-tool-button" title="Matita - Disegna sul campo">
+                        <button id="draw_pen_btn" class="draw-tool-button" title="Matita">
                             <svg viewBox="0 0 24 24" width="20" height="20">
                                 <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
                             </svg>
                         </button>
-                        <button id="draw_arrow_btn" class="draw-tool-button" title="Freccia - Disegna frecce">
+                        <button id="draw_arrow_btn" class="draw-tool-button" title="Freccia">
                             <svg viewBox="0 0 24 24" width="20" height="20">
                                 <path fill="currentColor" d="M4,12 L18,12 M18,12 L13,7 M18,12 L13,17" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
-                        <button id="draw_line_btn" class="draw-tool-button" title="Linea - Disegna linee dritte">
+                        <button id="draw_line_btn" class="draw-tool-button" title="Linea">
                             <svg viewBox="0 0 24 24" width="20" height="20">
                                 <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4,20 L20,4"/>
                             </svg>
                         </button>
-                        <button id="draw_eraser_btn" class="draw-tool-button" title="Gomma - Cancella disegni">
+                        <button id="draw_text_btn" class="draw-tool-button" title="Testo">
+                            <svg viewBox="0 0 24 24" width="20" height="20">
+                                <path fill="currentColor" d="M9.6,14L12,7.7L14.4,14M11,5L5.5,19H7.7L8.8,16H15.2L16.3,19H18.5L13,5H11Z"/>
+                            </svg>
+                        </button>
+                        <button id="draw_ruler_btn" class="draw-tool-button" title="Righello">
+                            <svg viewBox="0 0 24 24" width="20" height="20">
+                                <path fill="currentColor" d="M1.39,18.36L3.16,16.6L4.58,18L5.64,16.95L4.22,15.54L5.64,14.12L8.11,16.6L9.17,15.54L6.7,13.06L8.11,11.65L9.53,13.06L10.59,12L9.17,10.59L10.59,9.17L13.06,11.65L14.12,10.59L11.65,8.11L13.06,6.7L14.47,8.11L15.54,7.05L14.12,5.64L15.54,4.22L18,6.7L19.07,5.64L16.6,3.16L18.36,1.39L22.61,5.64L5.64,22.61L1.39,18.36Z"/>
+                            </svg>
+                        </button>
+                        <button id="draw_eraser_btn" class="draw-tool-button" title="Gomma">
                             <svg viewBox="0 0 24 24" width="20" height="20">
                                 <path fill="currentColor" d="M16.24,3.56L21.19,8.5C21.97,9.29 21.97,10.55 21.19,11.34L12,20.53C10.44,22.09 7.91,22.09 6.34,20.53L2.81,17C2.03,16.21 2.03,14.95 2.81,14.16L13.41,3.56C14.2,2.78 15.46,2.78 16.24,3.56M4.22,15.58L7.76,19.11C8.54,19.9 9.8,19.9 10.59,19.11L14.12,15.58L9.17,10.63L4.22,15.58Z" />
                             </svg>
@@ -825,6 +846,11 @@
                         <label class="draw-label">Spessore:</label>
                         <input type="range" id="draw_width" min="1" max="10" value="3" />
                         <span id="draw_width_value">3</span>
+                    </div>
+                    <div class="draw-font-size-picker" id="draw_font_size_container" style="display: none;">
+                        <label class="draw-label">Dimensione:</label>
+                        <input type="range" id="draw_font_size" min="12" max="48" value="16" />
+                        <span id="draw_font_size_value">16</span>
                     </div>
                 </div>
             </div>
@@ -2183,11 +2209,17 @@
                             if (window.drawingEnabled) {
                                 window.drawingEnabled = false;
                                 // Rimuovi la classe active da tutti i pulsanti
-                                const drawButtons = ['draw_pen_btn', 'draw_arrow_btn', 'draw_line_btn', 'draw_eraser_btn'];
+                                const drawButtons = ['draw_pen_btn', 'draw_arrow_btn', 'draw_line_btn', 'draw_text_btn', 'draw_ruler_btn', 'draw_eraser_btn'];
                                 drawButtons.forEach(btnId => {
                                     const btn = document.getElementById(btnId);
                                     if (btn) btn.classList.remove('active');
                                 });
+                                // Nascondi i container del testo
+                                const fontSizeContainer = document.getElementById('draw_font_size_container');
+                                const widthInput = document.getElementById('draw_width');
+                                const widthContainer = widthInput ? widthInput.parentElement : null;
+                                if (fontSizeContainer) fontSizeContainer.style.display = 'none';
+                                if (widthContainer) widthContainer.style.display = 'flex';
                                 // Rimuovi i cursori personalizzati
                                 const svg1 = document.getElementById('tennisCourt');
                                 const svg2 = document.querySelector('.svg-wrap.secondary svg');
@@ -2855,14 +2887,16 @@
             // ==================== FUNZIONALITÀ DI DISEGNO ====================
             
             // Variabili per il disegno (alcune esposte globalmente)
-            let drawingMode = 'pen'; // 'pen', 'arrow', 'line' o 'eraser'
+            let drawingMode = 'pen'; // 'pen', 'arrow', 'line', 'text', 'ruler' o 'eraser'
             let isDrawing = false;
             window.drawingEnabled = false; // Disattivo di default per non interferire (globale per controlli esterni)
             let currentPath = null;
-            let currentElement = null; // Per linee e frecce
-            let startPoint = null; // Punto iniziale per linee e frecce
+            let currentElement = null; // Per linee, frecce e righelli
+            let startPoint = null; // Punto iniziale per linee, frecce e righelli
             let drawColor = '#000000';
             let drawWidth = 3;
+            let drawFontSize = 16;
+            let drawText = '';
             
             // Gruppo SVG per contenere tutti i disegni (campo primario)
             let drawingGroup = document.getElementById('drawingGroup');
@@ -2890,11 +2924,16 @@
             const penButton = document.getElementById('draw_pen_btn');
             const arrowButton = document.getElementById('draw_arrow_btn');
             const lineButton = document.getElementById('draw_line_btn');
+            const textButton = document.getElementById('draw_text_btn');
+            const rulerButton = document.getElementById('draw_ruler_btn');
             const eraserButton = document.getElementById('draw_eraser_btn');
             const clearButton = document.getElementById('draw_clear_btn');
             const colorInput = document.getElementById('draw_color');
             const widthInput = document.getElementById('draw_width');
             const widthValue = document.getElementById('draw_width_value');
+            const widthContainer = widthInput.parentElement;
+            const fontSizeValue = document.getElementById('draw_font_size_value');
+            const fontSizeContainer = document.getElementById('draw_font_size_container');
             const eraserIndicator = document.getElementById('eraserIndicator');
             
             // Funzione per convertire coordinate del mouse in coordinate SVG
@@ -2922,6 +2961,7 @@
                         window.drawingEnabled = false;
                         penButton.classList.remove('active');
                         svg.classList.remove('drawing-cursor');
+                        fontSizeContainer.style.display = 'none';
                         const svg2 = document.querySelector('.svg-wrap.secondary svg');
                         if (svg2) svg2.classList.remove('drawing-cursor');
                     } else {
@@ -2931,9 +2971,13 @@
                         penButton.classList.add('active');
                         arrowButton.classList.remove('active');
                         lineButton.classList.remove('active');
+                        textButton.classList.remove('active');
+                        rulerButton.classList.remove('active');
                         eraserButton.classList.remove('active');
                         svg.classList.add('drawing-cursor');
                         svg.classList.remove('erasing-cursor');
+                        fontSizeContainer.style.display = 'none';
+                        widthContainer.style.display = 'flex';
                         const svg2 = document.querySelector('.svg-wrap.secondary svg');
                         if (svg2) {
                             svg2.classList.add('drawing-cursor');
@@ -2952,6 +2996,7 @@
                         window.drawingEnabled = false;
                         arrowButton.classList.remove('active');
                         svg.classList.remove('drawing-cursor');
+                        fontSizeContainer.style.display = 'none';
                         const svg2 = document.querySelector('.svg-wrap.secondary svg');
                         if (svg2) svg2.classList.remove('drawing-cursor');
                     } else {
@@ -2960,9 +3005,13 @@
                         arrowButton.classList.add('active');
                         penButton.classList.remove('active');
                         lineButton.classList.remove('active');
+                        textButton.classList.remove('active');
+                        rulerButton.classList.remove('active');
                         eraserButton.classList.remove('active');
                         svg.classList.add('drawing-cursor');
                         svg.classList.remove('erasing-cursor');
+                        fontSizeContainer.style.display = 'none';
+                        widthContainer.style.display = 'flex';
                         const svg2 = document.querySelector('.svg-wrap.secondary svg');
                         if (svg2) {
                             svg2.classList.add('drawing-cursor');
@@ -2983,15 +3032,91 @@
                         svg.classList.remove('drawing-cursor');
                         const svg2 = document.querySelector('.svg-wrap.secondary svg');
                         if (svg2) svg2.classList.remove('drawing-cursor');
+                        textInputContainer.style.display = 'none';
+                        fontSizeContainer.style.display = 'none';
                     } else {
                         drawingMode = 'line';
                         window.drawingEnabled = true;
                         lineButton.classList.add('active');
                         penButton.classList.remove('active');
                         arrowButton.classList.remove('active');
+                        textButton.classList.remove('active');
+                        rulerButton.classList.remove('active');
                         eraserButton.classList.remove('active');
                         svg.classList.add('drawing-cursor');
                         svg.classList.remove('erasing-cursor');
+                        fontSizeContainer.style.display = 'none';
+                        widthContainer.style.display = 'flex';
+                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                        if (svg2) {
+                            svg2.classList.add('drawing-cursor');
+                            svg2.classList.remove('erasing-cursor');
+                        }
+                    }
+                });
+            }
+            
+            // Gestione del pulsante testo
+            if (textButton) {
+                textButton.addEventListener('click', () => {
+                    if (!isDrawSectionOpen()) return;
+                    
+                    if (drawingMode === 'text' && window.drawingEnabled) {
+                        window.drawingEnabled = false;
+                        textButton.classList.remove('active');
+                        svg.classList.remove('drawing-cursor');
+                        fontSizeContainer.style.display = 'none';
+                        widthContainer.style.display = 'flex';
+                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                        if (svg2) svg2.classList.remove('drawing-cursor');
+                    } else {
+                        drawingMode = 'text';
+                        window.drawingEnabled = true;
+                        textButton.classList.add('active');
+                        penButton.classList.remove('active');
+                        arrowButton.classList.remove('active');
+                        lineButton.classList.remove('active');
+                        rulerButton.classList.remove('active');
+                        eraserButton.classList.remove('active');
+                        svg.classList.add('drawing-cursor');
+                        svg.classList.remove('erasing-cursor');
+                        fontSizeContainer.style.display = 'flex';
+                        widthContainer.style.display = 'none';
+                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                        if (svg2) {
+                            svg2.classList.add('drawing-cursor');
+                            svg2.classList.remove('erasing-cursor');
+                        }
+                    }
+                });
+            }
+            
+            // Gestione del pulsante righello
+            if (rulerButton) {
+                rulerButton.addEventListener('click', () => {
+                    if (!isDrawSectionOpen()) return;
+                    
+                    if (drawingMode === 'ruler' && window.drawingEnabled) {
+                        window.drawingEnabled = false;
+                        rulerButton.classList.remove('active');
+                        svg.classList.remove('drawing-cursor');
+                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                        if (svg2) svg2.classList.remove('drawing-cursor');
+                        textInputContainer.style.display = 'none';
+                        fontSizeContainer.style.display = 'none';
+                    } else {
+                        drawingMode = 'ruler';
+                        window.drawingEnabled = true;
+                        rulerButton.classList.add('active');
+                        penButton.classList.remove('active');
+                        arrowButton.classList.remove('active');
+                        lineButton.classList.remove('active');
+                        textButton.classList.remove('active');
+                        eraserButton.classList.remove('active');
+                        svg.classList.add('drawing-cursor');
+                        svg.classList.remove('erasing-cursor');
+                        fontSizeContainer.style.display = 'none';
+                        widthContainer.style.display = 'flex';
                         const svg2 = document.querySelector('.svg-wrap.secondary svg');
                         if (svg2) {
                             svg2.classList.add('drawing-cursor');
@@ -3010,6 +3135,8 @@
                         window.drawingEnabled = false;
                         eraserButton.classList.remove('active');
                         svg.classList.remove('erasing-cursor');
+                        fontSizeContainer.style.display = 'none';
+                        widthContainer.style.display = 'flex';
                         const svg2 = document.querySelector('.svg-wrap.secondary svg');
                         if (svg2) svg2.classList.remove('erasing-cursor');
                     } else {
@@ -3019,8 +3146,12 @@
                         penButton.classList.remove('active');
                         arrowButton.classList.remove('active');
                         lineButton.classList.remove('active');
+                        textButton.classList.remove('active');
+                        rulerButton.classList.remove('active');
                         svg.classList.add('erasing-cursor');
                         svg.classList.remove('drawing-cursor');
+                        fontSizeContainer.style.display = 'none';
+                        widthContainer.style.display = 'none';
                         const svg2 = document.querySelector('.svg-wrap.secondary svg');
                         if (svg2) {
                             svg2.classList.add('erasing-cursor');
@@ -3061,6 +3192,15 @@
                 widthInput.addEventListener('input', (e) => {
                     drawWidth = parseInt(e.target.value);
                     widthValue.textContent = drawWidth;
+                });
+            }
+            
+            // Gestione della dimensione font
+            const fontSizeInput = document.getElementById('draw_font_size');
+            if (fontSizeInput && fontSizeValue) {
+                fontSizeInput.addEventListener('input', (e) => {
+                    drawFontSize = parseInt(e.target.value);
+                    fontSizeValue.textContent = drawFontSize;
                 });
             }
             
@@ -3127,6 +3267,157 @@
                     currentElement.setAttribute('stroke-width', drawWidth);
                     currentElement.setAttribute('stroke-linecap', 'round');
                     currentElement.classList.add('user-drawing');
+                    targetDrawingGroup.appendChild(currentElement);
+                } else if (drawingMode === 'text') {
+                    // Mostra prompt per inserire il testo
+                    const userText = prompt('Inserisci il testo da visualizzare sul campo:', '');
+                    if (userText && userText.trim() !== '') {
+                        const textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        textElement.setAttribute('x', coords.x);
+                        textElement.setAttribute('y', coords.y);
+                        textElement.setAttribute('fill', drawColor);
+                        textElement.setAttribute('font-size', drawFontSize);
+                        textElement.setAttribute('font-family', 'Roboto, Arial, sans-serif');
+                        textElement.setAttribute('font-weight', '600');
+                        textElement.setAttribute('text-anchor', 'middle');
+                        textElement.setAttribute('dominant-baseline', 'middle');
+                        textElement.textContent = userText;
+                        textElement.classList.add('user-drawing', 'draggable-text');
+                        textElement.style.cursor = 'move';
+                        
+                        // Aggiungi funzionalità di trascinamento e modifica
+                        let isDraggingText = false;
+                        let hasMoved = false;
+                        let dragStartX, dragStartY, textStartX, textStartY;
+                        
+                        const onMouseDown = (e) => {
+                            e.stopPropagation();
+                            isDraggingText = true;
+                            hasMoved = false;
+                            const coords = getSvgCoordinates(e, svgElement);
+                            dragStartX = coords.x;
+                            dragStartY = coords.y;
+                            textStartX = parseFloat(textElement.getAttribute('x'));
+                            textStartY = parseFloat(textElement.getAttribute('y'));
+                        };
+                        
+                        const onMouseMove = (e) => {
+                            if (isDraggingText) {
+                                hasMoved = true;
+                                const coords = getSvgCoordinates(e, svgElement);
+                                const dx = coords.x - dragStartX;
+                                const dy = coords.y - dragStartY;
+                                textElement.setAttribute('x', textStartX + dx);
+                                textElement.setAttribute('y', textStartY + dy);
+                            }
+                        };
+                        
+                        const onMouseUp = () => {
+                            isDraggingText = false;
+                        };
+                        
+                        // Click per modificare il testo (solo se non è stato trascinato)
+                        const onClick = (e) => {
+                            if (!hasMoved) {
+                                e.stopPropagation();
+                                const newText = prompt('Modifica il testo:', textElement.textContent);
+                                if (newText !== null && newText.trim() !== '') {
+                                    textElement.textContent = newText;
+                                }
+                            }
+                        };
+                        
+                        textElement.addEventListener('mousedown', onMouseDown);
+                        svgElement.addEventListener('mousemove', onMouseMove);
+                        svgElement.addEventListener('mouseup', onMouseUp);
+                        textElement.addEventListener('click', onClick);
+                        
+                        // Supporto touch per dispositivi mobili
+                        textElement.addEventListener('touchstart', (e) => {
+                            const touch = e.touches[0];
+                            const mouseEvent = new MouseEvent('mousedown', {
+                                clientX: touch.clientX,
+                                clientY: touch.clientY,
+                                bubbles: true
+                            });
+                            onMouseDown(mouseEvent);
+                        });
+                        
+                        svgElement.addEventListener('touchmove', (e) => {
+                            if (isDraggingText) {
+                                e.preventDefault();
+                                const touch = e.touches[0];
+                                const mouseEvent = new MouseEvent('mousemove', {
+                                    clientX: touch.clientX,
+                                    clientY: touch.clientY,
+                                    bubbles: true
+                                });
+                                onMouseMove(mouseEvent);
+                            }
+                        });
+                        
+                        svgElement.addEventListener('touchend', () => {
+                            if (isDraggingText) {
+                                onMouseUp();
+                            }
+                        });
+                        
+                        // Doppio click per modificare le dimensioni
+                        textElement.addEventListener('dblclick', (e) => {
+                            e.stopPropagation();
+                            const currentSize = parseFloat(textElement.getAttribute('font-size'));
+                            const newSize = prompt('Inserisci la nuova dimensione del testo (12-72):', currentSize);
+                            if (newSize !== null) {
+                                const size = parseInt(newSize);
+                                if (!isNaN(size) && size >= 12 && size <= 72) {
+                                    textElement.setAttribute('font-size', size);
+                                }
+                            }
+                        });
+                        
+                        targetDrawingGroup.appendChild(textElement);
+                    }
+                    isDrawing = false; // Il testo non richiede drag
+                } else if (drawingMode === 'ruler') {
+                    // Salva il punto iniziale per il righello
+                    startPoint = coords;
+                    // Crea un gruppo per contenere linea e misura
+                    currentElement = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    currentElement.classList.add('user-drawing');
+                    
+                    // Crea la linea del righello
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', coords.x);
+                    line.setAttribute('y1', coords.y);
+                    line.setAttribute('x2', coords.x);
+                    line.setAttribute('y2', coords.y);
+                    line.setAttribute('stroke', drawColor);
+                    line.setAttribute('stroke-width', drawWidth);
+                    line.setAttribute('stroke-linecap', 'round');
+                    line.classList.add('ruler-line');
+                    currentElement.appendChild(line);
+                    
+                    // Crea il rettangolo di sfondo per la misura
+                    const measureBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    measureBg.setAttribute('fill', 'rgba(255, 255, 255, 0.9)');
+                    measureBg.setAttribute('stroke', drawColor);
+                    measureBg.setAttribute('stroke-width', '1');
+                    measureBg.setAttribute('rx', '4');
+                    measureBg.classList.add('ruler-measure-bg');
+                    currentElement.appendChild(measureBg);
+                    
+                    // Crea il testo della misura
+                    const measureText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    measureText.setAttribute('fill', drawColor);
+                    measureText.setAttribute('font-size', '18');
+                    measureText.setAttribute('font-family', 'Roboto, Arial, monospace');
+                    measureText.setAttribute('font-weight', '700');
+                    measureText.setAttribute('text-anchor', 'middle');
+                    measureText.setAttribute('dominant-baseline', 'middle');
+                    measureText.textContent = '0';
+                    measureText.classList.add('ruler-measure');
+                    currentElement.appendChild(measureText);
+                    
                     targetDrawingGroup.appendChild(currentElement);
                 } else if (drawingMode === 'eraser') {
                     // Trova e rimuovi elementi vicini al cursore con un raggio più ampio
@@ -3210,6 +3501,45 @@
                     // Aggiorna la linea
                     currentElement.setAttribute('x2', coords.x);
                     currentElement.setAttribute('y2', coords.y);
+                } else if (drawingMode === 'ruler' && currentElement && startPoint) {
+                    // Aggiorna la linea del righello
+                    const line = currentElement.querySelector('.ruler-line');
+                    if (line) {
+                        line.setAttribute('x2', coords.x);
+                        line.setAttribute('y2', coords.y);
+                    }
+                    
+                    // Calcola la lunghezza
+                    const dx = coords.x - startPoint.x;
+                    const dy = coords.y - startPoint.y;
+                    const length = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Aggiorna il testo della misura
+                    const measureText = currentElement.querySelector('.ruler-measure');
+                    const measureBg = currentElement.querySelector('.ruler-measure-bg');
+                    if (measureText && measureBg) {
+                        measureText.textContent = length.toFixed(1);
+                        
+                        // Posiziona il testo al centro della linea
+                        const midX = (startPoint.x + coords.x) / 2;
+                        const midY = (startPoint.y + coords.y) / 2;
+                        
+                        // Calcola l'angolo della linea per posizionare il testo perpendicolarmente
+                        const angle = Math.atan2(dy, dx);
+                        const offset = 15; // Distanza dalla linea
+                        const textX = midX - Math.sin(angle) * offset;
+                        const textY = midY + Math.cos(angle) * offset;
+                        
+                        measureText.setAttribute('x', textX);
+                        measureText.setAttribute('y', textY);
+                        
+                        // Dimensiona e posiziona il rettangolo di sfondo
+                        const bbox = measureText.getBBox();
+                        measureBg.setAttribute('x', bbox.x - 4);
+                        measureBg.setAttribute('y', bbox.y - 2);
+                        measureBg.setAttribute('width', bbox.width + 8);
+                        measureBg.setAttribute('height', bbox.height + 4);
+                    }
                 } else if (drawingMode === 'eraser') {
                     // Continua a cancellare mentre si muove con il mouse premuto
                     const eraserRadius = 15; // Raggio di cancellazione
