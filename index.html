@@ -398,6 +398,13 @@
             display: flex; 
         }
         
+        .lock-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
         .lock-icon-wrapper { 
             background: #ffffff; 
             border-radius: 50%; 
@@ -413,6 +420,34 @@
             width: 40px; 
             height: 40px; 
             fill: #263238; 
+        }
+        
+        .lock-message {
+            background: #ffffff;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #263238;
+            max-width: 300px;
+        }
+        
+        .lock-requirements {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        .lock-requirements span {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1976d2;
+            text-align: left;
         }
         
         .dinamico-panel {
@@ -481,37 +516,126 @@
             box-sizing: border-box;
         }
         
-        .colpo-button {
+        .numero-navigation {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-arrow {
             background: linear-gradient(135deg, #42a5f5 0%, #64b5f6 50%, #42a5f5 100%);
             border: none;
-            border-radius: 8px;
-            padding: 16px 32px;
-            font-size: 14px;
+            border-radius: 6px;
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(66, 165, 245, 0.3);
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .nav-arrow:hover:not(:disabled) {
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(66, 165, 245, 0.4);
+        }
+        
+        .nav-arrow:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+        
+        .nav-arrow:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: #bdbdbd;
+        }
+        
+        .colpo-button {
+            background: linear-gradient(135deg, #ff6b35 0%, #f7931e 25%, #ffd700 50%, #f7931e 75%, #ff6b35 100%);
+            background-size: 200% 200%;
+            background-position: 0% 50%;
+            border: 3px solid #fff;
+            border-radius: 12px;
+            padding: 18px 32px;
+            font-size: 16px;
             font-weight: 700;
             color: #ffffff;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.5), 0 0 20px rgba(255, 215, 0, 0.3);
             transition: all 0.3s ease;
             width: 100%;
             margin-top: 12px;
+            position: relative;
+            overflow: hidden;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        
+        .colpo-button::before {
+            content: '🎾';
+            position: absolute;
+            left: 20px;
+            font-size: 20px;
+            animation: bounce 1s ease-in-out infinite;
+        }
+        
+        .colpo-button::after {
+            content: '🎾';
+            position: absolute;
+            right: 20px;
+            font-size: 20px;
+            animation: bounce 1s ease-in-out infinite;
+            animation-delay: 0.5s;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+        }
+        
+        @keyframes bounce {
+            0%, 100% {
+                transform: translateY(0) scale(1);
+            }
+            50% {
+                transform: translateY(-5px) scale(1.1);
+            }
         }
         
         .colpo-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(66, 165, 245, 0.4);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(255, 107, 53, 0.6), 0 0 30px rgba(255, 215, 0, 0.5);
+            border-color: #ffd700;
+            animation: gradientShift 3s ease-in-out infinite;
         }
         
         .colpo-button:active {
-            transform: translateY(0);
-            box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
+            transform: translateY(-1px) scale(0.98);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.5), 0 0 20px rgba(255, 215, 0, 0.3);
         }
         
         .colpo-button:disabled {
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
+            animation: none;
+            background: linear-gradient(135deg, #9e9e9e 0%, #bdbdbd 50%, #9e9e9e 100%);
+            box-shadow: none;
+        }
+        
+        .colpo-button:disabled::before,
+        .colpo-button:disabled::after {
+            animation: none;
+            opacity: 0.3;
         }
         
         .nuovo-scambio-button {
@@ -859,6 +983,10 @@
             <div class="control-section collapsed">
                 <h3 class="control-section-title">Visualizza</h3>
                 <div class="control-options">
+                    <label class="control-option" for="view_directions">
+                        <input id="view_directions" type="checkbox" checked />
+                        <span>Direzioni</span>
+                    </label>
                     <label class="control-option" for="view_player">
                         <input id="view_player" type="checkbox" checked />
                         <span>Colpitore</span>
@@ -950,6 +1078,10 @@
                         </label>
                     </div>
                     <div class="default-subsection">
+                        <label class="control-option" for="default_view_directions">
+                            <input id="default_view_directions" type="checkbox" checked />
+                            <span>Visualizza: Direzioni</span>
+                        </label>
                         <label class="control-option" for="default_view_player">
                             <input id="default_view_player" type="checkbox" checked />
                             <span>Visualizza: Colpitore</span>
@@ -1029,16 +1161,30 @@
                 <!-- Campo secondario generato in JS -->
             </div>
             <div id="courtLockOverlay" class="court-lock-overlay">
-                <div class="lock-icon-wrapper">
-                    <svg class="lock-icon" viewBox="0 0 24 24" aria-hidden="true">
-                        <path fill="currentColor" d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
-                    </svg>
+                <div class="lock-content">
+                    <div class="lock-icon-wrapper">
+                        <svg class="lock-icon" viewBox="0 0 24 24" aria-hidden="true">
+                            <path fill="currentColor" d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+                        </svg>
+                    </div>
+                    <div class="lock-message">
+                        Per sbloccare il campo è necessario visualizzare:
+                        <div class="lock-requirements">
+                            <span>• COLPITORE</span>
+                            <span>• COLPO</span>
+                            <span>• RICEVITORE</span>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div id="dinamicoPanel" class="dinamico-panel">
                 <div class="control-field">
                     <label>NUMERO COLPO:</label>
-                    <div id="numeroColpo" class="numero-display">1</div>
+                    <div class="numero-navigation">
+                        <button id="prevColpoButton" class="nav-arrow" title="Colpo precedente">◀</button>
+                        <div id="numeroColpo" class="numero-display">1</div>
+                        <button id="nextColpoButton" class="nav-arrow" title="Colpo successivo">▶</button>
+                    </div>
                 </div>
                 <button id="colpoButton" class="colpo-button">COLPO</button>
                 <button id="visualizzaScambioButton" class="visualizza-scambio-button">VISUALIZZA PUNTO</button>
@@ -1063,6 +1209,7 @@
             const hMeasureLabel = document.getElementById('h-measure-label');
             const hMeasureBadge = document.getElementById('h-measure-badge');
             const arrowHtml = document.getElementById('measureArrowHtml');
+            const chkDirections = document.getElementById('view_directions');
             const chkPlayer = document.getElementById('view_player');
             const chkShot = document.getElementById('view_shot');
             const chkResponder = document.getElementById('view_responder');
@@ -1076,6 +1223,8 @@
             const dinamicoPanel = document.getElementById('dinamicoPanel');
             const numeroColpoInput = document.getElementById('numeroColpo');
             const colpoButton = document.getElementById('colpoButton');
+            const prevColpoButton = document.getElementById('prevColpoButton');
+            const nextColpoButton = document.getElementById('nextColpoButton');
             const visualizzaScambioButton = document.getElementById('visualizzaScambioButton');
             const nuovoScambioButton = document.getElementById('nuovoScambioButton');
 
@@ -1114,6 +1263,7 @@
             window.__shotType2IsPassante__ = false;
             window.__leftForceRed__ = false; // in modalità attacco: rosso solo come colore, non come logica
             window.__shotTypeIsServizio__ = false;
+            window.__viewDirections__ = true;
             window.__viewPlayer__ = true;
             window.__viewShot__ = true;
             window.__viewResponder__ = true;
@@ -1136,6 +1286,9 @@
             
             // Array per memorizzare tutte le sequenze di colpi per la visualizzazione
             let shotSequence = [];
+            
+            // Array per memorizzare lo stato completo di ogni colpo (per navigazione)
+            let shotHistory = [];
             
             const COURT_COLORS = {
                 cemento: { background: '#1565c0', court: '#42a5f5' },
@@ -1699,9 +1852,9 @@
                 // Apply visibility toggles
                 if (dot2) dot2.style.display = (window.__viewPlayer__ === false) ? 'none' : '';
                 if (dot2b) dot2b.style.display = (window.__viewPlayer__ === false) ? 'none' : '';
-                if (l2) l2.style.display = (window.__viewShot__ === false) ? 'none' : '';
-                if (r2) r2.style.display = (window.__viewShot__ === false) ? 'none' : '';
-                if (w2) w2.style.display = (window.__viewShot__ === false) ? 'none' : '';
+                if (l2) l2.style.display = (window.__viewDirections__ === false) ? 'none' : '';
+                if (r2) r2.style.display = (window.__viewDirections__ === false) ? 'none' : '';
+                if (w2) w2.style.display = (window.__viewDirections__ === false || window.__viewShot__ === false) ? 'none' : '';
 
                 updateThemeColorsRight();
             }
@@ -1716,7 +1869,7 @@
                     return;
                 }
                 
-                // Blocca il campo destro se uno dei 3 elementi critici è deselezionato
+                // Blocca il campo destro se uno dei 3 elementi critici è deselezionato (Colpitore, Colpo, Ricevitore)
                 const allUnlocked = window.__viewPlayer__ && window.__viewShot__ && window.__viewResponder__;
                 
                 if (allUnlocked) {
@@ -1980,6 +2133,9 @@
             }
 
             function applyViewToggles() {
+                if (leftLine) leftLine.style.display = (window.__viewDirections__ === false) ? 'none' : '';
+                if (rightLine) rightLine.style.display = (window.__viewDirections__ === false) ? 'none' : '';
+                if (wedge) wedge.style.display = (window.__viewDirections__ === false) ? 'none' : '';
                 if (dot) dot.style.display = (window.__viewPlayer__ === false) ? 'none' : '';
                 if (yellowLine) yellowLine.style.display = (window.__viewShot__ === false) ? 'none' : '';
                 if (bisectorLine) bisectorLine.style.display = (window.__viewCenter__ === false) ? 'none' : '';
@@ -2245,13 +2401,14 @@
                     }
                 });
             }
+            bindViewCheckbox(chkDirections, '__viewDirections__');
             bindViewCheckbox(chkPlayer, '__viewPlayer__');
             bindViewCheckbox(chkShot, '__viewShot__');
             bindViewCheckbox(chkResponder, '__viewResponder__');
             bindViewCheckbox(chkCover, '__viewCover__');
             bindViewCheckbox(chkCenter, '__viewCenter__');
             bindViewCheckbox(chkCoordinates, '__viewCoordinates__');
-
+            
             // Vincolo: se "Ricevitore" è OFF, forza OFF e disabilita "Campo da Coprire"
             if (chkResponder && chkCover) {
                 const syncCoverWithResponder = () => {
@@ -2338,6 +2495,7 @@
                     modalita: localStorage.getItem('default_modalita'),
                     tipologia: localStorage.getItem('default_tipologia'),
                     campoType: localStorage.getItem('default_campoType'),
+                    view_directions: localStorage.getItem('default_view_directions'),
                     view_player: localStorage.getItem('default_view_player'),
                     view_shot: localStorage.getItem('default_view_shot'),
                     view_responder: localStorage.getItem('default_view_responder'),
@@ -2395,7 +2553,7 @@
             
             function addDefaultEventListeners() {
                 // Listen for changes in DEFAULT section
-                const defaultControls = document.querySelectorAll('#default_colpitore, #default_modalita, #default_tipologia, #default_campoType, #default_view_player, #default_view_shot, #default_view_responder, #default_view_cover, #default_view_center, #default_view_coordinates');
+                const defaultControls = document.querySelectorAll('#default_colpitore, #default_modalita, #default_tipologia, #default_campoType, #default_view_directions, #default_view_player, #default_view_shot, #default_view_responder, #default_view_cover, #default_view_center, #default_view_coordinates');
                 
                 defaultControls.forEach(control => {
                     control.addEventListener('change', function() {
@@ -2425,18 +2583,132 @@
             // Initialize default settings
             initDefaultSettings();
 
+            // Funzione per salvare lo stato completo prima di eseguire un colpo
+            function saveCurrentState() {
+                const currentTipologia = document.querySelector('input[name="tipologia"]:checked');
+                return {
+                    numeroColpo: window.__numeroColpo__,
+                    dotX: parseFloat(dot.getAttribute('cx')),
+                    dotY: parseFloat(dot.getAttribute('cy')),
+                    intersectionX: parseFloat(intersectionDot.getAttribute('cx')),
+                    intersectionY: parseFloat(intersectionDot.getAttribute('cy')),
+                    isPlayer: isPlayer,
+                    tipologia: currentTipologia ? currentTipologia.value : 'palleggio',
+                    currentMeasureY: currentMeasureY,
+                    yellowEndX: yellowEndX,
+                    previousShotWasAttacco: previousShotWasAttacco,
+                    previousShotWasPassante: previousShotWasPassante,
+                    previousShotDotX: previousShotDot ? parseFloat(previousShotDot.getAttribute('cx')) : null,
+                    previousShotDotY: previousShotDot ? parseFloat(previousShotDot.getAttribute('cy')) : null,
+                    shotTypeIsServizio: window.__shotTypeIsServizio__ || false,
+                    shotTypeIsPassante: window.__shotTypeIsPassante__ || false,
+                    shotType2IsPassante: window.__shotType2IsPassante__ || false,
+                    leftForceRed: window.__leftForceRed__ || false
+                };
+            }
+            
+            // Funzione per ripristinare lo stato di un colpo specifico
+            function restoreState(state) {
+                // Ripristina il numero del colpo
+                window.__numeroColpo__ = state.numeroColpo;
+                updateNumeroColpoDisplay();
+                
+                // Ripristina la posizione del dot
+                dot.setAttribute('cx', String(state.dotX));
+                dot.setAttribute('cy', String(state.dotY));
+                
+                // Ripristina la posizione dell'intersection dot
+                intersectionDot.setAttribute('cx', String(state.intersectionX));
+                intersectionDot.setAttribute('cy', String(state.intersectionY));
+                
+                // Ripristina il colpitore
+                isPlayer = state.isPlayer;
+                const colpitoreValue = isPlayer ? 'tuo' : 'avversario';
+                const colpitoreRadio = document.querySelector(`input[name="colpitore"][value="${colpitoreValue}"]`);
+                if (colpitoreRadio) {
+                    colpitoreRadio.checked = true;
+                }
+                
+                // Ripristina la tipologia
+                const tipologiaMap = {
+                    'palleggio': 'tipo_pal',
+                    'attacco': 'tipo_att',
+                    'passante': 'tipo_pas',
+                    'servizio': 'tipo_ser'
+                };
+                const tipologiaId = tipologiaMap[state.tipologia];
+                if (tipologiaId) {
+                    const tipologiaRadio = document.getElementById(tipologiaId);
+                    if (tipologiaRadio) {
+                        tipologiaRadio.checked = true;
+                        
+                        // Aggiorna gli stati globali in base alla tipologia
+                        window.__shotTypeIsServizio__ = state.shotTypeIsServizio;
+                        window.__shotTypeIsPassante__ = state.shotTypeIsPassante;
+                        window.__shotType2IsPassante__ = state.shotType2IsPassante;
+                        window.__leftForceRed__ = state.leftForceRed;
+                        
+                        // Aggiorna i colori del tema
+                        updateThemeColors();
+                        updateThemeColorsRight();
+                    }
+                }
+                
+                // Ripristina altre variabili
+                currentMeasureY = state.currentMeasureY;
+                yellowEndX = state.yellowEndX;
+                previousShotWasAttacco = state.previousShotWasAttacco;
+                previousShotWasPassante = state.previousShotWasPassante;
+                
+                // Ripristina il cerchietto del colpo precedente
+                if (previousShotDot && previousShotDot.parentNode) {
+                    previousShotDot.parentNode.removeChild(previousShotDot);
+                    previousShotDot = null;
+                }
+                
+                if (state.previousShotDotX !== null && state.previousShotDotY !== null) {
+                    createPreviousShotDot(state.previousShotDotX, state.previousShotDotY);
+                }
+                
+                // Aggiorna la disponibilità delle opzioni
+                updateTipologiaAvailability();
+                updateVisualizationCheckboxes();
+                
+                // Aggiorna la visualizzazione
+                updateArrowHtmlPosition();
+                updateLinesAndWedge(state.dotX, state.dotY);
+                applyViewToggles();
+            }
+            
+            // Funzione per aggiornare lo stato dei pulsanti di navigazione
+            function updateNavigationButtons() {
+                if (!prevColpoButton || !nextColpoButton) return;
+                
+                // Il pulsante "precedente" è abilitato solo se siamo oltre il colpo 1 e abbiamo storia
+                prevColpoButton.disabled = (window.__numeroColpo__ <= 1 || shotHistory.length === 0);
+                
+                // Il pulsante "successivo" è abilitato solo se ci sono colpi futuri nella storia
+                nextColpoButton.disabled = (shotHistory.length < window.__numeroColpo__);
+            }
+            
             // Numero Colpo display - non modificabile dall'utente
             // Funzione helper per aggiornare il display del numero colpo
             function updateNumeroColpoDisplay() {
             if (numeroColpoInput) {
                     numeroColpoInput.textContent = window.__numeroColpo__;
                 }
+                updateNavigationButtons();
             }
             
             // Funzione per gestire i checkbox di visualizzazione in modalità DINAMICO
             function updateVisualizationCheckboxes() {
                 if (window.__modalita__ === 'dinamico') {
                     // In modalità DINAMICO, forza e disabilita i checkbox critici
+                    if (chkDirections) {
+                        chkDirections.checked = true;
+                        chkDirections.disabled = true;
+                        window.__viewDirections__ = true;
+                    }
                     if (chkPlayer) {
                         chkPlayer.checked = true;
                         chkPlayer.disabled = true;
@@ -2456,7 +2728,8 @@
                     // Applica i cambiamenti
                     applyViewToggles();
                 } else {
-                    // In altre modalità, riabilita i checkbox
+                    // In altre modalità, riabilita tutti i checkbox
+                    if (chkDirections) chkDirections.disabled = false;
                     if (chkPlayer) chkPlayer.disabled = false;
                     if (chkShot) chkShot.disabled = false;
                     if (chkResponder) chkResponder.disabled = false;
@@ -2578,7 +2851,7 @@
                 return newDot;
             }
             
-            // Inizializza il display
+            // Inizializza il display e i pulsanti di navigazione
             updateNumeroColpoDisplay();
 
             // Gestione pulsante NUOVO SCAMBIO
@@ -2623,8 +2896,9 @@
                     previousShotWasAttacco = false;
                     previousShotWasPassante = false;
                     
-                    // 8. Reset shotSequence
+                    // 8. Reset shotSequence e shotHistory
                     shotSequence = [];
+                    shotHistory = [];
                     
                     // 9. Riabilita le opzioni di tipologia (se in modalità dinamico)
                     updateTipologiaAvailability();
@@ -2771,6 +3045,18 @@
                 colpoButton.addEventListener('click', function() {
                     // Disabilita il pulsante durante l'animazione
                     colpoButton.disabled = true;
+                    
+                    // Salva lo stato corrente PRIMA di eseguire il colpo
+                    const currentState = saveCurrentState();
+                    
+                    // Se stiamo eseguendo un colpo che sovrascrive la storia futura, rimuovi i colpi successivi
+                    if (shotHistory.length >= window.__numeroColpo__) {
+                        shotHistory = shotHistory.slice(0, window.__numeroColpo__ - 1);
+                        shotSequence = shotSequence.slice(0, window.__numeroColpo__ - 1);
+                    }
+                    
+                    // Salva lo stato corrente nella storia
+                    shotHistory.push(currentState);
                     
                     // Ottieni le posizioni dei due cerchietti rossi
                     const startX = parseFloat(dot.getAttribute('cx'));
@@ -2966,6 +3252,32 @@
                     }
                     
                     requestAnimationFrame(animate);
+                });
+            }
+            
+            // Gestione pulsante PRECEDENTE (freccia sinistra)
+            if (prevColpoButton) {
+                prevColpoButton.addEventListener('click', function() {
+                    if (window.__numeroColpo__ <= 1 || shotHistory.length === 0) return;
+                    
+                    // Vai al colpo precedente
+                    const previousIndex = window.__numeroColpo__ - 2; // -2 perché l'array è 0-based e vogliamo il colpo precedente
+                    if (previousIndex >= 0 && previousIndex < shotHistory.length) {
+                        restoreState(shotHistory[previousIndex]);
+                    }
+                });
+            }
+            
+            // Gestione pulsante SUCCESSIVO (freccia destra)
+            if (nextColpoButton) {
+                nextColpoButton.addEventListener('click', function() {
+                    if (shotHistory.length < window.__numeroColpo__) return;
+                    
+                    // Vai al colpo successivo
+                    const nextIndex = window.__numeroColpo__; // L'indice del prossimo colpo
+                    if (nextIndex < shotHistory.length) {
+                        restoreState(shotHistory[nextIndex]);
+                    }
                 });
             }
 
