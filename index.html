@@ -1528,7 +1528,7 @@
                 return x0 + t * ux;
             }
 
-            function updateHorizontalMeasure(dotX, dotY, targets, yH) {
+            function updateHorizontalMeasure(dotX, dotY, targets, yH, leftPassX, leftPassY, rightPassX, rightPassY) {
                 if (!hMeasure || !hMeasureLabel) return;
                 if (window.__viewResponder__ === false) {
                     if (hMeasure) hMeasure.style.display = 'none';
@@ -1536,15 +1536,21 @@
                     return;
                 }
                 
+                // Use provided coordinates or defaults
+                if (leftPassX === undefined) leftPassX = LEFT_X_SVG;
+                if (leftPassY === undefined) leftPassY = targets.left;
+                if (rightPassX === undefined) rightPassX = RIGHT_X_SVG;
+                if (rightPassY === undefined) rightPassY = targets.right;
+                
                 let xLeft, xRight;
                 if (window.__shotTypeIsServizio__) {
                     // Servizio mode: use the actual target points
                     xLeft = computeIntersectionX(dotX, dotY, targets.left.x, targets.left.y, yH);
                     xRight = computeIntersectionX(dotX, dotY, targets.right.x, targets.right.y, yH);
                 } else {
-                    // Normal mode: use LEFT_X_SVG and RIGHT_X_SVG
-                    xLeft = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, yH);
-                    xRight = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, yH);
+                    // Normal mode: use provided coordinates (which may include passante adjustments)
+                    xLeft = computeIntersectionX(dotX, dotY, leftPassX, leftPassY, yH);
+                    xRight = computeIntersectionX(dotX, dotY, rightPassX, rightPassY, yH);
                 }
                 
                 const x1 = Math.min(xLeft, xRight);
@@ -1715,13 +1721,55 @@
                     const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
                     const targets = computePassYTargets(dotX, dotY);
                     
+                    // Applica regole per linee passanti
+                    let leftPassX = LEFT_X_SVG;
+                    let leftPassY = targets.left;
+                    let rightPassX = RIGHT_X_SVG;
+                    let rightPassY = targets.right;
+                    
+                    if (!window.__shotTypeIsServizio__ && window.__shotTypeIsPassante__) {
+                        if (isPlayer) {
+                            // Colpitore "tu" nel Campo A
+                            const fieldA = calculateFieldACoordinates(dotX, dotY);
+                            const xA = fieldA.x;
+                            
+                            // Regola 1: x >= 115, linea destra passa per Campo B (115, 0)
+                            if (xA >= 115) {
+                                rightPassX = FIELD_B_ORIGIN_X + 115;
+                                rightPassY = FIELD_B_ORIGIN_Y;
+                            }
+                            
+                            // Regola 2: x <= -115, linea sinistra passa per Campo B (-115, 0)
+                            if (xA <= -115) {
+                                leftPassX = FIELD_B_ORIGIN_X - 115;
+                                leftPassY = FIELD_B_ORIGIN_Y;
+                            }
+                        } else {
+                            // Colpitore "avversario" nel Campo B
+                            const fieldB = calculateFieldBCoordinates(dotX, dotY);
+                            const xB = fieldB.x;
+                            
+                            // Regola 3: x >= 115, linea destra passa per Campo A (115, 0)
+                            if (xB >= 115) {
+                                rightPassX = FIELD_A_ORIGIN_X + 115;
+                                rightPassY = FIELD_A_ORIGIN_Y;
+                            }
+                            
+                            // Regola 4: x <= -115, linea sinistra passa per Campo A (-115, 0)
+                            if (xB <= -115) {
+                                leftPassX = FIELD_A_ORIGIN_X - 115;
+                                leftPassY = FIELD_A_ORIGIN_Y;
+                            }
+                        }
+                    }
+                    
                     let xLeftAtH, xRightAtH;
                     if (window.__shotTypeIsServizio__) {
                         xLeftAtH = computeIntersectionX(dotX, dotY, targets.left.x, targets.left.y, currentMeasureY);
                         xRightAtH = computeIntersectionX(dotX, dotY, targets.right.x, targets.right.y, currentMeasureY);
                     } else {
-                        xLeftAtH = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, currentMeasureY);
-                        xRightAtH = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, currentMeasureY);
+                        xLeftAtH = computeIntersectionX(dotX, dotY, leftPassX, leftPassY, currentMeasureY);
+                        xRightAtH = computeIntersectionX(dotX, dotY, rightPassX, rightPassY, currentMeasureY);
                     }
                     
                     const minXAtH = Math.min(xLeftAtH, xRightAtH);
@@ -1919,9 +1967,50 @@
                     xLeftAtY = computeIntersectionX(leftDotX, leftDotY, leftTargets.left.x, leftTargets.left.y, currentMeasureY);
                     xRightAtY = computeIntersectionX(leftDotX, leftDotY, leftTargets.right.x, leftTargets.right.y, currentMeasureY);
                 } else {
-                    // Normal mode: use LEFT_X_SVG and RIGHT_X_SVG
-                    xLeftAtY = computeIntersectionX(leftDotX, leftDotY, LEFT_X_SVG, leftTargets.left, currentMeasureY);
-                    xRightAtY = computeIntersectionX(leftDotX, leftDotY, RIGHT_X_SVG, leftTargets.right, currentMeasureY);
+                    // Normal mode: use LEFT_X_SVG and RIGHT_X_SVG (ma applica regole passanti)
+                    let leftPassXPrimary = LEFT_X_SVG;
+                    let leftPassYPrimary = leftTargets.left;
+                    let rightPassXPrimary = RIGHT_X_SVG;
+                    let rightPassYPrimary = leftTargets.right;
+                    
+                    if (window.__shotTypeIsPassante__) {
+                        if (isPlayer) {
+                            // Colpitore "tu" nel Campo A
+                            const fieldA = calculateFieldACoordinates(leftDotX, leftDotY);
+                            const xA = fieldA.x;
+                            
+                            // Regola 1: x >= 115, linea destra passa per Campo B (115, 0)
+                            if (xA >= 115) {
+                                rightPassXPrimary = FIELD_B_ORIGIN_X + 115;
+                                rightPassYPrimary = FIELD_B_ORIGIN_Y;
+                            }
+                            
+                            // Regola 2: x <= -115, linea sinistra passa per Campo B (-115, 0)
+                            if (xA <= -115) {
+                                leftPassXPrimary = FIELD_B_ORIGIN_X - 115;
+                                leftPassYPrimary = FIELD_B_ORIGIN_Y;
+                            }
+                        } else {
+                            // Colpitore "avversario" nel Campo B
+                            const fieldB = calculateFieldBCoordinates(leftDotX, leftDotY);
+                            const xB = fieldB.x;
+                            
+                            // Regola 3: x >= 115, linea destra passa per Campo A (115, 0)
+                            if (xB >= 115) {
+                                rightPassXPrimary = FIELD_A_ORIGIN_X + 115;
+                                rightPassYPrimary = FIELD_A_ORIGIN_Y;
+                            }
+                            
+                            // Regola 4: x <= -115, linea sinistra passa per Campo A (-115, 0)
+                            if (xB <= -115) {
+                                leftPassXPrimary = FIELD_A_ORIGIN_X - 115;
+                                leftPassYPrimary = FIELD_A_ORIGIN_Y;
+                            }
+                        }
+                    }
+                    
+                    xLeftAtY = computeIntersectionX(leftDotX, leftDotY, leftPassXPrimary, leftPassYPrimary, currentMeasureY);
+                    xRightAtY = computeIntersectionX(leftDotX, leftDotY, rightPassXPrimary, rightPassYPrimary, currentMeasureY);
                 }
                 
                 const minXAtY = Math.min(xLeftAtY, xRightAtY);
@@ -1946,8 +2035,51 @@
                 dot2b.setAttribute('cy', String(leftDotY));
 
                 const targetsR = computePassYTargetsFor(clampedX, mainY, isPlayerRight);
-                const leftEndX2 = setLineToYEnd(l2, clampedX, mainY, LEFT_X_SVG, targetsR.left, endYSvgR);
-                const rightEndX2 = setLineToYEnd(r2, clampedX, mainY, RIGHT_X_SVG, targetsR.right, endYSvgR);
+                
+                // Applica regole per linee passanti nel campo secondario
+                let leftPassX2 = LEFT_X_SVG;
+                let leftPassY2 = targetsR.left;
+                let rightPassX2 = RIGHT_X_SVG;
+                let rightPassY2 = targetsR.right;
+                
+                if (window.__shotType2IsPassante__) {
+                    if (isPlayerRight) {
+                        // Colpitore "tu" nel Campo A (campo secondario)
+                        const fieldA = calculateFieldACoordinates(clampedX, mainY);
+                        const xA = fieldA.x;
+                        
+                        // Regola 1: x >= 115, linea destra passa per Campo B (115, 0)
+                        if (xA >= 115) {
+                            rightPassX2 = FIELD_B_ORIGIN_X + 115;
+                            rightPassY2 = FIELD_B_ORIGIN_Y;
+                        }
+                        
+                        // Regola 2: x <= -115, linea sinistra passa per Campo B (-115, 0)
+                        if (xA <= -115) {
+                            leftPassX2 = FIELD_B_ORIGIN_X - 115;
+                            leftPassY2 = FIELD_B_ORIGIN_Y;
+                        }
+                    } else {
+                        // Colpitore "avversario" nel Campo B (campo secondario)
+                        const fieldB = calculateFieldBCoordinates(clampedX, mainY);
+                        const xB = fieldB.x;
+                        
+                        // Regola 3: x >= 115, linea destra passa per Campo A (115, 0)
+                        if (xB >= 115) {
+                            rightPassX2 = FIELD_A_ORIGIN_X + 115;
+                            rightPassY2 = FIELD_A_ORIGIN_Y;
+                        }
+                        
+                        // Regola 4: x <= -115, linea sinistra passa per Campo A (-115, 0)
+                        if (xB <= -115) {
+                            leftPassX2 = FIELD_A_ORIGIN_X - 115;
+                            leftPassY2 = FIELD_A_ORIGIN_Y;
+                        }
+                    }
+                }
+                
+                const leftEndX2 = setLineToYEnd(l2, clampedX, mainY, leftPassX2, leftPassY2, endYSvgR);
+                const rightEndX2 = setLineToYEnd(r2, clampedX, mainY, rightPassX2, rightPassY2, endYSvgR);
                 const bisTargetR = (targetsR.left + targetsR.right) / 2;
                 setBisectorToYEnd(b2, clampedX, mainY, bisTargetR, endYSvgR);
                 if (b2) b2.style.display = (window.__viewCenter__ === false) ? 'none' : '';
@@ -2133,23 +2265,66 @@
                 } else {
                     // Normal mode
                     const endYSvg = isPlayer ? END_Y_TOP : END_Y_BOTTOM;
-                    const leftEndX = setLineToYEnd(leftLine, dotX, dotY, LEFT_X_SVG, targets.left, endYSvg);
-                    const rightEndX = setLineToYEnd(rightLine, dotX, dotY, RIGHT_X_SVG, targets.right, endYSvg);
+                    
+                    // Applica regole per linee passanti
+                    let leftPassX = LEFT_X_SVG;
+                    let leftPassY = targets.left;
+                    let rightPassX = RIGHT_X_SVG;
+                    let rightPassY = targets.right;
+                    
+                    if (window.__shotTypeIsPassante__) {
+                        if (isPlayer) {
+                            // Colpitore "tu" nel Campo A
+                            const fieldA = calculateFieldACoordinates(dotX, dotY);
+                            const xA = fieldA.x;
+                            
+                            // Regola 1: x >= 115, linea destra passa per Campo B (115, 0)
+                            if (xA >= 115) {
+                                rightPassX = FIELD_B_ORIGIN_X + 115;
+                                rightPassY = FIELD_B_ORIGIN_Y;
+                            }
+                            
+                            // Regola 2: x <= -115, linea sinistra passa per Campo B (-115, 0)
+                            if (xA <= -115) {
+                                leftPassX = FIELD_B_ORIGIN_X - 115;
+                                leftPassY = FIELD_B_ORIGIN_Y;
+                            }
+                        } else {
+                            // Colpitore "avversario" nel Campo B
+                            const fieldB = calculateFieldBCoordinates(dotX, dotY);
+                            const xB = fieldB.x;
+                            
+                            // Regola 3: x >= 115, linea destra passa per Campo A (115, 0)
+                            if (xB >= 115) {
+                                rightPassX = FIELD_A_ORIGIN_X + 115;
+                                rightPassY = FIELD_A_ORIGIN_Y;
+                            }
+                            
+                            // Regola 4: x <= -115, linea sinistra passa per Campo A (-115, 0)
+                            if (xB <= -115) {
+                                leftPassX = FIELD_A_ORIGIN_X - 115;
+                                leftPassY = FIELD_A_ORIGIN_Y;
+                            }
+                        }
+                    }
+                    
+                    const leftEndX = setLineToYEnd(leftLine, dotX, dotY, leftPassX, leftPassY, endYSvg);
+                    const rightEndX = setLineToYEnd(rightLine, dotX, dotY, rightPassX, rightPassY, endYSvg);
                     const bisectorTarget = (targets.left + targets.right) / 2;
                     setBisectorToYEnd(bisectorLine, dotX, dotY, bisectorTarget, endYSvg);
                     if (bisectorLine) bisectorLine.style.display = (window.__viewCenter__ === false) ? 'none' : '';
                     if (wedge) {
                         wedge.setAttribute('points', `${dotX},${dotY} ${leftEndX},${endYSvg} ${rightEndX},${endYSvg}`);
                     }
-                    updateHorizontalMeasure(dotX, dotY, targets, currentMeasureY);
+                    updateHorizontalMeasure(dotX, dotY, targets, currentMeasureY, leftPassX, leftPassY, rightPassX, rightPassY);
                     updateArrowHtmlPosition();
 
                     if (yellowLine) {
                         yellowLine.style.display = (window.__viewShot__ === false) ? 'none' : '';
                         yellowLine.setAttribute('x1', String(dotX));
                         yellowLine.setAttribute('y1', String(dotY));
-                        const xLeftAtH = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, currentMeasureY);
-                        const xRightAtH = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, currentMeasureY);
+                        const xLeftAtH = computeIntersectionX(dotX, dotY, leftPassX, leftPassY, currentMeasureY);
+                        const xRightAtH = computeIntersectionX(dotX, dotY, rightPassX, rightPassY, currentMeasureY);
                         const minXAtH = Math.min(xLeftAtH, xRightAtH);
                         const maxXAtH = Math.max(xLeftAtH, xRightAtH);
                         if (yellowEndX == null) {
