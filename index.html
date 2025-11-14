@@ -747,6 +747,37 @@
             transform: none;
         }
         
+        .pause-resume-button {
+            background: linear-gradient(135deg, #42a5f5 0%, #64b5f6 50%, #42a5f5 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 0;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
+            transition: all 0.3s ease;
+            width: 60px;
+            height: 60px;
+            margin-top: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pause-resume-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(66, 165, 245, 0.4);
+        }
+        
+        .pause-resume-button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
+        }
+        
+        .pause-icon {
+            font-size: 28px;
+            line-height: 1;
+        }
+        
         /* Stili per la sezione Disegna */
         .draw-buttons-container {
             display: flex;
@@ -1243,6 +1274,9 @@
                 </div>
                 <button id="colpoButton" class="colpo-button">COLPO</button>
                 <button id="visualizzaScambioButton" class="visualizza-scambio-button">VISUALIZZA PUNTO</button>
+                <button id="pauseResumeButton" class="pause-resume-button" style="display: none;">
+                    <span class="pause-icon">⏸️</span>
+                </button>
                 <button id="nuovoScambioButton" class="nuovo-scambio-button">NUOVO PUNTO</button>
             </div>
         </div>
@@ -1282,6 +1316,7 @@
             const nextColpoButton = document.getElementById('nextColpoButton');
             const ultimoColpoCheckbox = document.getElementById('ultimoColpoCheckbox');
             const visualizzaScambioButton = document.getElementById('visualizzaScambioButton');
+            const pauseResumeButton = document.getElementById('pauseResumeButton');
             const nuovoScambioButton = document.getElementById('nuovoScambioButton');
 
             const COURT_X_MIN = 146;
@@ -1349,6 +1384,11 @@
             // Variabili per gestire l'ultimo colpo e la fine del punto
             let puntoFinito = false;
             let elementiVisibiliPrimaFinePunto = {};
+            
+            // Variabili per gestire la pausa durante VISUALIZZA PUNTO
+            let animazionePausata = false;
+            let animazioneInCorso = false;
+            let riprendiAnimazione = null; // Funzione callback per riprendere l'animazione
             
             const COURT_COLORS = {
                 cemento: { background: '#1565c0', court: '#42a5f5' },
@@ -3115,6 +3155,16 @@
                     // Se non ci sono colpi da visualizzare, non fare nulla
                     if (shotSequence.length === 0) return;
                     
+                    // Reset variabili di pausa
+                    animazionePausata = false;
+                    animazioneInCorso = true;
+                    
+                    // Mostra il pulsante pause/resume
+                    if (pauseResumeButton) {
+                        pauseResumeButton.style.display = 'flex';
+                        pauseResumeButton.querySelector('.pause-icon').textContent = '⏸️';
+                    }
+                    
                     // Disabilita tutti i pulsanti durante la visualizzazione
                     if (colpoButton) colpoButton.disabled = true;
                     if (visualizzaScambioButton) visualizzaScambioButton.disabled = true;
@@ -3140,6 +3190,14 @@
                         if (index >= shotSequence.length) {
                             // Animazione completata
                             setTimeout(() => {
+                                // Nascondi il pulsante pause/resume
+                                if (pauseResumeButton) {
+                                    pauseResumeButton.style.display = 'none';
+                                }
+                                
+                                animazioneInCorso = false;
+                                animazionePausata = false;
+                                
                                 // Rimuovi tutti i cerchietti rossi creati durante la visualizzazione
                                 replayShotDots.forEach(dotEl => {
                                     if (dotEl && dotEl.parentNode) {
@@ -3200,11 +3258,23 @@
                         yellowDot.setAttribute('stroke-width', '2');
                         svg.appendChild(yellowDot);
                         
-                        // Animazione della pallina gialla
+                        // Animazione della pallina gialla con supporto pausa
                         const duration = 1200;
-                        const startTime = performance.now();
+                        let startTime = performance.now();
+                        let pausedTime = 0;
+                        let animationId = null;
                         
                         function animate(currentTime) {
+                            // Se in pausa, salva il callback per riprendere
+                            if (animazionePausata) {
+                                pausedTime = currentTime;
+                                riprendiAnimazione = () => {
+                                    startTime += (performance.now() - pausedTime);
+                                    animationId = requestAnimationFrame(animate);
+                                };
+                                return;
+                            }
+                            
                             const elapsed = currentTime - startTime;
                             const progress = Math.min(elapsed / duration, 1);
                             
@@ -3215,25 +3285,55 @@
                             yellowDot.setAttribute('cy', String(currentY));
                             
                             if (progress < 1) {
-                                requestAnimationFrame(animate);
+                                animationId = requestAnimationFrame(animate);
                             } else {
                                 // Rimuovi la pallina gialla
                                 if (yellowDot && yellowDot.parentNode) {
                                     yellowDot.parentNode.removeChild(yellowDot);
                                 }
                                 
-                                // Passa al colpo successivo dopo una breve pausa
-                                setTimeout(() => {
+                                // Funzione per passare al colpo successivo
+                                function nextShot() {
+                                    // Se in pausa, salva il callback
+                                    if (animazionePausata) {
+                                        riprendiAnimazione = () => nextShot();
+                                        return;
+                                    }
                                     animateShot(index + 1);
-                                }, 200);
+                                }
+                                
+                                // Passa al colpo successivo dopo una breve pausa
+                                setTimeout(nextShot, 200);
                             }
                         }
                         
-                        requestAnimationFrame(animate);
+                        animationId = requestAnimationFrame(animate);
                     }
                     
                     // Inizia l'animazione dal primo colpo
                     animateShot(0);
+                });
+            }
+            
+            // Gestione pulsante PAUSE/RESUME
+            if (pauseResumeButton) {
+                pauseResumeButton.addEventListener('click', function() {
+                    if (!animazioneInCorso) return;
+                    
+                    if (animazionePausata) {
+                        // Riprendi l'animazione
+                        animazionePausata = false;
+                        pauseResumeButton.querySelector('.pause-icon').textContent = '⏸️';
+                        
+                        // Esegui il callback per riprendere
+                        if (riprendiAnimazione) {
+                            riprendiAnimazione();
+                        }
+                    } else {
+                        // Metti in pausa
+                        animazionePausata = true;
+                        pauseResumeButton.querySelector('.pause-icon').textContent = '▶️';
+                    }
                 });
             }
             
