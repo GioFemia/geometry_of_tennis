@@ -1218,7 +1218,7 @@
                     <rect id="h-measure-badge" x="280" y="89" width="40" height="22" fill="#fff" stroke="#ff6f00" stroke-width="1" rx="4" />
                     <text id="h-measure-label" x="300" y="100" fill="#ff6f00" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle">0.0m</text>
                     <circle id="cursorDot" cx="300" cy="822" r="12" fill="#ff5252" stroke="#fff" stroke-width="2" />
-                    <circle id="intersectionDot" cx="300" cy="100" r="8" fill="#ff5252" stroke="#fff" stroke-width="2" style="display: none;" />
+                    <circle id="intersectionDot" cx="300" cy="100" r="8" fill="#ff5252" stroke="#fff" stroke-width="2" style="display: none; cursor: move;" />
                 </svg>
                 <div id="measureArrowHtml" class="arrow-container"><div class="arrow"></div></div>
                 <div id="coordinateTooltip" class="coordinate-tooltip">
@@ -1349,6 +1349,7 @@
             let isPlayer = true;
             let draggingDot = false;
             let draggingYellow = false;
+            let draggingIntersection = false;
             let yellowEndX = null;
             window.__shotTypeIsPassante__ = false;
             window.__shotType2IsPassante__ = false;
@@ -1702,8 +1703,11 @@
             function updateIntersectionDot() {
                 if (!intersectionDot) return;
                 
-                // Show intersection dot only in Dinamico mode
-                if (window.__modalita__ === 'dinamico') {
+                // Show intersection dot in all modes (dinamico, 1colpo, 2colpi) and only when both shot and responder are visible
+                const inValidMode = (window.__modalita__ === 'dinamico' || window.__modalita__ === '1colpo' || window.__modalita__ === '2colpi');
+                const bothElementsVisible = (window.__viewShot__ === true && window.__viewResponder__ === true);
+                
+                if (inValidMode && bothElementsVisible) {
                     intersectionDot.style.display = '';
                     
                     // Position at the intersection of yellow line and horizontal measure
@@ -2332,6 +2336,68 @@
                 yellowLine.addEventListener('pointerdown', onYellowPointerDown);
                 window.addEventListener('pointermove', onYellowPointerMove);
                 window.addEventListener('pointerup', onYellowPointerUp);
+            }
+
+            // Intersection dot drag (yellow line + horizontal line simultaneously)
+            function onIntersectionPointerDown(evt) {
+                if (!intersectionDot) return;
+                draggingIntersection = true;
+                intersectionDot.setPointerCapture && intersectionDot.setPointerCapture(evt.pointerId);
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+            function onIntersectionPointerMove(evt) {
+                if (!draggingIntersection || !intersectionDot) return;
+                const p = toSvgPoint(evt);
+                const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                const targets = computePassYTargets(dotX, dotY);
+                
+                // Update Y position (horizontal line)
+                let newY;
+                if (isPlayer) {
+                    newY = Math.max(SVG_Y_MIN, Math.min(NET_Y, p.y));
+                } else {
+                    newY = Math.max(NET_Y, Math.min(SVG_Y_MAX, p.y));
+                }
+                currentMeasureY = newY;
+                
+                // Update X position (yellow line end)
+                let xLeftAtH, xRightAtH;
+                if (window.__shotTypeIsServizio__) {
+                    xLeftAtH = computeIntersectionX(dotX, dotY, targets.left.x, targets.left.y, currentMeasureY);
+                    xRightAtH = computeIntersectionX(dotX, dotY, targets.right.x, targets.right.y, currentMeasureY);
+                } else {
+                    xLeftAtH = computeIntersectionX(dotX, dotY, LEFT_X_SVG, targets.left, currentMeasureY);
+                    xRightAtH = computeIntersectionX(dotX, dotY, RIGHT_X_SVG, targets.right, currentMeasureY);
+                }
+                const minXAtH = Math.min(xLeftAtH, xRightAtH);
+                const maxXAtH = Math.max(xLeftAtH, xRightAtH);
+                const clampedX = Math.max(minXAtH, Math.min(maxXAtH, p.x));
+                
+                yellowEndX = clampedX;
+                
+                // Update yellow line
+                yellowLine.setAttribute('x1', String(dotX));
+                yellowLine.setAttribute('y1', String(dotY));
+                yellowLine.setAttribute('x2', String(clampedX));
+                yellowLine.setAttribute('y2', String(currentMeasureY));
+                
+                // Update arrow position
+                updateArrowHtmlPosition();
+                
+                // Update all visualizations
+                updateLinesAndWedge(dotX, dotY);
+            }
+            function onIntersectionPointerUp(evt) {
+                if (!intersectionDot) return;
+                draggingIntersection = false;
+                intersectionDot.releasePointerCapture && intersectionDot.releasePointerCapture(evt.pointerId);
+            }
+            if (intersectionDot) {
+                intersectionDot.addEventListener('pointerdown', onIntersectionPointerDown);
+                window.addEventListener('pointermove', onIntersectionPointerMove);
+                window.addEventListener('pointerup', onIntersectionPointerUp);
             }
 
             // Arrow drag
@@ -3919,6 +3985,12 @@
             
             // Funzione per aggiungere event listeners a un SVG specifico
             function addDrawingListeners(svgElement, targetDrawingGroup) {
+                // Previeni l'aggiunta multipla di listener allo stesso elemento
+                if (svgElement._drawingListenersAttached) {
+                    return; // Listener già aggiunti, non fare nulla
+                }
+                svgElement._drawingListenersAttached = true;
+                
                 svgElement.addEventListener('mousedown', (evt) => {
                     if (!window.drawingEnabled) return;
                     
@@ -4418,10 +4490,21 @@
             // Observer per rilevare quando il secondo SVG viene aggiunto
             const secondaryWrap = document.querySelector('.svg-wrap.secondary');
             if (secondaryWrap) {
-                const observer = new MutationObserver(() => {
-                    setupSecondaryDrawing();
+                const observer = new MutationObserver((mutations) => {
+                    // Controlla solo se è stato aggiunto un nuovo elemento SVG (non per ogni disegno)
+                    for (const mutation of mutations) {
+                        if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                            for (const node of mutation.addedNodes) {
+                                // Rileva solo l'aggiunta dell'elemento SVG principale, non i disegni
+                                if (node.tagName === 'svg' || (node.tagName === 'DIV' && node.querySelector('svg'))) {
+                                    setupSecondaryDrawing();
+                                    return; // Setup fatto, esci
+                                }
+                            }
+                        }
+                    }
                 });
-                observer.observe(secondaryWrap, { childList: true, subtree: true });
+                observer.observe(secondaryWrap, { childList: true, subtree: false });
             }
             
             // Gestione dell'indicatore visivo della gomma
