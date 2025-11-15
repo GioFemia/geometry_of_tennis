@@ -2575,6 +2575,7 @@
                         const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
                         const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
                         updateLinesAndWedge(dotX, dotY);
+                        updateTipologiaAvailability();
                     });
                 });
             }
@@ -3111,8 +3112,20 @@
                 
                 const attaccoRadio = document.getElementById('tipo_att');
                 const attaccoLabel = attaccoRadio ? attaccoRadio.closest('.control-option') : null;
+                const isDinamico = window.__modalita__ === 'dinamico';
+                const isOneColpo = window.__modalita__ === '1colpo';
+
+                const forceNonAttaccoSelection = () => {
+                    const fallbackRadio = palleggioRadio || passanteRadio || servizioRadio;
+                    if (fallbackRadio) {
+                        if (!fallbackRadio.checked) {
+                            fallbackRadio.checked = true;
+                        }
+                        fallbackRadio.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                };
                 
-                if (window.__modalita__ === 'dinamico') {
+                if (isDinamico) {
                     // In modalità dinamico
                     
                     // Servizio: solo per colpo 1
@@ -3178,8 +3191,12 @@
                         if (passanteLabel) passanteLabel.style.opacity = '1';
                     }
                     if (attaccoRadio) {
-                        attaccoRadio.disabled = false;
-                        if (attaccoLabel) attaccoLabel.style.opacity = '1';
+                        const attaccoEnabled = !isOneColpo;
+                        attaccoRadio.disabled = !attaccoEnabled;
+                        if (attaccoLabel) attaccoLabel.style.opacity = attaccoEnabled ? '1' : '0.5';
+                        if (!attaccoEnabled && attaccoRadio.checked) {
+                            forceNonAttaccoSelection();
+                        }
                     }
                 }
             }
