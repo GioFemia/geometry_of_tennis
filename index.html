@@ -10,9 +10,18 @@
             font-family: 'Roboto', Arial, sans-serif;
             margin: 0;
             height: 100vh;
+            min-height: 100vh;
+            min-height: 100dvh;
             overflow-x: auto;
             overflow-y: hidden;
             background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
+            --mobile-side-padding: clamp(12px, 5vw, 24px);
+        }
+
+        :root {
+            --mobile-safe-top: env(safe-area-inset-top, 0px);
+            --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
+            --mobile-settings-bar-height: 72px;
         }
 
         .page-container { 
@@ -237,6 +246,42 @@
 
         #cursorDot { cursor: grab; }
 
+        .mobile-panel-toggle {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            border: none;
+            background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(25, 118, 210, 0.35);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            padding: 0;
+        }
+
+        .mobile-panel-toggle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(25, 118, 210, 0.4);
+        }
+
+        .mobile-panel-toggle:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 10px rgba(25, 118, 210, 0.3);
+        }
+
+        .mobile-panel-toggle-icon::before {
+            content: '→';
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .mobile-panel-toggle[data-direction="back"] .mobile-panel-toggle-icon::before {
+            content: '←';
+        }
+
         /* Mobile responsiveness - riduce spazi esterni e permette scroll orizzontale */
         @media (max-width: 1600px) {
             .page-container {
@@ -289,6 +334,188 @@
             
             .controls-sidebar {
                 margin-left: 0.5em;
+            }
+        }
+
+        @media (max-width: 900px) {
+            html, body {
+                height: 100%;
+            }
+
+            body {
+                overflow: hidden;
+                min-height: 100vh;
+                min-height: 100dvh;
+            }
+
+            .page-container {
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0 var(--mobile-side-padding);
+                gap: 0;
+                height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom));
+                height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom));
+                padding-top: calc(var(--mobile-safe-top) + var(--mobile-settings-bar-height));
+                padding-bottom: calc(var(--mobile-safe-bottom) + 12px);
+                box-sizing: border-box;
+                overflow: hidden;
+            }
+
+            .page-container > .controls-sidebar {
+                order: 1;
+            }
+
+            .page-container > #mobilePanelToggle {
+                order: 2;
+            }
+
+            .page-container > .secondary-court {
+                order: 4;
+            }
+
+            .page-container > .primary-court {
+                order: 3;
+            }
+
+            body.mobile-show-secondary .page-container > .secondary-court {
+                order: 3;
+            }
+
+            body.mobile-show-secondary .page-container > .primary-court {
+                order: 4;
+            }
+
+            .controls-sidebar {
+                margin: 0;
+                max-width: none;
+                width: min(520px, calc(100% - 2 * var(--mobile-side-padding)));
+                box-sizing: border-box;
+            }
+
+            .controls-sidebar.mobile-enabled {
+                position: absolute;
+                top: var(--mobile-safe-top);
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+                z-index: 40;
+                border-radius: 0 0 18px 18px;
+                background: rgba(255, 255, 255, 0.98);
+                box-shadow: none;
+                max-height: calc(100vh - var(--mobile-safe-top) - 8px);
+                max-height: calc(100dvh - var(--mobile-safe-top) - 8px);
+                overflow: hidden;
+                padding: 16px 18px 20px;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            .controls-sidebar.mobile-enabled::-webkit-scrollbar {
+                display: none;
+            }
+
+            .controls-sidebar.mobile-enabled.mobile-open {
+                overflow-y: auto;
+            }
+
+            .controls-sidebar.mobile-enabled.mobile-collapsed {
+                padding: 12px 18px;
+            }
+
+            .controls-sidebar.mobile-enabled .settings-title {
+                box-shadow: none;
+            }
+
+            .controls-sidebar.mobile-enabled.mobile-collapsed > :not(.settings-title) {
+                display: none !important;
+            }
+
+            .settings-title {
+                margin-bottom: 0;
+                border-radius: 0 0 12px 12px;
+            }
+
+            .court-container {
+                flex: 1;
+                min-height: 0;
+                min-width: 0;
+                width: 100%;
+                margin: 0;
+                padding: 12px 0 4px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .primary-court,
+            .secondary-court {
+                width: 100%;
+            }
+
+            .primary-court {
+                display: flex !important;
+            }
+
+            .secondary-court {
+                display: none !important;
+            }
+
+            body.mobile-show-secondary .primary-court {
+                display: none !important;
+            }
+
+            body.mobile-show-secondary .secondary-court {
+                display: flex !important;
+            }
+
+            .svg-wrap {
+                width: 100%;
+                height: auto;
+                max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 100px);
+                max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 100px);
+                min-width: 0;
+            }
+
+            .svg-wrap svg {
+                width: 100%;
+                height: auto;
+                max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 100px);
+                max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 100px);
+                min-width: 0;
+            }
+
+            .dinamico-panel {
+                width: calc(100% - 32px);
+                max-width: none;
+                margin: 0 16px;
+                box-sizing: border-box;
+                max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 120px);
+                max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 120px);
+                overflow-y: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            .dinamico-panel::-webkit-scrollbar {
+                display: none;
+            }
+
+            .mobile-panel-toggle {
+                display: none;
+                position: relative;
+                margin: 8px auto 0;
+                align-self: center;
+                z-index: 5;
+                width: 44px;
+                height: 44px;
+                flex-shrink: 0;
+            }
+
+            .mobile-panel-toggle.is-visible {
+                display: flex;
             }
         }
         
@@ -944,7 +1171,7 @@
     <div id="eraserIndicator" class="eraser-indicator"></div>
     <div class="page-container">
         <div class="controls-sidebar">
-            <div class="settings-title">IMPOSTAZIONI</div>
+            <div class="settings-title" role="button" tabindex="0" aria-expanded="false">IMPOSTAZIONI</div>
             
             <!-- Modalità -->
             <div class="control-section collapsed">
@@ -1191,7 +1418,11 @@
             </div>
         </div>
         
-        <div class="court-container">
+        <button id="mobilePanelToggle" class="mobile-panel-toggle" type="button" aria-label="Mostra campo secondario">
+            <span class="mobile-panel-toggle-icon" aria-hidden="true"></span>
+        </button>
+        
+        <div class="court-container primary-court">
             <div class="svg-wrap primary">
                 <svg id="tennisCourt" width="100%" height="auto" viewBox="0 0 600 1006" style="background:#1565c0; border-radius:20px; display:block;">
                     <rect x="184" y="150" width="232" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
@@ -1236,7 +1467,7 @@
             </div>
         </div>
         
-        <div class="court-container">
+        <div class="court-container secondary-court">
             <div class="svg-wrap secondary">
                 <!-- Campo secondario generato in JS -->
             </div>
@@ -1318,6 +1549,10 @@
             const visualizzaScambioButton = document.getElementById('visualizzaScambioButton');
             const pauseResumeButton = document.getElementById('pauseResumeButton');
             const nuovoScambioButton = document.getElementById('nuovoScambioButton');
+            const controlsSidebar = document.querySelector('.controls-sidebar');
+            const settingsTitleTrigger = document.querySelector('.settings-title');
+            const mobilePanelToggle = document.getElementById('mobilePanelToggle');
+            const bodyEl = document.body;
 
             const COURT_X_MIN = 146;
             const COURT_X_MAX = 454;
@@ -1337,6 +1572,7 @@
             const END_Y_BOTTOM = SVG_Y_MAX;
             const COLOR_PALLEGGIO = '#1976d2';
             const COLOR_PASSANTE = '#d32f2f';
+            const MOBILE_BREAKPOINT = 900;
             
             // Coordinate system origins
             const FIELD_B_ORIGIN_X = 300; // Center of top horizontal line
@@ -1365,6 +1601,9 @@
             window.__prevViewCover__ = false;
             window.__modalita__ = '2colpi';
             window.__numeroColpo__ = 1;
+            let isMobileLayout = false;
+            let mobileSettingsOpen = false;
+            let isMobileSecondaryVisible = false;
             
             // Variabile per memorizzare il cerchietto del colpo precedente
             let previousShotDot = null;
@@ -1784,6 +2023,73 @@
                 if (l2) l2.setAttribute('stroke', color2);
                 if (r2) r2.setAttribute('stroke', color2);
                 if (b2) b2.setAttribute('stroke', color2);
+            }
+
+            function isMobileViewport() {
+                return window.innerWidth <= MOBILE_BREAKPOINT;
+            }
+
+            function setMobileSecondaryVisible(visible) {
+                isMobileSecondaryVisible = visible;
+                if (bodyEl) {
+                    bodyEl.classList.toggle('mobile-show-secondary', visible);
+                }
+                if (mobilePanelToggle) {
+                    const isDinamico = window.__modalita__ === 'dinamico';
+                    const targetLabel = isDinamico ? 'scheda Dinamico' : 'campo di destra';
+                    const buttonLabel = visible ? 'Torna al campo principale' : `Mostra ${targetLabel}`;
+                    mobilePanelToggle.setAttribute('data-direction', visible ? 'back' : 'forward');
+                    mobilePanelToggle.setAttribute('aria-label', buttonLabel);
+                    mobilePanelToggle.setAttribute('title', buttonLabel);
+                }
+            }
+
+            function updateMobilePanels() {
+                if (!mobilePanelToggle) return;
+                if (!isMobileViewport() || (window.__modalita__ !== '2colpi' && window.__modalita__ !== 'dinamico')) {
+                    mobilePanelToggle.classList.remove('is-visible');
+                    setMobileSecondaryVisible(false);
+                    return;
+                }
+                mobilePanelToggle.classList.add('is-visible');
+            }
+
+            function setMobileSettingsState(open) {
+                if (!controlsSidebar) return;
+                mobileSettingsOpen = open;
+                controlsSidebar.classList.toggle('mobile-open', open);
+                controlsSidebar.classList.toggle('mobile-collapsed', !open);
+                if (settingsTitleTrigger) {
+                    settingsTitleTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+                }
+            }
+
+            function applyMobileSettingsMode(forceCollapse = false) {
+                if (!controlsSidebar) return;
+                const mobile = isMobileViewport();
+                if (mobile) {
+                    controlsSidebar.classList.add('mobile-enabled');
+                    if (forceCollapse || !mobileSettingsOpen) {
+                        setMobileSettingsState(false);
+                    }
+                } else {
+                    controlsSidebar.classList.remove('mobile-enabled', 'mobile-open', 'mobile-collapsed');
+                    mobileSettingsOpen = false;
+                    if (settingsTitleTrigger) {
+                        settingsTitleTrigger.removeAttribute('aria-expanded');
+                    }
+                    setMobileSecondaryVisible(false);
+                }
+                isMobileLayout = mobile;
+                updateMobilePanels();
+            }
+
+            function handleMobileSettingsToggle(event) {
+                if (!isMobileLayout) return;
+                if (event) {
+                    event.preventDefault();
+                }
+                setMobileSettingsState(!mobileSettingsOpen);
             }
 
             function updateCourtColors(courtType) {
@@ -2625,6 +2931,10 @@
                         const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
                         updateLinesAndWedge(dotX, dotY);
                         updateIntersectionDot();
+                        if (isMobileViewport()) {
+                            setMobileSecondaryVisible(false);
+                        }
+                        updateMobilePanels();
                     });
                 });
             }
@@ -4603,6 +4913,30 @@
                     eraserIndicator.style.display = 'none';
                 }
             });
+
+            if (settingsTitleTrigger) {
+                settingsTitleTrigger.addEventListener('click', handleMobileSettingsToggle);
+                settingsTitleTrigger.addEventListener('keydown', (event) => {
+                    const isActivationKey = event.key === 'Enter' || event.key === ' ' || event.key === 'Space' || event.key === 'Spacebar';
+                    if (isActivationKey) {
+                        handleMobileSettingsToggle(event);
+                    }
+                });
+            }
+
+            if (mobilePanelToggle) {
+                mobilePanelToggle.addEventListener('click', () => {
+                    if (!isMobileLayout) return;
+                    setMobileSecondaryVisible(!isMobileSecondaryVisible);
+                });
+            }
+
+            window.addEventListener('resize', () => {
+                applyMobileSettingsMode();
+            });
+
+            setMobileSecondaryVisible(false);
+            applyMobileSettingsMode(true);
 
         })();
     </script>
