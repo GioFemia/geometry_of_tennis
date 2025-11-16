@@ -23,6 +23,7 @@
             --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
             --mobile-settings-bar-height: 82px;
             --mobile-dinamico-bar-height: 0px;
+            --mobile-dinamico-court-shift: 0px;
         }
 
         .page-container { 
@@ -349,6 +350,11 @@
                 min-height: 100dvh;
             }
 
+            body.mobile-dinamico {
+                overflow-x: hidden;
+                overflow-y: auto;
+            }
+
             .page-container {
                 display: flex;
                 flex-direction: column;
@@ -371,6 +377,7 @@
                     + var(--mobile-settings-bar-height)
                     + var(--mobile-dinamico-bar-height)
                 );
+                overflow: visible;
             }
 
             .page-container > .controls-sidebar {
@@ -468,6 +475,11 @@
                 display: flex !important;
             }
 
+            body.mobile-dinamico .primary-court {
+                margin-top: var(--mobile-dinamico-court-shift);
+                transition: margin-top 0.2s ease;
+            }
+
             .secondary-court {
                 display: none !important;
             }
@@ -494,6 +506,28 @@
                 max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 100px);
                 max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 100px);
                 min-width: 0;
+            }
+
+            body.mobile-dinamico .svg-wrap,
+            body.mobile-dinamico .svg-wrap svg {
+                max-height: calc(
+                    100vh
+                    - var(--mobile-safe-top)
+                    - var(--mobile-safe-bottom)
+                    - var(--mobile-settings-bar-height)
+                    - var(--mobile-dinamico-bar-height)
+                    - var(--mobile-dinamico-court-shift)
+                    - 100px
+                );
+                max-height: calc(
+                    100dvh
+                    - var(--mobile-safe-top)
+                    - var(--mobile-safe-bottom)
+                    - var(--mobile-settings-bar-height)
+                    - var(--mobile-dinamico-bar-height)
+                    - var(--mobile-dinamico-court-shift)
+                    - 100px
+                );
             }
 
             .dinamico-panel {
@@ -1686,6 +1720,7 @@
             const dinamicoMobileToggle = document.getElementById('dinamicoMobileToggle');
             const bodyEl = document.body;
             const rootEl = document.documentElement;
+            const primaryCourt = document.querySelector('.court-container.primary-court');
 
             const COURT_X_MIN = 146;
             const COURT_X_MAX = 454;
@@ -1708,6 +1743,7 @@
             const MOBILE_BREAKPOINT = 900;
             const TOUCH_PICK_RADIUS = 38;
             const TOUCH_LINE_THRESHOLD = 20;
+            const MOBILE_DINAMICO_DESIRED_GAP = 12;
             
             // Coordinate system origins
             const FIELD_B_ORIGIN_X = 300; // Center of top horizontal line
@@ -1740,6 +1776,8 @@
             let mobileSettingsOpen = false;
             let isMobileSecondaryVisible = false;
             let isMobileDinamicoPanelOpen = false;
+            let mobileCourtGapRaf = null;
+            let dinamicoPanelResizeObserver = null;
             
             // Variabile per memorizzare il cerchietto del colpo precedente
             let previousShotDot = null;
@@ -2215,18 +2253,86 @@
                 }
             }
 
+            function scheduleMobileCourtGapAdjustment() {
+                if (mobileCourtGapRaf) {
+                    cancelAnimationFrame(mobileCourtGapRaf);
+                    mobileCourtGapRaf = null;
+                }
+                if (typeof requestAnimationFrame !== 'function') {
+                    adjustMobileDinamicoCourtGap();
+                    return;
+                }
+                mobileCourtGapRaf = requestAnimationFrame(() => {
+                    mobileCourtGapRaf = null;
+                    adjustMobileDinamicoCourtGap();
+                });
+            }
+
+            function adjustMobileDinamicoCourtGap() {
+                if (!rootEl) return;
+                const shouldAdjust = bodyEl
+                    && bodyEl.classList.contains('mobile-dinamico')
+                    && isMobileViewport()
+                    && dinamicoPanel
+                    && primaryCourt;
+                if (!shouldAdjust) {
+                    rootEl.style.setProperty('--mobile-dinamico-court-shift', '0px');
+                    return;
+                }
+                const panelRect = dinamicoPanel.getBoundingClientRect();
+                const courtRect = primaryCourt.getBoundingClientRect();
+                if (!panelRect || !panelRect.height || !courtRect) {
+                    rootEl.style.setProperty('--mobile-dinamico-court-shift', '0px');
+                    return;
+                }
+                const gap = courtRect.top - panelRect.bottom;
+                if (gap > MOBILE_DINAMICO_DESIRED_GAP) {
+                    const shift = MOBILE_DINAMICO_DESIRED_GAP - gap;
+                    rootEl.style.setProperty('--mobile-dinamico-court-shift', `${shift}px`);
+                } else {
+                    rootEl.style.setProperty('--mobile-dinamico-court-shift', '0px');
+                }
+            }
+
+            function updateMobileDinamicoBarHeight(rawHeight) {
+                if (!rootEl || !dinamicoPanel) return;
+                const normalized = Math.max(0, Math.ceil(rawHeight || 0));
+                dinamicoPanel.dataset.collapsedHeight = String(normalized);
+                rootEl.style.setProperty('--mobile-dinamico-bar-height', `${normalized}px`);
+                scheduleMobileCourtGapAdjustment();
+            }
+
+            function initDinamicoPanelObserver() {
+                if (!('ResizeObserver' in window) || !dinamicoPanel || dinamicoPanelResizeObserver) {
+                    return;
+                }
+                dinamicoPanelResizeObserver = new ResizeObserver((entries) => {
+                    if (!bodyEl || !bodyEl.classList.contains('mobile-dinamico')) return;
+                    if (!dinamicoPanel.classList.contains('mobile-collapsed')) return;
+                    for (const entry of entries) {
+                        if (entry.target !== dinamicoPanel) continue;
+                        const height = entry.contentRect ? entry.contentRect.height : 0;
+                        if (height > 0) {
+                            updateMobileDinamicoBarHeight(height);
+                            scheduleMobileCourtGapAdjustment();
+                        }
+                    }
+                });
+                dinamicoPanelResizeObserver.observe(dinamicoPanel);
+            }
+
             function cacheDinamicoCollapsedHeight() {
                 if (!rootEl || !dinamicoPanel) return;
                 if (!(bodyEl && bodyEl.classList.contains('mobile-dinamico'))) {
                     rootEl.style.setProperty('--mobile-dinamico-bar-height', '0px');
+                    rootEl.style.setProperty('--mobile-dinamico-court-shift', '0px');
                     dinamicoPanel.dataset.collapsedHeight = '';
+                    scheduleMobileCourtGapAdjustment();
                     return;
                 }
                 const rect = dinamicoPanel.getBoundingClientRect();
                 if (rect && rect.height) {
-                    const height = Math.ceil(rect.height);
-                    dinamicoPanel.dataset.collapsedHeight = String(height);
-                    rootEl.style.setProperty('--mobile-dinamico-bar-height', `${height}px`);
+                    updateMobileDinamicoBarHeight(rect.height);
                 }
             }
 
@@ -2235,6 +2341,7 @@
                 const stored = dinamicoPanel.dataset ? dinamicoPanel.dataset.collapsedHeight : null;
                 if (stored) {
                     rootEl.style.setProperty('--mobile-dinamico-bar-height', `${stored}px`);
+                    scheduleMobileCourtGapAdjustment();
                 }
             }
 
@@ -2254,7 +2361,9 @@
                     }
                     if (rootEl) {
                         rootEl.style.setProperty('--mobile-dinamico-bar-height', '0px');
+                        rootEl.style.setProperty('--mobile-dinamico-court-shift', '0px');
                     }
+                    scheduleMobileCourtGapAdjustment();
                     return;
                 }
 
@@ -2274,6 +2383,7 @@
                 } else {
                     cacheDinamicoCollapsedHeight();
                 }
+                scheduleMobileCourtGapAdjustment();
             }
 
             function syncMobileDinamicoPanel(forceCollapse = false) {
@@ -2282,6 +2392,7 @@
                 bodyEl.classList.toggle('mobile-dinamico', enable);
                 if (!enable) {
                     setMobileDinamicoPanelOpen(false);
+                    scheduleMobileCourtGapAdjustment();
                     return;
                 }
                 const desiredOpen = forceCollapse ? false : isMobileDinamicoPanelOpen;
@@ -2289,6 +2400,7 @@
                 if (!desiredOpen) {
                     requestAnimationFrame(cacheDinamicoCollapsedHeight);
                 }
+                scheduleMobileCourtGapAdjustment();
             }
 
             function updateTouchTargetSizes() {
@@ -2327,6 +2439,7 @@
                 updateMobilePanels();
                 updateTouchTargetSizes();
                 syncMobileDinamicoPanel(forceCollapse);
+                scheduleMobileCourtGapAdjustment();
             }
 
             function handleMobileSettingsToggle(event) {
@@ -5250,10 +5363,13 @@
 
             window.addEventListener('resize', () => {
                 applyMobileSettingsMode();
+                scheduleMobileCourtGapAdjustment();
             });
 
             setMobileSecondaryVisible(false);
+            initDinamicoPanelObserver();
             applyMobileSettingsMode(true);
+            scheduleMobileCourtGapAdjustment();
 
         })();
     </script>
