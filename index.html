@@ -21,7 +21,8 @@
         :root {
             --mobile-safe-top: env(safe-area-inset-top, 0px);
             --mobile-safe-bottom: env(safe-area-inset-bottom, 0px);
-            --mobile-settings-bar-height: 72px;
+            --mobile-settings-bar-height: 82px;
+            --mobile-dinamico-bar-height: 0px;
         }
 
         .page-container { 
@@ -364,6 +365,14 @@
                 overflow: hidden;
             }
 
+            body.mobile-dinamico .page-container {
+                padding-top: calc(
+                    var(--mobile-safe-top)
+                    + var(--mobile-settings-bar-height)
+                    + var(--mobile-dinamico-bar-height)
+                );
+            }
+
             .page-container > .controls-sidebar {
                 order: 1;
             }
@@ -515,6 +524,64 @@
             }
 
             .mobile-panel-toggle.is-visible {
+                display: flex;
+            }
+
+            body.mobile-dinamico #mobilePanelToggle {
+                display: none !important;
+            }
+
+            body.mobile-dinamico .page-container > .secondary-court {
+                order: 2;
+            }
+
+            body.mobile-dinamico .secondary-court {
+                display: block !important;
+                position: static;
+                width: 100%;
+                height: 0;
+                overflow: visible;
+            }
+
+            body.mobile-dinamico .secondary-court .svg-wrap.secondary {
+                display: none !important;
+            }
+
+            body.mobile-dinamico #dinamicoPanel {
+                position: absolute;
+                top: calc(var(--mobile-safe-top) + var(--mobile-settings-bar-height));
+                left: 50%;
+                transform: translateX(-50%);
+                width: min(520px, calc(100% - 2 * var(--mobile-side-padding)));
+                margin: 0;
+                padding: 14px 18px 18px;
+                border-radius: 18px;
+                background: rgba(255, 255, 255, 0.98);
+                box-shadow: none;
+                z-index: 35;
+                flex-direction: column;
+                gap: 10px;
+                box-sizing: border-box;
+                overflow: hidden;
+            }
+
+            body.mobile-dinamico #dinamicoPanel.mobile-collapsed > :not(.dinamico-primary-row) {
+                display: none !important;
+            }
+
+            body.mobile-dinamico #dinamicoPanel.mobile-expanded {
+                max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 12px);
+                max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 12px);
+                overflow-y: auto;
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+            }
+
+            body.mobile-dinamico #dinamicoPanel.mobile-expanded::-webkit-scrollbar {
+                display: none;
+            }
+
+            body.mobile-dinamico #dinamicoMobileToggle {
                 display: flex;
             }
         }
@@ -694,6 +761,65 @@
         
         .dinamico-panel.active {
             display: flex;
+        }
+
+        .dinamico-primary-row {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .dinamico-primary-row .colpo-button {
+            flex: 1;
+            width: auto;
+            margin-top: 0;
+        }
+
+        .dinamico-primary-row .dinamico-mobile-toggle {
+            flex: 0 0 42px;
+        }
+
+        .dinamico-mobile-toggle {
+            display: none;
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 999px;
+            background: rgba(25, 118, 210, 0.12);
+            color: #1976d2;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, transform 0.2s ease;
+        }
+
+        .dinamico-mobile-toggle .chevron {
+            width: 12px;
+            height: 12px;
+            border: solid currentColor;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            transition: transform 0.2s ease;
+            display: inline-block;
+        }
+
+        .dinamico-panel.mobile-expanded .dinamico-mobile-toggle .chevron {
+            transform: rotate(-135deg);
+        }
+
+        .dinamico-mobile-toggle:focus-visible {
+            outline: 2px solid #1976d2;
+            outline-offset: 2px;
+        }
+
+        .dinamico-mobile-toggle:hover {
+            background: rgba(25, 118, 210, 0.18);
+        }
+
+        .dinamico-mobile-toggle:active {
+            transform: scale(0.94);
         }
         
         .panel-title {
@@ -1503,7 +1629,12 @@
                         <span>ULTIMO COLPO</span>
                     </label>
                 </div>
-                <button id="colpoButton" class="colpo-button">COLPO</button>
+                <div class="dinamico-primary-row">
+                    <button id="colpoButton" class="colpo-button">COLPO</button>
+                    <button id="dinamicoMobileToggle" class="dinamico-mobile-toggle" type="button" aria-expanded="false" aria-label="Apri pannello Dinamico">
+                        <span class="chevron" aria-hidden="true"></span>
+                    </button>
+                </div>
                 <button id="visualizzaScambioButton" class="visualizza-scambio-button">VISUALIZZA PUNTO</button>
                 <button id="pauseResumeButton" class="pause-resume-button" style="display: none;">
                     <span class="pause-icon">⏸️</span>
@@ -1552,7 +1683,9 @@
             const controlsSidebar = document.querySelector('.controls-sidebar');
             const settingsTitleTrigger = document.querySelector('.settings-title');
             const mobilePanelToggle = document.getElementById('mobilePanelToggle');
+            const dinamicoMobileToggle = document.getElementById('dinamicoMobileToggle');
             const bodyEl = document.body;
+            const rootEl = document.documentElement;
 
             const COURT_X_MIN = 146;
             const COURT_X_MAX = 454;
@@ -1606,6 +1739,7 @@
             let isMobileLayout = false;
             let mobileSettingsOpen = false;
             let isMobileSecondaryVisible = false;
+            let isMobileDinamicoPanelOpen = false;
             
             // Variabile per memorizzare il cerchietto del colpo precedente
             let previousShotDot = null;
@@ -2065,9 +2199,7 @@
                     bodyEl.classList.toggle('mobile-show-secondary', visible);
                 }
                 if (mobilePanelToggle) {
-                    const isDinamico = window.__modalita__ === 'dinamico';
-                    const targetLabel = isDinamico ? 'scheda Dinamico' : 'campo di destra';
-                    const buttonLabel = visible ? 'Torna al campo principale' : `Mostra ${targetLabel}`;
+                    const buttonLabel = visible ? 'Torna al campo principale' : 'Mostra campo di destra';
                     mobilePanelToggle.setAttribute('data-direction', visible ? 'back' : 'forward');
                     mobilePanelToggle.setAttribute('aria-label', buttonLabel);
                     mobilePanelToggle.setAttribute('title', buttonLabel);
@@ -2076,12 +2208,87 @@
 
             function updateMobilePanels() {
                 if (!mobilePanelToggle) return;
-                if (!isMobileViewport() || (window.__modalita__ !== '2colpi' && window.__modalita__ !== 'dinamico')) {
-                    mobilePanelToggle.classList.remove('is-visible');
+                const shouldShow = isMobileViewport() && window.__modalita__ === '2colpi';
+                mobilePanelToggle.classList.toggle('is-visible', shouldShow);
+                if (!shouldShow) {
                     setMobileSecondaryVisible(false);
+                }
+            }
+
+            function cacheDinamicoCollapsedHeight() {
+                if (!rootEl || !dinamicoPanel) return;
+                if (!(bodyEl && bodyEl.classList.contains('mobile-dinamico'))) {
+                    rootEl.style.setProperty('--mobile-dinamico-bar-height', '0px');
+                    dinamicoPanel.dataset.collapsedHeight = '';
                     return;
                 }
-                mobilePanelToggle.classList.add('is-visible');
+                const rect = dinamicoPanel.getBoundingClientRect();
+                if (rect && rect.height) {
+                    const height = Math.ceil(rect.height);
+                    dinamicoPanel.dataset.collapsedHeight = String(height);
+                    rootEl.style.setProperty('--mobile-dinamico-bar-height', `${height}px`);
+                }
+            }
+
+            function applyStoredDinamicoCollapsedHeight() {
+                if (!rootEl || !dinamicoPanel) return;
+                const stored = dinamicoPanel.dataset ? dinamicoPanel.dataset.collapsedHeight : null;
+                if (stored) {
+                    rootEl.style.setProperty('--mobile-dinamico-bar-height', `${stored}px`);
+                }
+            }
+
+            function setMobileDinamicoPanelOpen(open) {
+                if (!dinamicoPanel) return;
+                const enable = bodyEl
+                    && bodyEl.classList.contains('mobile-dinamico')
+                    && isMobileViewport()
+                    && window.__modalita__ === 'dinamico';
+
+                if (!enable) {
+                    isMobileDinamicoPanelOpen = false;
+                    dinamicoPanel.classList.remove('mobile-expanded', 'mobile-collapsed');
+                    if (dinamicoMobileToggle) {
+                        dinamicoMobileToggle.setAttribute('aria-expanded', 'false');
+                        dinamicoMobileToggle.removeAttribute('title');
+                    }
+                    if (rootEl) {
+                        rootEl.style.setProperty('--mobile-dinamico-bar-height', '0px');
+                    }
+                    return;
+                }
+
+                isMobileDinamicoPanelOpen = !!open;
+                dinamicoPanel.classList.toggle('mobile-expanded', isMobileDinamicoPanelOpen);
+                dinamicoPanel.classList.toggle('mobile-collapsed', !isMobileDinamicoPanelOpen);
+
+                if (dinamicoMobileToggle) {
+                    const label = isMobileDinamicoPanelOpen ? 'Chiudi pannello Dinamico' : 'Apri pannello Dinamico';
+                    dinamicoMobileToggle.setAttribute('aria-expanded', isMobileDinamicoPanelOpen ? 'true' : 'false');
+                    dinamicoMobileToggle.setAttribute('aria-label', label);
+                    dinamicoMobileToggle.setAttribute('title', label);
+                }
+
+                if (isMobileDinamicoPanelOpen) {
+                    applyStoredDinamicoCollapsedHeight();
+                } else {
+                    cacheDinamicoCollapsedHeight();
+                }
+            }
+
+            function syncMobileDinamicoPanel(forceCollapse = false) {
+                if (!bodyEl) return;
+                const enable = isMobileViewport() && window.__modalita__ === 'dinamico';
+                bodyEl.classList.toggle('mobile-dinamico', enable);
+                if (!enable) {
+                    setMobileDinamicoPanelOpen(false);
+                    return;
+                }
+                const desiredOpen = forceCollapse ? false : isMobileDinamicoPanelOpen;
+                setMobileDinamicoPanelOpen(desiredOpen);
+                if (!desiredOpen) {
+                    requestAnimationFrame(cacheDinamicoCollapsedHeight);
+                }
             }
 
             function updateTouchTargetSizes() {
@@ -2119,6 +2326,7 @@
                 isMobileLayout = mobile;
                 updateMobilePanels();
                 updateTouchTargetSizes();
+                syncMobileDinamicoPanel(forceCollapse);
             }
 
             function handleMobileSettingsToggle(event) {
@@ -2372,6 +2580,10 @@
                     if (previousShotDot && previousShotDot.parentNode) {
                         previousShotDot.style.display = 'none';
                     }
+                }
+
+                if (isMobileViewport()) {
+                    syncMobileDinamicoPanel();
                 }
             }
 
@@ -3029,6 +3241,7 @@
                             setMobileSecondaryVisible(false);
                         }
                         updateMobilePanels();
+                        syncMobileDinamicoPanel(true);
                         updateColpitoreDragState();
                     });
                 });
@@ -5024,6 +5237,14 @@
                 mobilePanelToggle.addEventListener('click', () => {
                     if (!isMobileLayout) return;
                     setMobileSecondaryVisible(!isMobileSecondaryVisible);
+                });
+            }
+
+            if (dinamicoMobileToggle) {
+                dinamicoMobileToggle.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    if (!bodyEl.classList.contains('mobile-dinamico')) return;
+                    setMobileDinamicoPanelOpen(!isMobileDinamicoPanelOpen);
                 });
             }
 
