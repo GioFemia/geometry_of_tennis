@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Geometry Tennis</title>
+    <title>Geometry of Tennis</title>
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
     <style>
         body {
@@ -444,7 +444,7 @@
                 min-width: 0;
                 width: 100%;
                 margin: 0;
-                padding: 12px 0 4px;
+                padding: 5px 0 2px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -1573,6 +1573,8 @@
             const COLOR_PALLEGGIO = '#1976d2';
             const COLOR_PASSANTE = '#d32f2f';
             const MOBILE_BREAKPOINT = 900;
+            const TOUCH_PICK_RADIUS = 38;
+            const TOUCH_LINE_THRESHOLD = 20;
             
             // Coordinate system origins
             const FIELD_B_ORIGIN_X = 300; // Center of top horizontal line
@@ -1750,6 +1752,19 @@
                 const denom = Math.abs(dy) < EPS ? (dy >= 0 ? EPS : -EPS) : dy;
                 const t = (yH - y0) / denom;
                 return x0 + t * dx;
+            }
+
+            function distancePointToSegment(px, py, x1, y1, x2, y2) {
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                if (dx === 0 && dy === 0) {
+                    return Math.hypot(px - x1, py - y1);
+                }
+                const t = ((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy);
+                const clampedT = Math.max(0, Math.min(1, t));
+                const projX = x1 + clampedT * dx;
+                const projY = y1 + clampedT * dy;
+                return Math.hypot(px - projX, py - projY);
             }
 
             function computeBisectorXAtY(x0, y0, passYSvg, yH, leftAnchorX, leftAnchorY, rightAnchorX, rightAnchorY) {
@@ -2029,6 +2044,21 @@
                 return window.innerWidth <= MOBILE_BREAKPOINT;
             }
 
+            function isColpitoreMovementLocked() {
+                return window.__modalita__ === 'dinamico' && window.__numeroColpo__ >= 2;
+            }
+
+            function updateColpitoreDragState() {
+                if (!dot) return;
+                if (isColpitoreMovementLocked()) {
+                    dot.style.cursor = 'not-allowed';
+                } else if (draggingDot) {
+                    dot.style.cursor = 'grabbing';
+                } else {
+                    dot.style.cursor = 'grab';
+                }
+            }
+
             function setMobileSecondaryVisible(visible) {
                 isMobileSecondaryVisible = visible;
                 if (bodyEl) {
@@ -2052,6 +2082,12 @@
                     return;
                 }
                 mobilePanelToggle.classList.add('is-visible');
+            }
+
+            function updateTouchTargetSizes() {
+                if (svg) {
+                    svg.style.touchAction = isMobileViewport() ? 'none' : 'auto';
+                }
             }
 
             function setMobileSettingsState(open) {
@@ -2082,6 +2118,7 @@
                 }
                 isMobileLayout = mobile;
                 updateMobilePanels();
+                updateTouchTargetSizes();
             }
 
             function handleMobileSettingsToggle(event) {
@@ -2572,9 +2609,14 @@
             }
 
             function onDotPointerDown(evt) {
+                if (isColpitoreMovementLocked()) {
+                    evt.preventDefault();
+                    updateColpitoreDragState();
+                    return;
+                }
                 draggingDot = true;
                 svg.setPointerCapture && svg.setPointerCapture(evt.pointerId);
-                if (dot) dot.style.cursor = 'grabbing';
+                updateColpitoreDragState();
                 evt.preventDefault();
             }
 
@@ -2616,7 +2658,7 @@
             function onDotPointerUp(evt) {
                 draggingDot = false;
                 svg.releasePointerCapture && svg.releasePointerCapture(evt.pointerId);
-                if (dot) dot.style.cursor = 'grab';
+                updateColpitoreDragState();
             }
 
             function applyViewToggles() {
@@ -2773,6 +2815,58 @@
                 intersectionDot.addEventListener('pointerdown', onIntersectionPointerDown);
                 window.addEventListener('pointermove', onIntersectionPointerMove);
                 window.addEventListener('pointerup', onIntersectionPointerUp);
+            }
+
+            function handleTouchFriendlyPointerDown(evt) {
+                if (!isMobileViewport()) return;
+                if (evt.pointerType === 'mouse') return;
+                if (window.drawingEnabled) return;
+                const targetNode = evt.target;
+                if (targetNode === dot || targetNode === intersectionDot || targetNode === yellowLine || targetNode === arrowHtml) {
+                    return;
+                }
+                const point = toSvgPoint(evt);
+                let handled = false;
+                if (dot && window.__viewPlayer__ !== false && !isColpitoreMovementLocked()) {
+                    const dotX = parseFloat(dot.getAttribute('cx'));
+                    const dotY = parseFloat(dot.getAttribute('cy'));
+                    const dotDistance = Math.hypot(point.x - dotX, point.y - dotY);
+                    if (dotDistance <= TOUCH_PICK_RADIUS) {
+                        onDotPointerDown(evt);
+                        onDotPointerMove(evt);
+                        handled = true;
+                    }
+                }
+                if (!handled && intersectionDot && intersectionDot.style.display !== 'none') {
+                    const intersectionX = parseFloat(intersectionDot.getAttribute('cx'));
+                    const intersectionY = parseFloat(intersectionDot.getAttribute('cy'));
+                    const interDistance = Math.hypot(point.x - intersectionX, point.y - intersectionY);
+                    if (interDistance <= TOUCH_PICK_RADIUS) {
+                        onIntersectionPointerDown(evt);
+                        onIntersectionPointerMove(evt);
+                        handled = true;
+                    }
+                }
+                if (!handled && yellowLine && window.__viewShot__ !== false) {
+                    const x1 = parseFloat(yellowLine.getAttribute('x1'));
+                    const y1 = parseFloat(yellowLine.getAttribute('y1'));
+                    const x2 = parseFloat(yellowLine.getAttribute('x2'));
+                    const y2 = parseFloat(yellowLine.getAttribute('y2'));
+                    const lineDistance = distancePointToSegment(point.x, point.y, x1, y1, x2, y2);
+                    if (lineDistance <= TOUCH_LINE_THRESHOLD) {
+                        onYellowPointerDown(evt);
+                        onYellowPointerMove(evt);
+                        handled = true;
+                    }
+                }
+                if (handled) {
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                }
+            }
+
+            if (svg) {
+                svg.addEventListener('pointerdown', handleTouchFriendlyPointerDown);
             }
 
             // Arrow drag
@@ -2935,6 +3029,7 @@
                             setMobileSecondaryVisible(false);
                         }
                         updateMobilePanels();
+                        updateColpitoreDragState();
                     });
                 });
             }
@@ -3366,6 +3461,7 @@
                     numeroColpoInput.textContent = window.__numeroColpo__;
                 }
                 updateNavigationButtons();
+                updateColpitoreDragState();
             }
             
             // Funzione per gestire i checkbox di visualizzazione in modalità DINAMICO
