@@ -63,6 +63,9 @@
             const TOUCH_PICK_RADIUS = 38;
             const TOUCH_LINE_THRESHOLD = 20;
             const MOBILE_DINAMICO_DESIRED_GAP = 12;
+            const RECEIVER_DOT_RADIUS = 8;
+            const COVER_BADGE_TEXT_HEIGHT = 22;
+            const COVER_BADGE_VERTICAL_MARGIN = 6;
             
             // Coordinate system origins
             const FIELD_B_ORIGIN_X = 300; // Center of top horizontal line
@@ -279,11 +282,6 @@
 
             function updateHorizontalMeasure(dotX, dotY, targets, yH, leftPassX, leftPassY, rightPassX, rightPassY) {
                 if (!hMeasure || !hMeasureLabel) return;
-                if (window.__viewResponder__ === false) {
-                    if (hMeasure) hMeasure.style.display = 'none';
-                    // badge/label governati da __viewCover__
-                    return;
-                }
                 
                 // Use provided coordinates or defaults
                 if (leftPassX === undefined) leftPassX = LEFT_X_SVG;
@@ -302,13 +300,16 @@
                     xRight = computeIntersectionX(dotX, dotY, rightPassX, rightPassY, yH);
                 }
                 
+                const coverVisible = window.__viewCover__ !== false;
+                const receiverVisible = window.__viewResponder__ !== false;
+                
                 const x1 = Math.min(xLeft, xRight);
                 const x2 = Math.max(xLeft, xRight);
                 hMeasure.setAttribute('x1', String(x1));
                 hMeasure.setAttribute('y1', String(yH));
                 hMeasure.setAttribute('x2', String(x2));
                 hMeasure.setAttribute('y2', String(yH));
-                hMeasure.style.display = '';
+                hMeasure.style.display = coverVisible ? '' : 'none';
                 
                 // Calcola e mostra il valore della misura in metri
                 const delta = Math.max(0, x2 - x1);
@@ -330,18 +331,22 @@
                 }
                 const xClamped = Math.max(COURT_X_MIN, Math.min(COURT_X_MAX, xOnBisector));
                 
+                const textWidth = lengthText.length * 11;
+                const textHeight = COVER_BADGE_TEXT_HEIGHT;
+                const labelOffset = (coverVisible && receiverVisible)
+                    ? RECEIVER_DOT_RADIUS + COVER_BADGE_VERTICAL_MARGIN + textHeight / 2 + 2
+                    : 0;
+                const labelY = yH - labelOffset;
                 if (hMeasureLabel) {
-                    hMeasureLabel.style.display = (window.__viewCover__ === false) ? 'none' : '';
+                    hMeasureLabel.style.display = coverVisible ? '' : 'none';
                     hMeasureLabel.setAttribute('x', String(xClamped));
-                    hMeasureLabel.setAttribute('y', String(yH));
+                    hMeasureLabel.setAttribute('y', String(labelY));
                 }
                 if (hMeasureBadge) {
-                    hMeasureBadge.style.display = (window.__viewCover__ === false) ? 'none' : '';
-                    // Calcola dimensioni del rettangolo basandosi sulla lunghezza del testo (come il righello)
-                    const textWidth = lengthText.length * 11; // Approssimazione basata su font-size 18
-                    const textHeight = 22;
+                    const badgeY = labelY - textHeight / 2 - 2;
+                    hMeasureBadge.style.display = coverVisible ? '' : 'none';
                     hMeasureBadge.setAttribute('x', String(xClamped - textWidth / 2 - 4));
-                    hMeasureBadge.setAttribute('y', String(yH - textHeight / 2 - 2));
+                    hMeasureBadge.setAttribute('y', String(badgeY));
                     hMeasureBadge.setAttribute('width', String(textWidth + 8));
                     hMeasureBadge.setAttribute('height', String(textHeight + 4));
                 }
@@ -357,7 +362,7 @@
 
             function updateArrowHtmlPosition() {
                 if (!arrowHtml) return;
-                if (window.__viewResponder__ === false) { arrowHtml.style.display = 'none'; return; }
+                if (window.__viewCover__ === false) { arrowHtml.style.display = 'none'; return; }
                 const wrap = svg.parentElement;
                 if (!wrap) return;
                 const wrapRect = wrap.getBoundingClientRect();
@@ -460,46 +465,60 @@
                 
                 // Show intersection dot in all modes (dinamico, 1colpo, 2colpi) and only when both shot and responder are visible
                 const inValidMode = (window.__modalita__ === 'dinamico' || window.__modalita__ === '1colpo' || window.__modalita__ === '2colpi');
-                const bothElementsVisible = (window.__viewShot__ === true && window.__viewResponder__ === true);
+                const shouldDisplay = inValidMode && window.__viewResponder__ === true;
                 
-                if (inValidMode && bothElementsVisible) {
+                if (shouldDisplay) {
                     intersectionDot.style.display = '';
                     
-                    // Position at the intersection of yellow line and horizontal measure
-                    const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
-                    const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
-                    const targets = computePassYTargets(dotX, dotY);
-                    const anchors = getDirectionalAnchorPoints(dotX, dotY, targets);
-                    const { leftX, leftY, rightX, rightY } = anchors;
+                    let receiverX = null;
+                    let receiverY = null;
                     
-                    const xLeftAtH = computeIntersectionX(dotX, dotY, leftX, leftY, currentMeasureY);
-                    const xRightAtH = computeIntersectionX(dotX, dotY, rightX, rightY, currentMeasureY);
-                    
-                    const minXAtH = Math.min(xLeftAtH, xRightAtH);
-                    const maxXAtH = Math.max(xLeftAtH, xRightAtH);
-                    const bisectorTarget = window.__shotTypeIsServizio__
-                        ? ((targets.left.y + targets.right.y) / 2)
-                        : ((targets.left + targets.right) / 2);
-                    
-                    let intersectionX;
-                    if (yellowEndX == null) {
-                        intersectionX = computeBisectorXAtY(
-                            dotX,
-                            dotY,
-                            bisectorTarget,
-                            currentMeasureY,
-                            leftX,
-                            leftY,
-                            rightX,
-                            rightY
-                        );
-                    } else {
-                        intersectionX = yellowEndX;
+                    if (yellowLine) {
+                        const yellowX = parseFloat(yellowLine.getAttribute('x2'));
+                        const yellowY = parseFloat(yellowLine.getAttribute('y2'));
+                        if (!Number.isNaN(yellowX) && !Number.isNaN(yellowY)) {
+                            receiverX = yellowX;
+                            receiverY = yellowY;
+                        }
                     }
                     
-                    const clampedX = Math.max(minXAtH, Math.min(maxXAtH, intersectionX));
-                    intersectionDot.setAttribute('cx', String(clampedX));
-                    intersectionDot.setAttribute('cy', String(currentMeasureY));
+                    if (receiverX === null || receiverY === null) {
+                        const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                        const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                        const targets = computePassYTargets(dotX, dotY);
+                        const anchors = getDirectionalAnchorPoints(dotX, dotY, targets);
+                        const { leftX, leftY, rightX, rightY } = anchors;
+                        
+                        const xLeftAtH = computeIntersectionX(dotX, dotY, leftX, leftY, currentMeasureY);
+                        const xRightAtH = computeIntersectionX(dotX, dotY, rightX, rightY, currentMeasureY);
+                        const minXAtH = Math.min(xLeftAtH, xRightAtH);
+                        const maxXAtH = Math.max(xLeftAtH, xRightAtH);
+                        const bisectorTarget = window.__shotTypeIsServizio__
+                            ? ((targets.left.y + targets.right.y) / 2)
+                            : ((targets.left + targets.right) / 2);
+                        
+                        let intersectionX;
+                        if (yellowEndX == null) {
+                            intersectionX = computeBisectorXAtY(
+                                dotX,
+                                dotY,
+                                bisectorTarget,
+                                currentMeasureY,
+                                leftX,
+                                leftY,
+                                rightX,
+                                rightY
+                            );
+                        } else {
+                            intersectionX = yellowEndX;
+                        }
+                        
+                        receiverX = Math.max(minXAtH, Math.min(maxXAtH, intersectionX));
+                        receiverY = currentMeasureY;
+                    }
+                    
+                    intersectionDot.setAttribute('cx', String(receiverX));
+                    intersectionDot.setAttribute('cy', String(receiverY));
                 } else {
                     intersectionDot.style.display = 'none';
                 }
@@ -1312,10 +1331,10 @@
                 if (dot) dot.style.display = (window.__viewPlayer__ === false) ? 'none' : '';
                 if (yellowLine) yellowLine.style.display = (window.__viewShot__ === false) ? 'none' : '';
                 if (bisectorLine) bisectorLine.style.display = (window.__viewCenter__ === false) ? 'none' : '';
-                if (hMeasure) hMeasure.style.display = (window.__viewResponder__ === false) ? 'none' : '';
+                if (hMeasure) hMeasure.style.display = (window.__viewCover__ === false) ? 'none' : '';
                 if (hMeasureLabel) hMeasureLabel.style.display = (window.__viewCover__ === false) ? 'none' : '';
                 if (hMeasureBadge) hMeasureBadge.style.display = (window.__viewCover__ === false) ? 'none' : '';
-                if (arrowHtml) arrowHtml.style.display = (window.__viewResponder__ === false) ? 'none' : 'block';
+                if (arrowHtml) arrowHtml.style.display = (window.__viewCover__ === false) ? 'none' : 'block';
                 updateSecondaryCourtLock();
                 updateSecondaryFromLeft();
                 updateIntersectionDot();
@@ -2412,7 +2431,7 @@
                                 elementsToHide.forEach(el => {
                                     if (el) {
                                         if (el === arrowHtml) {
-                                            el.style.display = (window.__viewResponder__ === false) ? 'none' : 'block';
+                                            el.style.display = (window.__viewCover__ === false) ? 'none' : 'block';
                                         } else {
                                             el.style.display = '';
                                         }
@@ -2745,7 +2764,7 @@
                                 elementsToHide.forEach(el => {
                                     if (el) {
                                         if (el === arrowHtml) {
-                                            el.style.display = (window.__viewResponder__ === false) ? 'none' : 'block';
+                                            el.style.display = (window.__viewCover__ === false) ? 'none' : 'block';
                                         } else {
                                             el.style.display = '';
                                         }
