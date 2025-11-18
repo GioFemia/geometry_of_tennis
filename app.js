@@ -23,6 +23,8 @@
             const tooltip = document.getElementById('coordinateTooltip');
             const fieldBCoords = document.getElementById('fieldB-coords');
             const fieldACoords = document.getElementById('fieldA-coords');
+            const tooltipFieldB = document.getElementById('tooltip-field-b');
+            const tooltipFieldA = document.getElementById('tooltip-field-a');
             const courtLockOverlay = document.getElementById('courtLockOverlay');
             const dinamicoPanel = document.getElementById('dinamicoPanel');
             const numeroColpoInput = document.getElementById('numeroColpo');
@@ -91,7 +93,6 @@
             window.__viewCover__ = false;
             window.__viewCenter__ = true;
             window.__viewCoordinates__ = false;
-            window.__prevViewCover__ = false;
             window.__modalita__ = '2colpi';
             window.__numeroColpo__ = 1;
             let isMobileLayout = false;
@@ -153,12 +154,30 @@
             }
 
             function updateCoordinateTooltip(x, y, clientX, clientY) {
-                if (!tooltip || !fieldBCoords || !fieldACoords) return;
+                if (!tooltip || !fieldBCoords || !fieldACoords || !tooltipFieldB || !tooltipFieldA) return;
                 
                 // Check if coordinates should be shown
                 if (!window.__viewCoordinates__) {
                     tooltip.style.display = 'none';
                     return;
+                }
+                
+                // Determine which field the cursor is in based on position relative to net
+                const isAboveNet = y < NET_Y;
+                
+                // Show only the relevant field row, hide the other
+                if (isAboveNet) {
+                    // Cursor is in Campo B (above net)
+                    const fieldB = calculateFieldBCoordinates(x, y);
+                    fieldBCoords.textContent = `X: ${Math.round(fieldB.x)}, Y: ${Math.round(fieldB.y)}`;
+                    tooltipFieldB.style.display = 'flex';
+                    tooltipFieldA.style.display = 'none';
+                } else {
+                    // Cursor is in Campo A (below net)
+                    const fieldA = calculateFieldACoordinates(x, y);
+                    fieldACoords.textContent = `X: ${Math.round(fieldA.x)}, Y: ${Math.round(fieldA.y)}`;
+                    tooltipFieldB.style.display = 'none';
+                    tooltipFieldA.style.display = 'flex';
                 }
                 
                 // Smart positioning to avoid screen edges
@@ -183,21 +202,6 @@
                 tooltip.style.left = left + 'px';
                 tooltip.style.top = top + 'px';
                 tooltip.style.display = 'block';
-                
-                // Determine which field the cursor is in based on position relative to net
-                const isAboveNet = y < NET_Y;
-                
-                if (isAboveNet) {
-                    // Cursor is in Campo B (above net)
-                    const fieldB = calculateFieldBCoordinates(x, y);
-                    fieldBCoords.textContent = `X: ${Math.round(fieldB.x)}, Y: ${Math.round(fieldB.y)}`;
-                    fieldACoords.textContent = `--`;
-                } else {
-                    // Cursor is in Campo A (below net)
-                    const fieldA = calculateFieldACoordinates(x, y);
-                    fieldBCoords.textContent = `--`;
-                    fieldACoords.textContent = `X: ${Math.round(fieldA.x)}, Y: ${Math.round(fieldA.y)}`;
-                }
             }
 
             function setLineToYEnd(lineEl, x0, y0, x1, y1, endYSvg) {
@@ -527,7 +531,7 @@
             function updateThemeColors() {
                 const color = window.__shotTypeIsPassante__ ? COLOR_PASSANTE : COLOR_PALLEGGIO;
                 if (hMeasure) hMeasure.setAttribute('stroke', color);
-                if (hMeasureLabel) hMeasureLabel.setAttribute('fill', color);
+                if (hMeasureLabel) hMeasureLabel.setAttribute('fill', '#000000');
                 if (hMeasureBadge) hMeasureBadge.setAttribute('stroke', color);
                 if (leftLine) leftLine.setAttribute('stroke', color);
                 if (rightLine) rightLine.setAttribute('stroke', color);
@@ -1724,33 +1728,6 @@
             bindViewCheckbox(chkCenter, '__viewCenter__');
             bindViewCheckbox(chkCoordinates, '__viewCoordinates__');
             
-            // Vincolo: se "Ricevitore" è OFF, forza OFF e disabilita "Campo da Coprire"
-            if (chkResponder && chkCover) {
-                const syncCoverWithResponder = () => {
-                    if (!chkResponder.checked) {
-                        window.__prevViewCover__ = window.__viewCover__;
-                        window.__viewCover__ = false;
-                        chkCover.checked = false;
-                        chkCover.disabled = true;
-                        applyViewToggles();
-                        const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
-                        const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
-                        updateLinesAndWedge(dotX, dotY);
-                    } else {
-                        chkCover.disabled = false;
-                        window.__viewCover__ = (window.__prevViewCover__ !== undefined) ? window.__prevViewCover__ : false;
-                        chkCover.checked = !!window.__viewCover__;
-                        applyViewToggles();
-                        const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
-                        const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
-                        updateLinesAndWedge(dotX, dotY);
-                    }
-                };
-                chkResponder.addEventListener('change', syncCoverWithResponder);
-                // Inizializza stato coerente
-                syncCoverWithResponder();
-            }
-
             // Collapsible sections
             function initCollapsibleSections() {
                 const sectionTitles = document.querySelectorAll('.control-section-title');

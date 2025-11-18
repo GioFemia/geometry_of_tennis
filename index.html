@@ -130,29 +130,29 @@
             <div class="control-section collapsed">
                 <h3 class="control-section-title">Visualizza</h3>
                 <div class="control-options">
-                    <label class="control-option" for="view_directions">
-                        <input id="view_directions" type="checkbox" checked />
-                        <span>Direzioni</span>
-                    </label>
                     <label class="control-option" for="view_player">
                         <input id="view_player" type="checkbox" checked />
                         <span>Colpitore</span>
-                    </label>
-                    <label class="control-option" for="view_shot">
-                        <input id="view_shot" type="checkbox" checked />
-                        <span>Colpo</span>
                     </label>
                     <label class="control-option" for="view_responder">
                         <input id="view_responder" type="checkbox" checked />
                         <span>Ricevitore</span>
                     </label>
-                    <label class="control-option" for="view_cover">
-                        <input id="view_cover" type="checkbox" />
-                        <span>Campo da Coprire</span>
+                    <label class="control-option" for="view_directions">
+                        <input id="view_directions" type="checkbox" checked />
+                        <span>Direzioni</span>
+                    </label>
+                    <label class="control-option" for="view_shot">
+                        <input id="view_shot" type="checkbox" checked />
+                        <span>Colpo</span>
                     </label>
                     <label class="control-option" for="view_center">
                         <input id="view_center" type="checkbox" checked />
                         <span>Centro</span>
+                    </label>
+                    <label class="control-option" for="view_cover">
+                        <input id="view_cover" type="checkbox" />
+                        <span>Campo da Coprire</span>
                     </label>
                     <label class="control-option" for="view_coordinates">
                         <input id="view_coordinates" type="checkbox" />
@@ -225,29 +225,29 @@
                         </label>
                     </div>
                     <div class="default-subsection">
-                        <label class="control-option" for="default_view_directions">
-                            <input id="default_view_directions" type="checkbox" checked />
-                            <span>Visualizza: Direzioni</span>
-                        </label>
                         <label class="control-option" for="default_view_player">
                             <input id="default_view_player" type="checkbox" checked />
                             <span>Visualizza: Colpitore</span>
-                        </label>
-                        <label class="control-option" for="default_view_shot">
-                            <input id="default_view_shot" type="checkbox" checked />
-                            <span>Visualizza: Colpo</span>
                         </label>
                         <label class="control-option" for="default_view_responder">
                             <input id="default_view_responder" type="checkbox" checked />
                             <span>Visualizza: Ricevitore</span>
                         </label>
-                        <label class="control-option" for="default_view_cover">
-                            <input id="default_view_cover" type="checkbox" />
-                            <span>Visualizza: Campo da Coprire</span>
+                        <label class="control-option" for="default_view_directions">
+                            <input id="default_view_directions" type="checkbox" checked />
+                            <span>Visualizza: Direzioni</span>
+                        </label>
+                        <label class="control-option" for="default_view_shot">
+                            <input id="default_view_shot" type="checkbox" checked />
+                            <span>Visualizza: Colpo</span>
                         </label>
                         <label class="control-option" for="default_view_center">
                             <input id="default_view_center" type="checkbox" checked />
                             <span>Visualizza: Centro</span>
+                        </label>
+                        <label class="control-option" for="default_view_cover">
+                            <input id="default_view_cover" type="checkbox" />
+                            <span>Visualizza: Campo da Coprire</span>
                         </label>
                         <label class="control-option" for="default_view_coordinates">
                             <input id="default_view_coordinates" type="checkbox" />
@@ -294,11 +294,11 @@
                 <div id="measureArrowHtml" class="arrow-container"><div class="arrow"></div></div>
                 <div id="coordinateTooltip" class="coordinate-tooltip">
                     <div class="tooltip-content">
-                        <div class="tooltip-field">
+                        <div id="tooltip-field-b" class="tooltip-field">
                             <span class="field-label">Campo B:</span>
                             <span id="fieldB-coords" class="field-coords">X: 0, Y: 0</span>
                         </div>
-                        <div class="tooltip-field">
+                        <div id="tooltip-field-a" class="tooltip-field">
                             <span class="field-label">Campo A:</span>
                             <span id="fieldA-coords" class="field-coords">X: 0, Y: 0</span>
                         </div>
