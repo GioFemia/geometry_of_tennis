@@ -559,7 +559,7 @@
             }
 
             function isColpitoreMovementLocked() {
-                return window.__modalita__ === 'dinamico' && window.__numeroColpo__ >= 2;
+                return false;
             }
 
             function updateColpitoreDragState() {
@@ -2375,6 +2375,14 @@
                     // Se non ci sono colpi da visualizzare, non fare nulla
                     if (shotSequence.length === 0) return;
                     
+                    // Salva lo stato del pannello dinamico mobile e chiudilo se aperto
+                    const wasMobileDinamicoPanelOpen = isMobileViewport() 
+                        && window.__modalita__ === 'dinamico' 
+                        && isMobileDinamicoPanelOpen;
+                    if (wasMobileDinamicoPanelOpen) {
+                        setMobileDinamicoPanelOpen(false);
+                    }
+                    
                     // Reset variabili di pausa
                     animazionePausata = false;
                     animazioneInCorso = true;
@@ -2451,6 +2459,11 @@
                                 if (colpoButton) colpoButton.disabled = false;
                                 if (visualizzaScambioButton) visualizzaScambioButton.disabled = false;
                                 if (nuovoScambioButton) nuovoScambioButton.disabled = false;
+                                
+                                // Riapri il pannello dinamico mobile se era aperto prima dell'animazione
+                                if (wasMobileDinamicoPanelOpen) {
+                                    setMobileDinamicoPanelOpen(true);
+                                }
                             }, 500);
                             return;
                         }
