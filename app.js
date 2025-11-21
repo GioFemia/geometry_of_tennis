@@ -1008,25 +1008,10 @@
             function updateSecondaryCourtLock() {
                 if (!courtLockOverlay) return;
                 
-                // Il lucchetto viene gestito solo nella modalità 2 colpi
-                if (window.__modalita__ !== '2colpi') {
-                    courtLockOverlay.style.display = 'none';
-                    courtLockOverlay.classList.remove('active');
-                    return;
-                }
-                
-                // Blocca il campo destro se uno dei 3 elementi critici è deselezionato (Colpitore, Colpo, Ricevitore)
-                const allUnlocked = window.__viewPlayer__ && window.__viewShot__ && window.__viewResponder__;
-                
-                if (allUnlocked) {
-                    // Tutti gli elementi sono presenti: nascondi completamente il lucchetto
-                    courtLockOverlay.classList.remove('active');
-                    courtLockOverlay.style.display = 'none';
-                } else {
-                    // Manca almeno un elemento: mostra il lucchetto attivo
-                    courtLockOverlay.classList.add('active');
-                    courtLockOverlay.style.display = 'flex';
-                }
+                // Il lucchetto non viene più mostrato in modalità 2 colpi perché gli elementi sono obbligatori
+                // Nascondi sempre il lucchetto (come in modalità dinamico)
+                courtLockOverlay.style.display = 'none';
+                courtLockOverlay.classList.remove('active');
             }
 
             function updateDinamicoPanel() {
@@ -2126,10 +2111,10 @@
                 updateColpitoreDragState();
             }
             
-            // Funzione per gestire i checkbox di visualizzazione in modalità DINAMICO
+            // Funzione per gestire i checkbox di visualizzazione in modalità DINAMICO e 2 COLPI
             function updateVisualizationCheckboxes() {
-                if (window.__modalita__ === 'dinamico') {
-                    // In modalità DINAMICO, forza e disabilita i checkbox critici
+                if (window.__modalita__ === 'dinamico' || window.__modalita__ === '2colpi') {
+                    // In modalità DINAMICO e 2 COLPI, forza e disabilita i checkbox critici
                     if (chkDirections) {
                         chkDirections.checked = true;
                         chkDirections.disabled = true;
