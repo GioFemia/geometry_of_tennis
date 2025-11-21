@@ -583,6 +583,24 @@
                     mobilePanelToggle.setAttribute('data-direction', visible ? 'back' : 'forward');
                     mobilePanelToggle.setAttribute('aria-label', buttonLabel);
                     mobilePanelToggle.setAttribute('title', buttonLabel);
+                    
+                    // Gestisci le etichette "Primo Colpo" e "Secondo Colpo"
+                    const labelFirst = mobilePanelToggle.querySelector('.mobile-shot-label-first');
+                    const labelSecond = mobilePanelToggle.querySelector('.mobile-shot-label-second');
+                    const isMobile2Colpi = isMobileViewport() && window.__modalita__ === '2colpi';
+                    
+                    if (labelFirst && labelSecond) {
+                        if (isMobile2Colpi) {
+                            // Mostra "Primo Colpo" quando il campo principale è visibile
+                            // Mostra "Secondo Colpo" quando il campo secondario è visibile
+                            labelFirst.classList.toggle('visible', !visible);
+                            labelSecond.classList.toggle('visible', visible);
+                        } else {
+                            // Nascondi entrambe le etichette se non siamo in modalità 2 colpi mobile
+                            labelFirst.classList.remove('visible');
+                            labelSecond.classList.remove('visible');
+                        }
+                    }
                 }
             }
 
@@ -592,6 +610,9 @@
                 mobilePanelToggle.classList.toggle('is-visible', shouldShow);
                 if (!shouldShow) {
                     setMobileSecondaryVisible(false);
+                } else {
+                    // Aggiorna le etichette quando il pannello diventa visibile
+                    setMobileSecondaryVisible(isMobileSecondaryVisible);
                 }
             }
 
@@ -3678,12 +3699,14 @@
 
             window.addEventListener('resize', () => {
                 applyMobileSettingsMode();
+                updateMobilePanels();
                 scheduleMobileCourtGapAdjustment();
             });
 
             setMobileSecondaryVisible(false);
             initDinamicoPanelObserver();
             applyMobileSettingsMode(true);
+            updateMobilePanels();
             scheduleMobileCourtGapAdjustment();
 
         })();
