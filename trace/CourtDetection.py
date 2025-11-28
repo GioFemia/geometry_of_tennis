@@ -19,22 +19,23 @@ processedFrame = None
 
 # Ratios of the crop width, height, and offsets
 # If centered is 1, program ignores offset and centers frame
+# Optimized crop regions for better player detection
 class crop1:
-    x: float = 50/100
+    x: float = 60/100  # Increased from 50% to catch more of player 1
     xoffset: float = 0/100
     xcenter: int = 1 
     
-    y: float = 33/100
+    y: float = 40/100  # Increased from 33% for better coverage
     yoffset: float = 0/100
     ycenter: int = 0
     
 class crop2:
-    x: float = 83/100
+    x: float = 80/100  # Slightly reduced from 83% for better centering
     xoffset: float = 0/100
     xcenter: int = 1 
     
-    y: float = 60/100
-    yoffset: float = 40/100
+    y: float = 65/100  # Increased from 60% for better player 2 coverage
+    yoffset: float = 35/100  # Adjusted from 40% for better positioning
     ycenter: int = 0
 
 # Calculations for pixels used in both crops
@@ -85,19 +86,29 @@ coords = []
 minDist1 = height*width
 minDist2 = height*width
 velocities = []
+M = None  # Initialize transformation matrix
+frame_count = 0
 
 while video.isOpened():
     ret, frame = video.read()
     if frame is None:
         break
+    frame_count += 1
+    if frame_count % 100 == 0:
+        print(f"Processing frame {frame_count}...")
     
     # Apply filters that removes noise and simplifies image
     gry = cvtColor(frame, COLOR_BGR2GRAY)
-    bw = threshold(gry, 156, 255, THRESH_BINARY)[1]
-    canny = Canny(bw, 100, 200)
+    # Optimized threshold - lower value to catch more court lines
+    bw = threshold(gry, 140, 255, THRESH_BINARY)[1]
+    # Optimized Canny - lower thresholds to detect more edges
+    canny = Canny(bw, 50, 150)
     
     # Using hough lines probablistic to find lines with most intersections
-    hPLines = HoughLinesP(canny, 1, pi/180, threshold=150, minLineLength=100, maxLineGap=10)
+    # Lower threshold and minLineLength to detect more lines, larger maxLineGap for broken lines
+    hPLines = HoughLinesP(canny, 1, pi/180, threshold=100, minLineLength=50, maxLineGap=20)
+    if hPLines is None:
+        continue
     intersectNum = zeros((len(hPLines),2))
     i = 0
     for hPLine1 in hPLines:
@@ -129,11 +140,12 @@ while video.isOpened():
     dilation = dilate(bw, ones((5, 5), uint8), iterations=1)
     nonRectArea = dilation.copy()
     intersectNum = intersectNum[(-intersectNum)[:, 0].argsort()]
+    max_lines_to_process = min(8, len(intersectNum))
     for hPLine in hPLines:
         x1,y1,x2,y2 = hPLine[0]
         # line(frame, (x1,y1), (x2,y2), (255, 255, 0), 2)
-        for p in range(8):
-            if (i==intersectNum[p][1]) and (intersectNum[i][0]>0):
+        for p in range(max_lines_to_process):
+            if (i==int(intersectNum[p][1])) and (intersectNum[i][0]>0):
                 # line(frame, (x1,y1), (x2,y2), (0, 0, 255), 2)
                 floodFill(nonRectArea, zeros((height+2, width+2), uint8), (x1, y1), 1) 
                 floodFill(nonRectArea, zeros((height+2, width+2), uint8), (x2, y2), 1) 
@@ -141,7 +153,8 @@ while video.isOpened():
     dilation[where(nonRectArea == 255)] = 0
     dilation[where(nonRectArea == 1)] = 255
     eroded = erode(dilation, ones((5, 5), uint8)) 
-    cannyMain = Canny(eroded, 90, 100)
+    # Optimized Canny for main line detection
+    cannyMain = Canny(eroded, 50, 120)
     
     # Extreme lines found every frame
     xOLeft = width + extraLen
@@ -154,8 +167,21 @@ while video.isOpened():
     yFTop = height
     yFBottom = 0
     
+    # Initialize line variables
+    xOLeftLine = None
+    xORightLine = None
+    xFLeftLine = None
+    xFRightLine = None
+    yOTopLine = None
+    yOBottomLine = None
+    yFTopLine = None
+    yFBottomLine = None
+    
     # Finding all lines then allocate them to specified extreme variables
-    hLines = HoughLines(cannyMain, 2, pi/180, 300)
+    # Lower threshold to detect more lines (was 300, now 150 for better detection)
+    hLines = HoughLines(cannyMain, 1, pi/180, 150)
+    if hLines is None:
+        continue
     for hLine in hLines:
         for rho,theta in hLine:
             a = cos(theta)
@@ -168,10 +194,11 @@ while video.isOpened():
             y2 = int(y0 - width*(a))
             
             # Furthest intersecting point at every axis calculations done here
-            intersectxF = findIntersection(axis.bottom, [[x1,y1],[x2,y2]], -extraLen, 0, width+extraLen, height)
-            intersectyO = findIntersection(axis.left, [[x1,y1],[x2,y2]], -extraLen, 0, width+extraLen, height)
-            intersectxO = findIntersection(axis.top, [[x1,y1],[x2,y2]], -extraLen, 0, width+extraLen, height)
-            intersectyF = findIntersection(axis.right, [[x1,y1],[x2,y2]], -extraLen, 0, width+extraLen, height)
+            # Use larger bounds for intersection detection
+            intersectxF = findIntersection(axis.bottom, [[x1,y1],[x2,y2]], -extraLen*2, 0, width+extraLen*2, height)
+            intersectyO = findIntersection(axis.left, [[x1,y1],[x2,y2]], -extraLen*2, 0, width+extraLen*2, height)
+            intersectxO = findIntersection(axis.top, [[x1,y1],[x2,y2]], -extraLen*2, 0, width+extraLen*2, height)
+            intersectyF = findIntersection(axis.right, [[x1,y1],[x2,y2]], -extraLen*2, 0, width+extraLen*2, height)
             
             if (intersectxO is None) and (intersectxF is None) and (intersectyO is None) and (intersectyF is None):
                 continue
@@ -206,6 +233,18 @@ while video.isOpened():
                     yFBottom = intersectyF[1]
                     yFBottomLine = [[x1,y1],[x2,y2]]
             # line(frame, (x1,y1), (x2,y2), (0, 0, 255), 2)
+    
+    # Check if all required lines were found
+    if (xOLeftLine is None or xORightLine is None or xFLeftLine is None or 
+        xFRightLine is None or yOTopLine is None or yOBottomLine is None or 
+        yFTopLine is None or yFBottomLine is None):
+        if frame_count % 50 == 0:
+            missing = [name for name, val in [('xOLeftLine', xOLeftLine), ('xORightLine', xORightLine), 
+                                               ('xFLeftLine', xFLeftLine), ('xFRightLine', xFRightLine),
+                                               ('yOTopLine', yOTopLine), ('yOBottomLine', yOBottomLine),
+                                               ('yFTopLine', yFTopLine), ('yFBottomLine', yFBottomLine)] if val is None]
+            print(f"Frame {frame_count}: Linee mancanti: {', '.join(missing)}")
+        continue
     
     # lineEndpoints = []
     # lineEndpoints.append(xOLeftLine)
@@ -265,7 +304,24 @@ while video.isOpened():
     handPointsPrev = handPoints
     feetPoints, handPoints, nosePoints = bodyMap(frame, body1.pose, body2.pose, crop1, crop2)
 
-    if (not any(item is None for sublist in feetPoints for item in sublist)) or (not any(item is None for sublist in handPoints for item in sublist)) or (not any(item is None for sublist in nosePoints for item in sublist)):
+    # Try to create processed frame if we have court corners
+    if NtopLeftP is not None and NtopRightP is not None and NbottomLeftP is not None and NbottomRightP is not None:
+        try:
+            processedFrame, M = courtMap(frame, NtopLeftP, NtopRightP, NbottomLeftP, NbottomRightP)
+            rectangle(processedFrame, (0,0),(967,1585),(188,145,103),2000)
+            processedFrame = showLines(processedFrame)
+        except Exception as e:
+            if frame_count % 50 == 0:
+                print(f"Frame {frame_count}: Errore nel court mapping: {e}")
+            processedFrame = None
+            M = None
+
+    # Check if we have valid body tracking data
+    has_feet = not any(item is None for sublist in feetPoints for item in sublist) if feetPoints else False
+    has_hands = not any(item is None for sublist in handPoints for item in sublist) if handPoints else False
+    has_nose = not any(item is None for sublist in nosePoints for item in sublist) if nosePoints else False
+    
+    if (has_feet or has_hands or has_nose) and processedFrame is not None and M is not None:
         # circle(frame, handPoints[0], radius=0, color=(0, 0, 255), thickness=10)
         # circle(frame, handPoints[1], radius=0, color=(0, 0, 255), thickness=10)
         # circle(frame, handPoints[2], radius=0, color=(0, 0, 255), thickness=30)
@@ -311,13 +367,18 @@ while video.isOpened():
         circleRadiusBody2 = int(0.6 * euclideanDistance(nosePoints[1], [body2.x, body2.y]))
         
         # Distorting frame and outputting results
-        processedFrame, M = courtMap(frame, NtopLeftP, NtopRightP, NbottomLeftP, NbottomRightP)
-        # Create black background
-        rectangle(processedFrame, (0,0),(967,1585),(188,145,103),2000)
-        processedFrame = showLines(processedFrame)
+        try:
+            processedFrame, M = courtMap(frame, NtopLeftP, NtopRightP, NbottomLeftP, NbottomRightP)
+            # Create black background
+            rectangle(processedFrame, (0,0),(967,1585),(188,145,103),2000)
+            processedFrame = showLines(processedFrame)
 
-        processedFrame = showPoint(processedFrame, M, [body1.xAvg,body1.yAvg])
-        processedFrame = showPoint(processedFrame, M, [body2.xAvg,body2.yAvg])
+            processedFrame = showPoint(processedFrame, M, [body1.xAvg,body1.yAvg])
+            processedFrame = showPoint(processedFrame, M, [body2.xAvg,body2.yAvg])
+        except Exception as e:
+            if frame_count % 50 == 0:
+                print(f"Frame {frame_count}: Court mapping failed: {e}")
+            processedFrame = None
         
         ballPrev = ball
         ball_detector.detect_ball(frame)
@@ -376,13 +437,26 @@ while video.isOpened():
     # Write processed frame to clip
     if processedFrame is not None:    
         clip.write(processedFrame)
-    imshow("Frame", frame)
-    if waitKey(1) == ord("q"):
-        break
+    else:
+        # If court detection failed, create a basic frame with just the court lines
+        if NtopLeftP is not None and NtopRightP is not None and NbottomLeftP is not None and NbottomRightP is not None:
+            try:
+                processedFrame, M = courtMap(frame, NtopLeftP, NtopRightP, NbottomLeftP, NbottomRightP)
+                rectangle(processedFrame, (0,0),(967,1585),(188,145,103),2000)
+                processedFrame = showLines(processedFrame)
+                clip.write(processedFrame)
+            except:
+                pass
+    # Commented out for headless execution
+    # imshow("Frame", frame)
+    # if waitKey(1) == ord("q"):
+    #     break
 
 # Last found location of ball should be appended to ball array
-coords.append((ball, givePoint(M, ball), givePoint(M, ball), lastSeen))
+if ball is not None and M is not None:
+    coords.append((ball, givePoint(M, ball), givePoint(M, ball), lastSeen))
 
+print(f"Total frames processed: {frame_count}")
 clip.release()
 video.release()
 destroyAllWindows()
@@ -402,17 +476,19 @@ for i in range(2,len(velocities)):
 # Create inbetween points for the ball points found
 # Try to fix the loop later
 ballArray = []
-while len(coords)>1:
-    time = coords[0][3]
-    location = [coords[0][1][0],coords[0][2][1]]
-    del coords[0]
-    timeDiff = coords[0][3]-time
-    for i in range(time, coords[0][3]):
-        x = int(location[0]+((i-time)/timeDiff)*(coords[0][1][0]-location[0]))
-        y = int(location[1]+((i-time)/timeDiff)*(coords[0][2][1]-location[1]))
-        ballArray.append(((x,y), i))       
+if len(coords) > 0:
+    while len(coords)>1:
+        time = coords[0][3]
+        location = [coords[0][1][0],coords[0][2][1]]
+        del coords[0]
+        timeDiff = coords[0][3]-time
+        for i in range(time, coords[0][3]):
+            x = int(location[0]+((i-time)/timeDiff)*(coords[0][1][0]-location[0]))
+            y = int(location[1]+((i-time)/timeDiff)*(coords[0][2][1]-location[1]))
+            ballArray.append(((x,y), i))       
 
-ballArray.append(((coords[0][1][0], coords[0][2][1]), coords[0][3]))
+    if len(coords) > 0:
+        ballArray.append(((coords[0][1][0], coords[0][2][1]), coords[0][3]))
 
 # Overlay ball information on the previous video
 clip = VideoWriter('../Videos/Video1.mp4',fourcc,25.0,(widthP,heightP))
