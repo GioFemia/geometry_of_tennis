@@ -9,9 +9,224 @@
 </head>
 <body>
     <div id="eraserIndicator" class="eraser-indicator"></div>
+    
+    <!-- Tutorial Overlay -->
+    <div id="tutorialOverlay" class="tutorial-overlay">
+        <div class="tutorial-modal">
+            <button id="tutorialClose" class="tutorial-close" aria-label="Chiudi tutorial">×</button>
+            
+            <div class="tutorial-header">
+                <h1 class="tutorial-title">Geometry of Tennis</h1>
+                <p class="tutorial-subtitle">Guida Interattiva</p>
+            </div>
+            
+            <div class="tutorial-content">
+                <!-- Step 0: Introduzione -->
+                <div class="tutorial-step" data-step="0">
+                    <h2>Benvenuto!</h2>
+                    <p>Questa applicazione ti permette di <strong>visualizzare e comprendere la geometria dei colpi nel tennis</strong>.</p>
+                    <p>Scoprirai come la posizione in campo influenza le traiettorie possibili, il posizionamento ottimale del ricevitore e le strategie tattiche fondamentali.</p>
+                    <div class="tutorial-tip">
+                        <span>Usa le frecce o i pulsanti per navigare tra le sezioni della guida.</span>
+                    </div>
+                </div>
+                
+                <!-- Step 1: Campo Principale -->
+                <div class="tutorial-step" data-step="1">
+                    <h2>Il Campo Principale</h2>
+                    <p>Il <strong>campo a sinistra</strong> rappresenta la vista dall'alto di un campo da tennis. È diviso in due metà dalla rete (linea bianca orizzontale al centro).</p>
+                    <ul class="tutorial-list">
+                        <li><strong>Campo A (in basso):</strong> La tua metà campo</li>
+                        <li><strong>Campo B (in alto):</strong> La metà campo avversaria</li>
+                    </ul>
+                    <div class="tutorial-highlight-info" data-highlight="primary-court">
+                        Clicca "Evidenzia" per vedere il campo principale
+                    </div>
+                </div>
+                
+                <!-- Step 2: Il Colpitore -->
+                <div class="tutorial-step" data-step="2">
+                    <h2>Il Colpitore (Pallino Rosso)</h2>
+                    <p>Il <strong>pallino rosso</strong> rappresenta la posizione da cui viene eseguito il colpo.</p>
+                    <ul class="tutorial-list">
+                        <li><strong>Trascinalo</strong> per spostare la posizione del colpitore</li>
+                        <li>Puoi posizionarlo ovunque nel campo</li>
+                        <li>La sua posizione determina le traiettorie possibili</li>
+                    </ul>
+                    <div class="tutorial-tip">
+                        <span>Prova a spostare il pallino rosso e osserva come cambiano le linee!</span>
+                    </div>
+                </div>
+                
+                <!-- Step 3: Le Direzioni -->
+                <div class="tutorial-step" data-step="3">
+                    <h2>Le Linee Direzionali</h2>
+                    <p>Le <strong>linee blu</strong> mostrano le traiettorie estreme possibili da quella posizione:</p>
+                    <ul class="tutorial-list">
+                        <li><strong>Linea sinistra:</strong> Massima angolazione verso sinistra</li>
+                        <li><strong>Linea destra:</strong> Massima angolazione verso destra</li>
+                        <li><strong>Linea tratteggiata:</strong> Centro geometrico (bisettrice)</li>
+                    </ul>
+                    <p>L'<strong>area ombreggiata</strong> rappresenta tutto il campo che puoi colpire da quella posizione.</p>
+                </div>
+                
+                <!-- Step 4: Il Colpo (Linea Gialla) -->
+                <div class="tutorial-step" data-step="4">
+                    <h2>La Direzione del Colpo</h2>
+                    <p>La <strong>linea gialla</strong> indica la direzione effettiva del tuo colpo.</p>
+                    <ul class="tutorial-list">
+                        <li><strong>Trascina l'estremità</strong> della linea gialla per cambiare direzione</li>
+                        <li>La linea può muoversi solo all'interno dell'area possibile</li>
+                        <li>La <strong>freccia arancione</strong> a sinistra permette di regolare l'altezza del punto di arrivo</li>
+                    </ul>
+                    <div class="tutorial-tip">
+                        <span>Il badge arancione mostra la distanza orizzontale dal centro in metri.</span>
+                    </div>
+                </div>
+                
+                <!-- Step 5: Campo Secondario -->
+                <div class="tutorial-step" data-step="5">
+                    <h2>Il Campo Secondario</h2>
+                    <p>Il <strong>campo a destra</strong> mostra cosa succede <em>dopo</em> il tuo colpo:</p>
+                    <ul class="tutorial-list">
+                        <li><strong>Pallino arancione:</strong> Posizione del ricevitore (avversario)</li>
+                        <li><strong>Linee blu:</strong> Traiettorie possibili per la risposta</li>
+                        <li><strong>Pallino verde:</strong> Centro geometrico da coprire</li>
+                    </ul>
+                    <p>Questo ti aiuta a capire quale sarà la situazione <em>dopo</em> aver colpito.</p>
+                </div>
+                
+                <!-- Step 6: Modalità -->
+                <div class="tutorial-step" data-step="6">
+                    <h2>Le Modalità</h2>
+                    <p>L'app offre tre modalità di visualizzazione:</p>
+                    <ul class="tutorial-list">
+                        <li><strong>1 Colpo:</strong> Mostra solo il campo principale</li>
+                        <li><strong>2 Colpi:</strong> Mostra entrambi i campi per analizzare colpo e risposta</li>
+                        <li><strong>Dinamico:</strong> Permette di simulare scambi completi colpo per colpo</li>
+                    </ul>
+                    <div class="tutorial-highlight-info" data-highlight="modalita-section">
+                        Apri la sezione "Modalità" nel pannello impostazioni
+                    </div>
+                </div>
+                
+                <!-- Step 7: Tipologie di Colpo -->
+                <div class="tutorial-step" data-step="7">
+                    <h2>Tipologie di Colpo</h2>
+                    <p>Ogni tipo di colpo ha caratteristiche geometriche diverse:</p>
+                    <ul class="tutorial-list">
+                        <li><strong>Palleggio:</strong> Colpi di scambio normali (linee blu)</li>
+                        <li><strong>Passante/Vincente:</strong> Colpi più angolati per superare l'avversario (linee rosse)</li>
+                        <li><strong>Attacco:</strong> Colpi aggressivi per prendere la rete</li>
+                        <li><strong>Servizio:</strong> Simula la geometria del servizio</li>
+                    </ul>
+                    <div class="tutorial-tip">
+                        <span>Le linee rosse indicano sempre colpi più rischiosi/angolati!</span>
+                    </div>
+                </div>
+                
+                <!-- Step 8: Campo da Coprire -->
+                <div class="tutorial-step" data-step="8">
+                    <h2>Il Centro e il Campo da Coprire</h2>
+                    <p>Il <strong>pallino verde</strong> rappresenta il <em>centro geometrico</em> delle possibili risposte:</p>
+                    <ul class="tutorial-list">
+                        <li>È la posizione ideale dove posizionarsi dopo aver colpito</li>
+                        <li>Da lì puoi raggiungere sia la risposta a sinistra che a destra</li>
+                        <li>Attiva "Campo da Coprire" per vedere l'area di copertura necessaria</li>
+                    </ul>
+                    <div class="tutorial-highlight-info" data-highlight="view-center">
+                        Attiva "Centro" e "Campo da Coprire" nella sezione Visualizza
+                    </div>
+                </div>
+                
+                <!-- Step 9: Strumenti di Disegno -->
+                <div class="tutorial-step" data-step="9">
+                    <h2>Strumenti di Disegno</h2>
+                    <p>Puoi annotare e disegnare direttamente sul campo:</p>
+                    <ul class="tutorial-list">
+                        <li><strong>Matita:</strong> Disegno libero</li>
+                        <li><strong>Freccia:</strong> Per indicare movimenti/direzioni</li>
+                        <li><strong>Linea:</strong> Linee rette</li>
+                        <li><strong>Testo:</strong> Aggiungi note (trascinabili)</li>
+                        <li><strong>Righello:</strong> Misura distanze sul campo</li>
+                        <li><strong>Gomma:</strong> Cancella elementi disegnati</li>
+                    </ul>
+                </div>
+                
+                <!-- Step 10: Modalità Dinamica -->
+                <div class="tutorial-step" data-step="10">
+                    <h2>Modalità Dinamica</h2>
+                    <p>La <strong>modalità Dinamico</strong> permette di simulare punti completi:</p>
+                    <ul class="tutorial-list">
+                        <li><strong>Posiziona il colpitore</strong> e seleziona la direzione</li>
+                        <li>Premi <strong>"COLPO"</strong> per registrare il colpo</li>
+                        <li>Il ricevitore diventa il nuovo colpitore</li>
+                        <li>Segna <strong>"ULTIMO COLPO"</strong> per colpi vincenti</li>
+                        <li><strong>"VISUALIZZA PUNTO"</strong> riproduce l'animazione dello scambio</li>
+                    </ul>
+                    <div class="tutorial-tip">
+                        <span>Perfetto per analizzare e rivedere schemi tattici!</span>
+                    </div>
+                </div>
+                
+                <!-- Step 11: Superfici -->
+                <div class="tutorial-step" data-step="11">
+                    <h2>Superfici del Campo</h2>
+                    <p>Puoi cambiare la superficie del campo per una visualizzazione diversa:</p>
+                    <ul class="tutorial-list">
+                        <li><strong>Cemento:</strong> Blu (hard court)</li>
+                        <li><strong>Terra:</strong> Rosso (clay)</li>
+                        <li><strong>Erba:</strong> Verde (grass)</li>
+                    </ul>
+                    <p>La superficie è puramente estetica e non modifica i calcoli geometrici.</p>
+                </div>
+                
+                <!-- Step 12: Consigli Tattici -->
+                <div class="tutorial-step" data-step="12">
+                    <h2>Lezioni Tattiche Chiave</h2>
+                    <p>Ecco le principali lezioni che questa app ti insegna:</p>
+                    <ul class="tutorial-list">
+                        <li><strong>Più sei centrale, più opzioni hai:</strong> Da centro campo puoi colpire ovunque</li>
+                        <li><strong>Più sei angolato, meno opzioni hai:</strong> Dai lati del campo le traiettorie si restringono</li>
+                        <li><strong>Colpisci dove apri più campo:</strong> Cerca di mettere l'avversario in difficoltà</li>
+                        <li><strong>Posizionati sul centro geometrico:</strong> Non il centro del campo, ma la bisettrice delle risposte possibili</li>
+                    </ul>
+                    <div class="tutorial-tip">
+                        <span>La geometria è la base della tattica nel tennis!</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tutorial-footer">
+                <div class="tutorial-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="tutorialProgressFill"></div>
+                    </div>
+                    <span class="progress-text" id="tutorialProgressText">1 / 13</span>
+                </div>
+                <div class="tutorial-navigation">
+                    <button id="tutorialPrev" class="tutorial-nav-btn" disabled>
+                        <span>←</span> Indietro
+                    </button>
+                    <button id="tutorialNext" class="tutorial-nav-btn tutorial-nav-primary">
+                        Avanti <span>→</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="tutorial-dots" id="tutorialDots"></div>
+        </div>
+    </div>
+    
     <div class="page-container">
         <div class="controls-sidebar">
             <div class="settings-title" role="button" tabindex="0" aria-expanded="false">IMPOSTAZIONI</div>
+            
+            <!-- Pulsante Tutorial -->
+            <button id="tutorialButton" class="tutorial-trigger-button" title="Apri guida">
+                <span class="tutorial-trigger-icon">?</span>
+                <span class="tutorial-trigger-text">Guida</span>
+            </button>
             
             <!-- Modalità -->
             <div class="control-section collapsed">

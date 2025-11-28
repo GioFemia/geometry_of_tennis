@@ -3707,4 +3707,180 @@
             updateMobilePanels();
             scheduleMobileCourtGapAdjustment();
 
+            // ==========================================
+            // TUTORIAL / GUIDA INTERATTIVA
+            // ==========================================
+            (function initTutorial() {
+                const tutorialOverlay = document.getElementById('tutorialOverlay');
+                const tutorialButton = document.getElementById('tutorialButton');
+                const tutorialClose = document.getElementById('tutorialClose');
+                const tutorialPrev = document.getElementById('tutorialPrev');
+                const tutorialNext = document.getElementById('tutorialNext');
+                const tutorialProgressFill = document.getElementById('tutorialProgressFill');
+                const tutorialProgressText = document.getElementById('tutorialProgressText');
+                const tutorialDotsContainer = document.getElementById('tutorialDots');
+                
+                if (!tutorialOverlay || !tutorialButton) return;
+                
+                const tutorialSteps = tutorialOverlay.querySelectorAll('.tutorial-step');
+                const totalSteps = tutorialSteps.length;
+                let currentStep = 0;
+                
+                // Crea i dots di navigazione
+                function createDots() {
+                    if (!tutorialDotsContainer) return;
+                    tutorialDotsContainer.innerHTML = '';
+                    for (let i = 0; i < totalSteps; i++) {
+                        const dot = document.createElement('button');
+                        dot.className = 'tutorial-dot' + (i === 0 ? ' active' : '');
+                        dot.setAttribute('aria-label', `Vai allo step ${i + 1}`);
+                        dot.addEventListener('click', () => goToStep(i));
+                        tutorialDotsContainer.appendChild(dot);
+                    }
+                }
+                
+                // Aggiorna l'interfaccia per lo step corrente
+                function updateUI() {
+                    // Nascondi tutti gli step e mostra quello corrente
+                    tutorialSteps.forEach((step, index) => {
+                        step.classList.remove('active');
+                        if (index === currentStep) {
+                            step.classList.add('active');
+                        }
+                    });
+                    
+                    // Aggiorna i pulsanti di navigazione
+                    if (tutorialPrev) {
+                        tutorialPrev.disabled = currentStep === 0;
+                    }
+                    if (tutorialNext) {
+                        if (currentStep === totalSteps - 1) {
+                            tutorialNext.innerHTML = 'Chiudi <span>✓</span>';
+                        } else {
+                            tutorialNext.innerHTML = 'Avanti <span>→</span>';
+                        }
+                    }
+                    
+                    // Aggiorna la barra di progresso
+                    if (tutorialProgressFill) {
+                        const progress = ((currentStep + 1) / totalSteps) * 100;
+                        tutorialProgressFill.style.width = progress + '%';
+                    }
+                    if (tutorialProgressText) {
+                        tutorialProgressText.textContent = `${currentStep + 1} / ${totalSteps}`;
+                    }
+                    
+                    // Aggiorna i dots
+                    const dots = tutorialDotsContainer?.querySelectorAll('.tutorial-dot');
+                    dots?.forEach((dot, index) => {
+                        dot.classList.toggle('active', index === currentStep);
+                    });
+                }
+                
+                // Vai a uno step specifico
+                function goToStep(stepIndex) {
+                    if (stepIndex >= 0 && stepIndex < totalSteps) {
+                        currentStep = stepIndex;
+                        updateUI();
+                    }
+                }
+                
+                // Apri il tutorial
+                function openTutorial() {
+                    currentStep = 0;
+                    updateUI();
+                    tutorialOverlay.classList.add('active', 'fade-in');
+                    tutorialOverlay.classList.remove('fade-out');
+                    document.body.style.overflow = 'hidden';
+                    
+                    // Salva che l'utente ha già visto il tutorial
+                    try {
+                        localStorage.setItem('geometryOfTennis_tutorialSeen', 'true');
+                    } catch (e) {
+                        // localStorage non disponibile
+                    }
+                }
+                
+                // Chiudi il tutorial
+                function closeTutorial() {
+                    tutorialOverlay.classList.add('fade-out');
+                    tutorialOverlay.classList.remove('fade-in');
+                    
+                    setTimeout(() => {
+                        tutorialOverlay.classList.remove('active', 'fade-out');
+                        document.body.style.overflow = '';
+                    }, 300);
+                }
+                
+                // Step successivo
+                function nextStep() {
+                    if (currentStep < totalSteps - 1) {
+                        currentStep++;
+                        updateUI();
+                    } else {
+                        closeTutorial();
+                    }
+                }
+                
+                // Step precedente
+                function prevStep() {
+                    if (currentStep > 0) {
+                        currentStep--;
+                        updateUI();
+                    }
+                }
+                
+                // Event listeners
+                tutorialButton.addEventListener('click', openTutorial);
+                
+                if (tutorialClose) {
+                    tutorialClose.addEventListener('click', closeTutorial);
+                }
+                
+                if (tutorialPrev) {
+                    tutorialPrev.addEventListener('click', prevStep);
+                }
+                
+                if (tutorialNext) {
+                    tutorialNext.addEventListener('click', nextStep);
+                }
+                
+                // Chiudi con ESC
+                document.addEventListener('keydown', (e) => {
+                    if (!tutorialOverlay.classList.contains('active')) return;
+                    
+                    if (e.key === 'Escape') {
+                        closeTutorial();
+                    } else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                        nextStep();
+                    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                        prevStep();
+                    }
+                });
+                
+                // Chiudi cliccando fuori dal modal
+                tutorialOverlay.addEventListener('click', (e) => {
+                    if (e.target === tutorialOverlay) {
+                        closeTutorial();
+                    }
+                });
+                
+                // Inizializza
+                createDots();
+                updateUI();
+                
+                // Mostra automaticamente il tutorial alla prima visita
+                try {
+                    const tutorialSeen = localStorage.getItem('geometryOfTennis_tutorialSeen');
+                    if (!tutorialSeen) {
+                        // Aspetta un momento per permettere all'app di caricarsi
+                        setTimeout(() => {
+                            openTutorial();
+                        }, 800);
+                    }
+                } catch (e) {
+                    // localStorage non disponibile, non mostrare automaticamente
+                }
+            })();
+
         })();
