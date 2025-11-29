@@ -41,6 +41,7 @@ body {
     min-width: 200px;
     max-width: 240px;
     width: 240px;
+    flex-shrink: 0;
     margin-left: 8em;
     max-height: calc(100vh - 1.6em);
     overflow-y: auto;
@@ -195,6 +196,12 @@ body {
     align-items: center;
     justify-content: center;
     min-width: 400px;
+    flex: 1;
+}
+
+.primary-court,
+.secondary-court {
+    display: flex;
 }
         
 .svg-wrap { 
@@ -460,7 +467,7 @@ body {
         max-height: calc(100vh - var(--mobile-safe-top) - 8px);
         max-height: calc(100dvh - var(--mobile-safe-top) - 8px);
         overflow: hidden;
-        padding: 16px 18px 20px;
+        padding: 12px 14px 16px;
         scrollbar-width: none;
         -ms-overflow-style: none;
     }
@@ -474,20 +481,55 @@ body {
     }
 
     .controls-sidebar.mobile-enabled.mobile-collapsed {
-        padding: 12px 18px;
+        padding: 10px 14px;
     }
 
-    .controls-sidebar.mobile-enabled .settings-title {
-        box-shadow: none;
+    /* Mobile nav bar visible on mobile */
+    .controls-sidebar.mobile-enabled .mobile-nav-bar {
+        display: flex;
+        margin-bottom: 0;
+        border-radius: 10px;
     }
 
-    .controls-sidebar.mobile-enabled.mobile-collapsed > :not(.settings-title) {
+    .controls-sidebar.mobile-enabled.mobile-collapsed .mobile-nav-bar {
+        margin-bottom: 0;
+    }
+
+    .controls-sidebar.mobile-enabled.mobile-collapsed > :not(.mobile-nav-bar) {
         display: none !important;
     }
 
-    .settings-title {
-        margin-bottom: 0;
-        border-radius: 0 0 12px 12px;
+    /* Panel sections in mobile */
+    .controls-sidebar.mobile-enabled .panel-section {
+        margin-top: 12px;
+    }
+
+    .controls-sidebar.mobile-enabled .panel-section-header {
+        display: none;
+    }
+
+    .controls-sidebar.mobile-enabled .panel-section-content {
+        max-height: 2000px;
+        opacity: 1;
+        padding-top: 0;
+    }
+
+    .controls-sidebar.mobile-enabled .panel-section {
+        display: none;
+    }
+
+    .controls-sidebar.mobile-enabled .panel-section.mobile-visible {
+        display: block;
+    }
+
+    .controls-sidebar.mobile-enabled .panel-section.mobile-visible .panel-section-content {
+        max-height: 2000px;
+        opacity: 1;
+    }
+
+    /* Nasconde la sezione guida desktop su mobile */
+    .controls-sidebar.mobile-enabled #panelGuida {
+        display: none;
     }
 
     .court-container {
@@ -585,7 +627,7 @@ body {
     .mobile-panel-toggle {
         display: none;
         position: relative;
-        margin: 8px auto 0;
+        margin: 20px auto 0;
         align-self: center;
         z-index: 5;
         width: auto;
@@ -622,7 +664,7 @@ body {
 
     body.mobile-dinamico #dinamicoPanel {
         position: absolute;
-        top: calc(var(--mobile-safe-top) + var(--mobile-settings-bar-height));
+        top: calc(var(--mobile-safe-top) + var(--mobile-settings-bar-height) + 20px);
         left: 50%;
         transform: translateX(-50%);
         width: min(520px, calc(100% - 2 * var(--mobile-side-padding)));
@@ -659,46 +701,200 @@ body {
     }
 }
 
-.settings-title {
-    font-size: 14px;
-    font-weight: 600;
-    color: #ffffff;
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
-    padding: 12px 10px;
-    background: linear-gradient(135deg, #1976d2 0%, #42a5f5 50%, #1976d2 100%);
-    border-radius: 8px;
+/* ==========================================
+   MOBILE NAVIGATION BAR (3 pallini)
+   ========================================== */
+.mobile-nav-bar {
+    display: none;
+    justify-content: center;
+    gap: 12px;
+    padding: 12px 8px;
+    background: linear-gradient(135deg, #1565c0 0%, #1976d2 40%, #42a5f5 100%);
+    border-radius: 12px;
+    margin-bottom: 12px;
+}
+
+.mobile-nav-pill {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
     border: none;
-    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.3);
-    position: relative;
-    overflow: hidden;
-    white-space: nowrap;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.85);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    width: 48px;
+    height: 48px;
+}
+
+.mobile-nav-pill:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+}
+
+.mobile-nav-pill.active {
+    background: #ffffff;
+    color: #1976d2;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.mobile-nav-pill .pill-icon {
+    width: 24px;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.settings-title::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
+.mobile-nav-pill .pill-icon svg {
+    width: 20px;
+    height: 20px;
 }
 
-.settings-title:hover::before {
-    left: 100%;
+.mobile-nav-pill .pill-icon-mode {
+    font-size: 16px;
+    font-weight: 700;
+    width: 24px;
+    height: 24px;
+    border-radius: 100%;
+    border: 2px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.settings-title:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+.mobile-nav-pill .pill-label {
+    display: none;
+}
+
+/* ==========================================
+   PANEL SECTIONS (Modalità e Impostazioni)
+   ========================================== */
+.panel-section {
+    margin-bottom: 12px;
+}
+
+.panel-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, #1976d2 0%, #42a5f5 50%, #1976d2 100%);
+    border-radius: 10px;
+    cursor: pointer;
     transition: all 0.3s ease;
+    user-select: none;
+}
+
+.panel-section-header:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(25, 118, 210, 0.35);
+}
+
+.panel-section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.panel-section-indicator {
+    font-size: 11px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.2);
+    padding: 4px 10px;
+    border-radius: 12px;
+}
+
+.panel-section-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease, padding 0.3s ease, opacity 0.3s ease;
+    opacity: 0;
+}
+
+.panel-section-content.expanded {
+    max-height: 2000px;
+    padding-top: 12px;
+    opacity: 1;
+}
+
+/* Mode Options (per la sezione Modalità) */
+.mode-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.mode-option {
+    display: block;
+    cursor: pointer;
+}
+
+.mode-option input[type="radio"] {
+    display: none;
+}
+
+.mode-option-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+.mode-option:hover .mode-option-content {
+    border-color: #90caf9;
+    background: #e3f2fd;
+}
+
+.mode-option input[type="radio"]:checked + .mode-option-content {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-color: #1976d2;
+    box-shadow: 0 2px 8px rgba(25, 118, 210, 0.2);
+}
+
+.mode-option-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #e0e0e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #607d8b;
+    transition: all 0.3s ease;
+}
+
+.mode-option input[type="radio"]:checked + .mode-option-content .mode-option-icon {
+    background: #1976d2;
+    border-color: #1976d2;
+    color: #ffffff;
+}
+
+.mode-option-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #455a64;
+}
+
+.mode-option input[type="radio"]:checked + .mode-option-content .mode-option-label {
+    color: #1565c0;
+}
+
+/* Legacy settings-title per compatibilità */
+.settings-title {
+    display: none;
 }
 
 .coordinate-tooltip {
@@ -1386,74 +1582,6 @@ body {
    TUTORIAL / GUIDA STYLES
    ========================================== */
 
-/* Pulsante trigger nella sidebar */
-.tutorial-trigger-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    padding: 12px 16px;
-    margin-bottom: 8px;
-    border: 2px solid #1976d2;
-    border-radius: 12px;
-    background: linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(66, 165, 245, 0.12) 100%);
-    color: #1976d2;
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
-}
-
-.tutorial-trigger-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(25, 118, 210, 0.15), transparent);
-    transition: left 0.5s ease;
-}
-
-.tutorial-trigger-button:hover {
-    background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
-    color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(25, 118, 210, 0.35);
-}
-
-.tutorial-trigger-button:hover::before {
-    left: 100%;
-}
-
-.tutorial-trigger-button:active {
-    transform: translateY(0);
-}
-
-.tutorial-trigger-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: currentColor;
-    color: #ffffff;
-    font-size: 14px;
-    font-weight: 700;
-    transition: all 0.3s ease;
-}
-
-.tutorial-trigger-button:hover .tutorial-trigger-icon {
-    background: #ffffff;
-    color: #1976d2;
-}
-
 /* Overlay del tutorial */
 .tutorial-overlay {
     position: fixed;
@@ -1863,52 +1991,6 @@ body {
 
 /* Mobile responsive */
 @media (max-width: 900px) {
-    .tutorial-trigger-button {
-        position: absolute;
-        top: calc(var(--mobile-safe-top) + var(--mobile-settings-bar-height) + 8px);
-        right: 16px;
-        width: auto;
-        padding: 10px 14px;
-        z-index: 39;
-        background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
-        color: #ffffff;
-        border: none;
-        box-shadow: 0 4px 16px rgba(25, 118, 210, 0.4);
-    }
-
-    .tutorial-trigger-button .tutorial-trigger-icon {
-        background: #ffffff;
-        color: #1976d2;
-    }
-
-    .tutorial-trigger-button .tutorial-trigger-text {
-        display: none;
-    }
-
-    body.mobile-dinamico .tutorial-trigger-button {
-        top: calc(var(--mobile-safe-top) + var(--mobile-settings-bar-height) + var(--mobile-dinamico-bar-height) + 8px);
-    }
-
-    .controls-sidebar.mobile-enabled .tutorial-trigger-button {
-        position: relative;
-        top: auto;
-        right: auto;
-        width: 100%;
-        background: linear-gradient(135deg, rgba(25, 118, 210, 0.08) 0%, rgba(66, 165, 245, 0.12) 100%);
-        color: #1976d2;
-        border: 2px solid #1976d2;
-        box-shadow: none;
-    }
-
-    .controls-sidebar.mobile-enabled .tutorial-trigger-button .tutorial-trigger-icon {
-        background: #1976d2;
-        color: #ffffff;
-    }
-
-    .controls-sidebar.mobile-enabled .tutorial-trigger-button .tutorial-trigger-text {
-        display: inline;
-    }
-
     .tutorial-overlay {
         padding: 12px;
     }

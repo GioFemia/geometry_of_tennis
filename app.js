@@ -772,13 +772,33 @@
                 }
             }
 
-            function setMobileSettingsState(open) {
+            let currentMobileSection = 'impostazioni';
+            
+            function setMobileSettingsState(open, section = null) {
                 if (!controlsSidebar) return;
                 mobileSettingsOpen = open;
                 controlsSidebar.classList.toggle('mobile-open', open);
                 controlsSidebar.classList.toggle('mobile-collapsed', !open);
-                if (settingsTitleTrigger) {
-                    settingsTitleTrigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+                
+                if (section) {
+                    currentMobileSection = section;
+                }
+                
+                // Update mobile nav pills
+                const pills = document.querySelectorAll('.mobile-nav-pill');
+                pills.forEach(pill => {
+                    pill.classList.toggle('active', pill.dataset.section === currentMobileSection);
+                });
+                
+                // Show/hide panel sections
+                const panelModalita = document.getElementById('panelModalita');
+                const panelImpostazioni = document.getElementById('panelImpostazioni');
+                
+                if (panelModalita) {
+                    panelModalita.classList.toggle('mobile-visible', currentMobileSection === 'modalita');
+                }
+                if (panelImpostazioni) {
+                    panelImpostazioni.classList.toggle('mobile-visible', currentMobileSection === 'impostazioni');
                 }
             }
 
@@ -1704,8 +1724,38 @@
                         updateMobilePanels();
                         syncMobileDinamicoPanel(true);
                         updateColpitoreDragState();
+                        
+                        // Update mode indicator
+                        updateModeIndicator(val);
                     });
                 });
+            }
+            
+            // Update mode indicator (icon and text)
+            function updateModeIndicator(mode) {
+                const mobileIcon = document.getElementById('mobileNavModalitaIcon');
+                const desktopIndicator = document.getElementById('currentModeIndicator');
+                
+                let iconText = '2';
+                let labelText = '2 Colpi';
+                
+                if (mode === '1colpo') {
+                    iconText = '1';
+                    labelText = '1 Colpo';
+                } else if (mode === '2colpi') {
+                    iconText = '2';
+                    labelText = '2 Colpi';
+                } else if (mode === 'dinamico') {
+                    iconText = 'D';
+                    labelText = 'Dinamico';
+                }
+                
+                if (mobileIcon) {
+                    mobileIcon.textContent = iconText;
+                }
+                if (desktopIndicator) {
+                    desktopIndicator.textContent = labelText;
+                }
             }
 
             // View toggles
@@ -3695,6 +3745,96 @@
                 });
             }
 
+            // ==========================================
+            // MOBILE NAV PILLS & PANEL SECTIONS
+            // ==========================================
+            const mobileNavGuida = document.getElementById('mobileNavGuida');
+            const mobileNavModalita = document.getElementById('mobileNavModalita');
+            const mobileNavImpostazioni = document.getElementById('mobileNavImpostazioni');
+            const panelModalita = document.getElementById('panelModalita');
+            const panelImpostazioni = document.getElementById('panelImpostazioni');
+            
+            // Desktop guida button (ora è un header come gli altri)
+            const desktopGuidaButton = document.getElementById('desktopGuidaButton');
+            if (desktopGuidaButton) {
+                desktopGuidaButton.addEventListener('click', () => {
+                    if (typeof window.openTutorial === 'function') {
+                        window.openTutorial();
+                    }
+                });
+                desktopGuidaButton.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        if (typeof window.openTutorial === 'function') {
+                            window.openTutorial();
+                        }
+                    }
+                });
+            }
+            
+            // Mobile nav pill clicks
+            if (mobileNavGuida) {
+                mobileNavGuida.addEventListener('click', () => {
+                    // Open tutorial using global function
+                    if (typeof window.openTutorial === 'function') {
+                        window.openTutorial();
+                    }
+                    // Collapse mobile sidebar
+                    setMobileSettingsState(false, 'guida');
+                });
+            }
+            
+            if (mobileNavModalita) {
+                mobileNavModalita.addEventListener('click', () => {
+                    if (currentMobileSection === 'modalita' && mobileSettingsOpen) {
+                        setMobileSettingsState(false, 'modalita');
+                    } else {
+                        setMobileSettingsState(true, 'modalita');
+                    }
+                });
+            }
+            
+            if (mobileNavImpostazioni) {
+                mobileNavImpostazioni.addEventListener('click', () => {
+                    if (currentMobileSection === 'impostazioni' && mobileSettingsOpen) {
+                        setMobileSettingsState(false, 'impostazioni');
+                    } else {
+                        setMobileSettingsState(true, 'impostazioni');
+                    }
+                });
+            }
+            
+            // Desktop panel section headers (collapsible)
+            const panelHeaders = document.querySelectorAll('.panel-section-header');
+            panelHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    if (isMobileViewport()) return; // Skip on mobile
+                    
+                    const section = header.closest('.panel-section');
+                    const content = section?.querySelector('.panel-section-content');
+                    if (!content) return;
+                    
+                    const isExpanded = content.classList.contains('expanded');
+                    content.classList.toggle('expanded', !isExpanded);
+                    header.setAttribute('aria-expanded', !isExpanded ? 'true' : 'false');
+                });
+                
+                header.addEventListener('keydown', (event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        header.click();
+                    }
+                });
+            });
+            
+            // Initialize panel sections visibility on mobile
+            function initMobilePanelSections() {
+                if (isMobileViewport()) {
+                    // Default to impostazioni on mobile
+                    setMobileSettingsState(false, 'impostazioni');
+                }
+            }
+
             window.addEventListener('resize', () => {
                 applyMobileSettingsMode();
                 updateMobilePanels();
@@ -3706,13 +3846,13 @@
             applyMobileSettingsMode(true);
             updateMobilePanels();
             scheduleMobileCourtGapAdjustment();
+            initMobilePanelSections();
 
             // ==========================================
             // TUTORIAL / GUIDA INTERATTIVA
             // ==========================================
             (function initTutorial() {
                 const tutorialOverlay = document.getElementById('tutorialOverlay');
-                const tutorialButton = document.getElementById('tutorialButton');
                 const tutorialClose = document.getElementById('tutorialClose');
                 const tutorialPrev = document.getElementById('tutorialPrev');
                 const tutorialNext = document.getElementById('tutorialNext');
@@ -3720,7 +3860,7 @@
                 const tutorialProgressText = document.getElementById('tutorialProgressText');
                 const tutorialDotsContainer = document.getElementById('tutorialDots');
                 
-                if (!tutorialOverlay || !tutorialButton) return;
+                if (!tutorialOverlay) return;
                 
                 const tutorialSteps = tutorialOverlay.querySelectorAll('.tutorial-step');
                 const totalSteps = tutorialSteps.length;
@@ -3785,8 +3925,8 @@
                     }
                 }
                 
-                // Apri il tutorial
-                function openTutorial() {
+                // Apri il tutorial (esposta globalmente per il pallino mobile)
+                window.openTutorial = function() {
                     currentStep = 0;
                     updateUI();
                     tutorialOverlay.classList.add('active', 'fade-in');
@@ -3799,7 +3939,7 @@
                     } catch (e) {
                         // localStorage non disponibile
                     }
-                }
+                };
                 
                 // Chiudi il tutorial
                 function closeTutorial() {
@@ -3831,7 +3971,6 @@
                 }
                 
                 // Event listeners
-                tutorialButton.addEventListener('click', openTutorial);
                 
                 if (tutorialClose) {
                     tutorialClose.addEventListener('click', closeTutorial);
