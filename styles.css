@@ -2130,7 +2130,7 @@ body {
         transform: none;
     }
 
-    /* Nascondi il campo secondario quando la guida è aperta in modalità "1 colpo" */
+    /* Nascondi il campo secondario quando la guida è aperta su desktop */
     body.desktop-tutorial-sidebar .secondary-court {
         display: none !important;
     }

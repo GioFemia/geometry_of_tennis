@@ -3870,6 +3870,7 @@
                 const tutorialSteps = tutorialOverlay.querySelectorAll('.tutorial-step');
                 const totalSteps = tutorialSteps.length;
                 let currentStep = 0;
+                let currentHighlightOverlay = null;
                 
                 // Crea i dots di navigazione
                 function createDots() {
@@ -3882,6 +3883,171 @@
                         dot.addEventListener('click', () => goToStep(i));
                         tutorialDotsContainer.appendChild(dot);
                     }
+                }
+                
+                // Rimuove l'overlay di evidenziazione esistente
+                function removeHighlight() {
+                    if (currentHighlightOverlay) {
+                        // Rimuovi i listener se esistono
+                        if (currentHighlightOverlay._scrollListener) {
+                            window.removeEventListener('scroll', currentHighlightOverlay._scrollListener, true);
+                        }
+                        if (currentHighlightOverlay._resizeListener) {
+                            window.removeEventListener('resize', currentHighlightOverlay._resizeListener);
+                        }
+                        currentHighlightOverlay.remove();
+                        currentHighlightOverlay = null;
+                    }
+                }
+                
+                // Mappa i valori di data-highlight agli elementi reali dell'interfaccia
+                function getHighlightElement(highlightValue) {
+                    switch (highlightValue) {
+                        case 'primary-court':
+                            return document.querySelector('.court-container.primary-court');
+                        case 'modalita-section':
+                            return document.getElementById('panelModalita');
+                        case 'colpitore-section':
+                            // Trova la sezione Colpitore dentro panelImpostazioni
+                            const impostazioniPanel = document.getElementById('panelImpostazioni');
+                            if (impostazioniPanel) {
+                                const sections = impostazioniPanel.querySelectorAll('.control-section');
+                                for (let section of sections) {
+                                    const title = section.querySelector('.control-section-title');
+                                    if (title && title.textContent.trim().toLowerCase() === 'colpitore') {
+                                        return section;
+                                    }
+                                }
+                            }
+                            return null;
+                        default:
+                            return null;
+                    }
+                }
+                
+                // Crea e posiziona l'overlay di evidenziazione sopra un elemento
+                function highlightElement(targetElement) {
+                    if (!targetElement) return;
+                    
+                    // Rimuovi l'overlay esistente
+                    removeHighlight();
+                    
+                    // Ottieni le dimensioni e posizione dell'elemento
+                    const rect = targetElement.getBoundingClientRect();
+                    const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
+                    const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+                    
+                    // Crea l'overlay
+                    const overlay = document.createElement('div');
+                    overlay.className = 'tutorial-element-highlight';
+                    
+                    // Posiziona l'overlay sopra l'elemento
+                    overlay.style.position = 'fixed';
+                    overlay.style.left = (rect.left + scrollX) + 'px';
+                    overlay.style.top = (rect.top + scrollY) + 'px';
+                    overlay.style.width = rect.width + 'px';
+                    overlay.style.height = rect.height + 'px';
+                    
+                    // Aggiungi un piccolo padding per rendere l'evidenziazione più visibile
+                    const padding = 4;
+                    overlay.style.left = (rect.left + scrollX - padding) + 'px';
+                    overlay.style.top = (rect.top + scrollY - padding) + 'px';
+                    overlay.style.width = (rect.width + padding * 2) + 'px';
+                    overlay.style.height = (rect.height + padding * 2) + 'px';
+                    
+                    document.body.appendChild(overlay);
+                    currentHighlightOverlay = overlay;
+                    
+                    // Aggiorna la posizione quando si scrolla o ridimensiona
+                    const updatePosition = () => {
+                        if (!targetElement || !overlay.parentNode) return;
+                        const newRect = targetElement.getBoundingClientRect();
+                        const newScrollX = window.pageXOffset || document.documentElement.scrollLeft;
+                        const newScrollY = window.pageYOffset || document.documentElement.scrollTop;
+                        
+                        overlay.style.left = (newRect.left + newScrollX - padding) + 'px';
+                        overlay.style.top = (newRect.top + newScrollY - padding) + 'px';
+                        overlay.style.width = (newRect.width + padding * 2) + 'px';
+                        overlay.style.height = (newRect.height + padding * 2) + 'px';
+                    };
+                    
+                    // Listener per scroll e resize (con debounce)
+                    let updateTimeout;
+                    const scheduleUpdate = () => {
+                        clearTimeout(updateTimeout);
+                        updateTimeout = setTimeout(updatePosition, 10);
+                    };
+                    
+                    // Crea i listener come funzioni con nome per poterli rimuovere
+                    const scrollListener = () => scheduleUpdate();
+                    const resizeListener = () => scheduleUpdate();
+                    
+                    window.addEventListener('scroll', scrollListener, true);
+                    window.addEventListener('resize', resizeListener);
+                    
+                    // Salva i listener per poterli rimuovere dopo
+                    overlay._scrollListener = scrollListener;
+                    overlay._resizeListener = resizeListener;
+                    overlay._targetElement = targetElement;
+                }
+                
+                // Aggiorna l'evidenziazione basandosi sullo step corrente
+                function updateHighlight() {
+                    // Rimuovi evidenziazione esistente
+                    removeHighlight();
+                    
+                    // Se il tutorial non è aperto, non evidenziare nulla
+                    if (!tutorialOverlay.classList.contains('active')) {
+                        return;
+                    }
+                    
+                    // Trova lo step corrente
+                    const activeStep = tutorialSteps[currentStep];
+                    if (!activeStep) return;
+                    
+                    // Cerca un elemento con data-highlight nello step corrente
+                    const highlightInfo = activeStep.querySelector('[data-highlight]');
+                    if (!highlightInfo) return;
+                    
+                    const highlightValue = highlightInfo.getAttribute('data-highlight');
+                    if (!highlightValue) return;
+                    
+                    // Trova l'elemento da evidenziare
+                    let targetElement = getHighlightElement(highlightValue);
+                    if (!targetElement) return;
+                    
+                    // Espandi automaticamente le sezioni collassate se necessario
+                    if (highlightValue === 'colpitore-section' || highlightValue === 'modalita-section') {
+                        // Se è una sezione collassata, espandila
+                        const panelSection = targetElement.closest('.panel-section');
+                        if (panelSection) {
+                            const content = panelSection.querySelector('.panel-section-content');
+                            if (content && !content.classList.contains('expanded')) {
+                                // Espandi la sezione
+                                content.classList.add('expanded');
+                                const header = panelSection.querySelector('.panel-section-header');
+                                if (header) {
+                                    header.setAttribute('aria-expanded', 'true');
+                                }
+                            }
+                        }
+                        
+                        // Se è una control-section collassata, espandila
+                        if (targetElement.classList.contains('control-section')) {
+                            if (targetElement.classList.contains('collapsed')) {
+                                targetElement.classList.remove('collapsed');
+                            }
+                        }
+                    }
+                    
+                    // Aspetta un momento per assicurarsi che il layout sia stabile dopo l'espansione
+                    setTimeout(() => {
+                        // Ricarica l'elemento per ottenere le dimensioni aggiornate
+                        targetElement = getHighlightElement(highlightValue);
+                        if (targetElement) {
+                            highlightElement(targetElement);
+                        }
+                    }, 150);
                 }
                 
                 // Aggiorna l'interfaccia per lo step corrente
@@ -3920,6 +4086,9 @@
                     dots?.forEach((dot, index) => {
                         dot.classList.toggle('active', index === currentStep);
                     });
+                    
+                    // Aggiorna l'evidenziazione
+                    updateHighlight();
                 }
                 
                 // Vai a uno step specifico
@@ -3934,16 +4103,86 @@
                 let tutorialOverlayOriginalParent = null;
                 let tutorialOverlayOriginalNextSibling = null;
                 
+                // Variabili per salvare lo stato delle opzioni di visualizzazione
+                let savedViewState = null;
+                
+                // Salva lo stato corrente delle opzioni di visualizzazione
+                function saveViewState() {
+                    return {
+                        viewDirections: window.__viewDirections__,
+                        viewPlayer: window.__viewPlayer__,
+                        viewShot: window.__viewShot__,
+                        viewResponder: window.__viewResponder__,
+                        viewCenter: window.__viewCenter__,
+                        viewCover: window.__viewCover__,
+                        viewCoordinates: window.__viewCoordinates__
+                    };
+                }
+                
+                // Ripristina lo stato salvato delle opzioni di visualizzazione
+                function restoreViewState() {
+                    if (!savedViewState) return;
+                    
+                    window.__viewDirections__ = savedViewState.viewDirections;
+                    window.__viewPlayer__ = savedViewState.viewPlayer;
+                    window.__viewShot__ = savedViewState.viewShot;
+                    window.__viewResponder__ = savedViewState.viewResponder;
+                    window.__viewCenter__ = savedViewState.viewCenter;
+                    window.__viewCover__ = savedViewState.viewCover;
+                    window.__viewCoordinates__ = savedViewState.viewCoordinates;
+                    
+                    // Aggiorna i checkbox
+                    if (chkDirections) chkDirections.checked = window.__viewDirections__;
+                    if (chkPlayer) chkPlayer.checked = window.__viewPlayer__;
+                    if (chkShot) chkShot.checked = window.__viewShot__;
+                    if (chkResponder) chkResponder.checked = window.__viewResponder__;
+                    if (chkCenter) chkCenter.checked = window.__viewCenter__;
+                    if (chkCover) chkCover.checked = window.__viewCover__;
+                    if (chkCoordinates) chkCoordinates.checked = window.__viewCoordinates__;
+                    
+                    // Applica i cambiamenti
+                    if (typeof applyViewToggles === 'function') {
+                        applyViewToggles();
+                    }
+                    
+                    savedViewState = null;
+                }
+                
+                // Imposta tutte le opzioni di visualizzazione tranne le coordinate
+                function setTutorialViewState() {
+                    window.__viewDirections__ = true;
+                    window.__viewPlayer__ = true;
+                    window.__viewShot__ = true;
+                    window.__viewResponder__ = true;
+                    window.__viewCenter__ = true;
+                    window.__viewCover__ = true;
+                    window.__viewCoordinates__ = false; // Coordinate disabilitate
+                    
+                    // Aggiorna i checkbox
+                    if (chkDirections) chkDirections.checked = true;
+                    if (chkPlayer) chkPlayer.checked = true;
+                    if (chkShot) chkShot.checked = true;
+                    if (chkResponder) chkResponder.checked = true;
+                    if (chkCenter) chkCenter.checked = true;
+                    if (chkCover) chkCover.checked = true;
+                    if (chkCoordinates) chkCoordinates.checked = false;
+                    
+                    // Applica i cambiamenti
+                    if (typeof applyViewToggles === 'function') {
+                        applyViewToggles();
+                    }
+                }
+                
                 // Funzione helper per aggiornare la classe desktop-tutorial-sidebar
                 function updateDesktopTutorialSidebar() {
                     if (!tutorialOverlay) return;
                     
                     const isDesktop = window.innerWidth > 900; // Desktop = maggiore di breakpoint mobile
-                    const isOneColpo = window.__modalita__ === '1colpo';
                     const isTutorialOpen = tutorialOverlay.classList.contains('active');
                     const pageContainer = document.querySelector('.page-container');
                     
-                    if (isDesktop && isOneColpo && isTutorialOpen && pageContainer) {
+                    // Su desktop, mostra sempre la sidebar quando il tutorial è aperto
+                    if (isDesktop && isTutorialOpen && pageContainer) {
                         // Modalità sidebar: sposta l'overlay dentro il page-container
                         document.body.classList.add('desktop-tutorial-sidebar');
                         document.body.style.overflow = ''; // Non bloccare lo scroll su desktop
@@ -3978,6 +4217,13 @@
                             tutorialOverlayOriginalNextSibling = null;
                         }
                     }
+                    
+                    // Aggiorna l'evidenziazione dopo il cambio modalità
+                    if (isTutorialOpen) {
+                        setTimeout(() => {
+                            updateHighlight();
+                        }, 100);
+                    }
                 }
                 
                 // Esponi la funzione globalmente per poterla chiamare da altri punti del codice
@@ -3985,13 +4231,21 @@
                 
                 // Apri il tutorial (esposta globalmente per il pallino mobile)
                 window.openTutorial = function() {
+                    // Salva lo stato corrente delle opzioni di visualizzazione PRIMA di aprire la guida
+                    savedViewState = saveViewState();
+                    
                     currentStep = 0;
-                    updateUI();
                     tutorialOverlay.classList.add('active', 'fade-in');
                     tutorialOverlay.classList.remove('fade-out');
                     
                     // Aggiorna la classe per la modalità sidebar su desktop
                     updateDesktopTutorialSidebar();
+                    
+                    // Imposta tutte le opzioni tranne le coordinate
+                    setTutorialViewState();
+                    
+                    // Aggiorna l'UI (include evidenziazione)
+                    updateUI();
                     
                     // Salva che l'utente ha già visto il tutorial
                     try {
@@ -4005,6 +4259,12 @@
                 function closeTutorial() {
                     tutorialOverlay.classList.add('fade-out');
                     tutorialOverlay.classList.remove('fade-in');
+                    
+                    // Rimuovi l'evidenziazione
+                    removeHighlight();
+                    
+                    // Ripristina lo stato delle opzioni di visualizzazione
+                    restoreViewState();
                     
                     // Rimuovi la classe sidebar e ripristina la posizione originale
                     document.body.classList.remove('desktop-tutorial-sidebar');
