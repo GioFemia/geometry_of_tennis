@@ -3900,6 +3900,9 @@
                 let currentStep = 0;
                 let currentHighlightOverlay = null;
                 
+                // Variabile per salvare la modalità originale
+                let savedModalita = null;
+                
                 // Crea i dots di navigazione
                 function createDots() {
                     if (!tutorialDotsContainer) return;
@@ -4012,6 +4015,10 @@
                                 }
                             }
                             return null;
+                        case 'secondary-court':
+                            return document.querySelector('.court-container.secondary-court');
+                        case 'dinamico-panel':
+                            return document.getElementById('dinamicoPanel');
                         default:
                             return null;
                     }
@@ -4211,6 +4218,15 @@
                         dot.classList.toggle('active', index === currentStep);
                     });
                     
+                    // Cambia modalità in base allo step
+                    if (tutorialOverlay.classList.contains('active')) {
+                        const newModalita = getModalitaForStep(currentStep);
+                        setModalitaSilently(newModalita);
+                    }
+                    
+                    // Aggiorna il layout della guida (sidebar vs overlay)
+                    updateDesktopTutorialSidebar();
+                    
                     // Aggiorna l'evidenziazione
                     updateHighlight();
                 }
@@ -4229,6 +4245,106 @@
                 
                 // Variabili per salvare lo stato delle opzioni di visualizzazione
                 let savedViewState = null;
+                
+                // Funzione per determinare la modalità in base allo step
+                function getModalitaForStep(step) {
+                    if (step >= 0 && step <= 6) {
+                        // Pagine 1-7: modalità 1 colpo
+                        return '1colpo';
+                    } else if (step === 7) {
+                        // Pagina 8: modalità 2 colpi
+                        return '2colpi';
+                    } else if (step === 8) {
+                        // Pagina 9: modalità dinamico
+                        return 'dinamico';
+                    } else {
+                        // Pagine 10-14: modalità 1 colpo
+                        return '1colpo';
+                    }
+                }
+                
+                // Funzione per determinare se la guida deve essere sidebar o sostituire il campo principale
+                function shouldShowSidebar(step) {
+                    // Sidebar per step 0-6 e 9-13, sostituisce campo principale per step 7-8
+                    return (step >= 0 && step <= 6) || (step >= 9 && step < totalSteps);
+                }
+                
+                // Funzione per determinare se la guida deve sostituire il campo principale
+                function shouldReplacePrimaryCourt(step) {
+                    // Sostituisce il campo principale per step 7-8
+                    return step === 7 || step === 8;
+                }
+                
+                // Funzione per cambiare modalità programmaticamente (senza triggerare eventi)
+                function setModalitaSilently(newModalita) {
+                    const modalitaInputs = document.querySelectorAll('input[name="modalita"]');
+                    if (modalitaInputs && modalitaInputs.length) {
+                        modalitaInputs.forEach((inp) => {
+                            if (inp.value === newModalita) {
+                                inp.checked = true;
+                            }
+                        });
+                    }
+                    window.__modalita__ = newModalita;
+                    
+                    // Handle different modes
+                    const secondaryCourt = document.querySelector('.court-container.secondary-court');
+                    if (secondaryCourt) {
+                        if (newModalita === '1colpo') {
+                            secondaryCourt.style.display = 'none';
+                        } else if (newModalita === '2colpi' || newModalita === 'dinamico') {
+                            secondaryCourt.style.display = 'flex';
+                        }
+                    }
+                    
+                    // Update the display
+                    if (typeof updateDinamicoPanel === 'function') {
+                        updateDinamicoPanel();
+                    }
+                    if (typeof updateSecondaryCourtLock === 'function') {
+                        updateSecondaryCourtLock();
+                    }
+                    
+                    // Update mode indicator
+                    if (typeof updateModeIndicator === 'function') {
+                        updateModeIndicator(newModalita);
+                    }
+                    
+                    // Update mobile panels
+                    if (typeof updateMobilePanels === 'function') {
+                        updateMobilePanels();
+                    }
+                    
+                    // Sync mobile dinamico panel
+                    if (typeof syncMobileDinamicoPanel === 'function') {
+                        syncMobileDinamicoPanel(true);
+                    }
+                    
+                    // Update colpitore drag state
+                    if (typeof updateColpitoreDragState === 'function') {
+                        updateColpitoreDragState();
+                    }
+                    
+                    // Update visualization
+                    const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                    const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                    if (typeof updateLinesAndWedge === 'function') {
+                        updateLinesAndWedge(dotX, dotY);
+                    }
+                    if (typeof updateIntersectionDot === 'function') {
+                        updateIntersectionDot();
+                    }
+                }
+                
+                // Funzione per abilitare/disabilitare i radio button della modalità
+                function setModalitaInputsEnabled(enabled) {
+                    const modalitaInputs = document.querySelectorAll('input[name="modalita"]');
+                    if (modalitaInputs && modalitaInputs.length) {
+                        modalitaInputs.forEach((inp) => {
+                            inp.disabled = !enabled;
+                        });
+                    }
+                }
                 
                 // Salva lo stato corrente delle opzioni di visualizzazione
                 function saveViewState() {
@@ -4304,26 +4420,95 @@
                     const isDesktop = window.innerWidth > 900; // Desktop = maggiore di breakpoint mobile
                     const isTutorialOpen = tutorialOverlay.classList.contains('active');
                     const pageContainer = document.querySelector('.page-container');
+                    const primaryCourt = document.querySelector('.court-container.primary-court');
                     
-                    // Su desktop, mostra sempre la sidebar quando il tutorial è aperto
+                    // Determina se mostrare sidebar o sostituire il campo principale in base allo step
+                    const showSidebar = shouldShowSidebar(currentStep);
+                    const replacePrimaryCourt = shouldReplacePrimaryCourt(currentStep);
+                    
+                    // Su desktop, mostra sidebar o sostituisce campo principale in base allo step
                     if (isDesktop && isTutorialOpen && pageContainer) {
-                        // Modalità sidebar: sposta l'overlay dentro il page-container
-                        document.body.classList.add('desktop-tutorial-sidebar');
-                        document.body.style.overflow = ''; // Non bloccare lo scroll su desktop
-                        
-                        // Salva la posizione originale se non l'abbiamo già fatto
-                        if (!tutorialOverlayOriginalParent) {
-                            tutorialOverlayOriginalParent = tutorialOverlay.parentNode;
-                            tutorialOverlayOriginalNextSibling = tutorialOverlay.nextSibling;
-                        }
-                        
-                        // Sposta l'overlay dentro il page-container (come terza colonna)
-                        if (tutorialOverlay.parentNode !== pageContainer) {
-                            pageContainer.appendChild(tutorialOverlay);
+                        if (showSidebar) {
+                            // Modalità sidebar: sposta l'overlay dentro il page-container (colonna 3)
+                            document.body.classList.add('desktop-tutorial-sidebar');
+                            document.body.classList.remove('desktop-tutorial-replace-primary');
+                            document.body.style.overflow = ''; // Non bloccare lo scroll su desktop
+                            
+                            // Mostra il campo principale
+                            if (primaryCourt) {
+                                primaryCourt.style.display = '';
+                            }
+                            
+                            // Salva la posizione originale se non l'abbiamo già fatto
+                            if (!tutorialOverlayOriginalParent) {
+                                tutorialOverlayOriginalParent = tutorialOverlay.parentNode;
+                                tutorialOverlayOriginalNextSibling = tutorialOverlay.nextSibling;
+                            }
+                            
+                            // Sposta l'overlay dentro il page-container (come terza colonna)
+                            if (tutorialOverlay.parentNode !== pageContainer) {
+                                pageContainer.appendChild(tutorialOverlay);
+                            }
+                        } else if (replacePrimaryCourt) {
+                            // Modalità sostituisce campo principale: sposta l'overlay nella colonna del campo principale
+                            document.body.classList.remove('desktop-tutorial-sidebar');
+                            document.body.classList.add('desktop-tutorial-replace-primary');
+                            document.body.style.overflow = ''; // Non bloccare lo scroll su desktop
+                            
+                            // Nascondi il campo principale
+                            if (primaryCourt) {
+                                primaryCourt.style.display = 'none';
+                            }
+                            
+                            // Salva la posizione originale se non l'abbiamo già fatto
+                            if (!tutorialOverlayOriginalParent) {
+                                tutorialOverlayOriginalParent = tutorialOverlay.parentNode;
+                                tutorialOverlayOriginalNextSibling = tutorialOverlay.nextSibling;
+                            }
+                            
+                            // Sposta l'overlay dentro il page-container (nella colonna del campo principale)
+                            if (tutorialOverlay.parentNode !== pageContainer) {
+                                // Inserisci prima del campo secondario (se esiste) o alla fine
+                                const secondaryCourt = document.querySelector('.court-container.secondary-court');
+                                if (secondaryCourt && secondaryCourt.parentNode === pageContainer) {
+                                    pageContainer.insertBefore(tutorialOverlay, secondaryCourt);
+                                } else {
+                                    pageContainer.appendChild(tutorialOverlay);
+                                }
+                            } else {
+                                // Se è già dentro pageContainer, riposizionalo
+                                const secondaryCourt = document.querySelector('.court-container.secondary-court');
+                                if (secondaryCourt && secondaryCourt.parentNode === pageContainer) {
+                                    pageContainer.insertBefore(tutorialOverlay, secondaryCourt);
+                                }
+                            }
+                        } else {
+                            // Modalità overlay (non usata più, ma manteniamo per sicurezza)
+                            document.body.classList.remove('desktop-tutorial-sidebar', 'desktop-tutorial-replace-primary');
+                            document.body.style.overflow = 'hidden';
+                            
+                            // Mostra il campo principale
+                            if (primaryCourt) {
+                                primaryCourt.style.display = '';
+                            }
+                            
+                            // Ripristina la posizione originale se era stata cambiata
+                            if (tutorialOverlayOriginalParent && tutorialOverlay.parentNode !== tutorialOverlayOriginalParent) {
+                                if (tutorialOverlayOriginalNextSibling) {
+                                    tutorialOverlayOriginalParent.insertBefore(tutorialOverlay, tutorialOverlayOriginalNextSibling);
+                                } else {
+                                    tutorialOverlayOriginalParent.appendChild(tutorialOverlay);
+                                }
+                            }
                         }
                     } else {
                         // Modalità normale: ripristina la posizione originale
-                        document.body.classList.remove('desktop-tutorial-sidebar');
+                        document.body.classList.remove('desktop-tutorial-sidebar', 'desktop-tutorial-replace-primary');
+                        
+                        // Mostra il campo principale
+                        if (primaryCourt) {
+                            primaryCourt.style.display = '';
+                        }
                         
                         if (isTutorialOpen && !isDesktop) {
                             document.body.style.overflow = 'hidden'; // Blocca scroll solo su mobile
@@ -4358,17 +4543,20 @@
                     // Salva lo stato corrente delle opzioni di visualizzazione PRIMA di aprire la guida
                     savedViewState = saveViewState();
                     
+                    // Salva la modalità corrente
+                    savedModalita = window.__modalita__;
+                    
+                    // Disabilita i radio button della modalità
+                    setModalitaInputsEnabled(false);
+                    
                     currentStep = 0;
                     tutorialOverlay.classList.add('active', 'fade-in');
                     tutorialOverlay.classList.remove('fade-out');
                     
-                    // Aggiorna la classe per la modalità sidebar su desktop
-                    updateDesktopTutorialSidebar();
-                    
                     // Imposta tutte le opzioni tranne le coordinate
                     setTutorialViewState();
                     
-                    // Aggiorna l'UI (include evidenziazione)
+                    // Aggiorna l'UI (include cambio modalità, layout e evidenziazione)
                     updateUI();
                     
                     // Salva che l'utente ha già visto il tutorial
@@ -4390,8 +4578,23 @@
                     // Ripristina lo stato delle opzioni di visualizzazione
                     restoreViewState();
                     
-                    // Rimuovi la classe sidebar e ripristina la posizione originale
-                    document.body.classList.remove('desktop-tutorial-sidebar');
+                    // Ripristina la modalità originale
+                    if (savedModalita) {
+                        setModalitaSilently(savedModalita);
+                        savedModalita = null;
+                    }
+                    
+                    // Riabilita i radio button della modalità
+                    setModalitaInputsEnabled(true);
+                    
+                    // Rimuovi le classi e ripristina la posizione originale
+                    document.body.classList.remove('desktop-tutorial-sidebar', 'desktop-tutorial-replace-primary');
+                    
+                    // Mostra il campo principale
+                    const primaryCourt = document.querySelector('.court-container.primary-court');
+                    if (primaryCourt) {
+                        primaryCourt.style.display = '';
+                    }
                     
                     // Ripristina la posizione originale se era stata cambiata
                     if (tutorialOverlayOriginalParent && tutorialOverlay.parentNode !== tutorialOverlayOriginalParent) {
@@ -4457,14 +4660,15 @@
                     }
                 });
                 
-                // Chiudi cliccando fuori dal modal (solo se non siamo in modalità sidebar desktop)
+                // Chiudi cliccando fuori dal modal (solo se non siamo in modalità sidebar o replace-primary desktop)
                 tutorialOverlay.addEventListener('click', (e) => {
                     if (e.target === tutorialOverlay) {
-                        // Non chiudere se siamo in modalità sidebar desktop
+                        // Non chiudere se siamo in modalità sidebar o replace-primary desktop
                         const isDesktop = window.innerWidth > 900;
-                        const isOneColpo = window.__modalita__ === '1colpo';
-                        if (isDesktop && isOneColpo) {
-                            return; // Non chiudere in modalità sidebar
+                        const showSidebar = shouldShowSidebar(currentStep);
+                        const replacePrimaryCourt = shouldReplacePrimaryCourt(currentStep);
+                        if (isDesktop && (showSidebar || replacePrimaryCourt)) {
+                            return; // Non chiudere in modalità sidebar o replace-primary
                         }
                         closeTutorial();
                     }
