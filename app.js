@@ -354,6 +354,11 @@
                     hMeasureBadge.setAttribute('width', String(textWidth + 8));
                     hMeasureBadge.setAttribute('height', String(textHeight + 4));
                 }
+                
+                // Aggiorna l'highlight del tutorial se attivo
+                if (typeof window.updateTutorialHighlight === 'function') {
+                    window.updateTutorialHighlight();
+                }
             }
 
             function svgYToClientY(ySvg) {
@@ -374,6 +379,11 @@
                 const top = clientY - wrapRect.top;
                 arrowHtml.style.top = `${top}px`;
                 if (arrowHtml.style.display !== 'block') arrowHtml.style.display = 'block';
+                
+                // Aggiorna l'highlight del tutorial se attivo
+                if (typeof window.updateTutorialHighlight === 'function') {
+                    window.updateTutorialHighlight();
+                }
             }
 
             function setupSecondaryCourt() {
@@ -1270,6 +1280,11 @@
                 updateSecondaryCourtLock();
                 updateSecondaryFromLeft();
                 updateIntersectionDot();
+                
+                // Aggiorna l'highlight del tutorial se attivo (per l'area wedge)
+                if (typeof window.updateTutorialHighlight === 'function') {
+                    window.updateTutorialHighlight();
+                }
             }
 
             function toSvgPoint(evt) {
@@ -1345,6 +1360,10 @@
                     const dotX = parseFloat(dot.getAttribute('cx'));
                     const dotY = parseFloat(dot.getAttribute('cy'));
                     updateLinesAndWedge(dotX, dotY);
+                    // Aggiorna l'highlight del tutorial se attivo
+                    if (typeof window.updateTutorialHighlight === 'function') {
+                        window.updateTutorialHighlight();
+                    }
                 }
             }
 
@@ -1435,6 +1454,10 @@
                 updateSecondaryCourtLock();
                 updateSecondaryFromLeft();
                 updateIntersectionDot();
+                // Aggiorna l'highlight del tutorial se attivo
+                if (typeof window.updateTutorialHighlight === 'function') {
+                    window.updateTutorialHighlight();
+                }
             }
             function onYellowPointerUp(evt) {
                 if (!yellowLine) return;
@@ -1498,6 +1521,11 @@
                 
                 // Update all visualizations
                 updateLinesAndWedge(dotX, dotY);
+                
+                // Aggiorna l'highlight del tutorial se attivo
+                if (typeof window.updateTutorialHighlight === 'function') {
+                    window.updateTutorialHighlight();
+                }
             }
             function onIntersectionPointerUp(evt) {
                 if (!intersectionDot) return;
@@ -3900,6 +3928,35 @@
                     }
                 }
                 
+                // Calcola il bounding box combinato per più elementi
+                function getCombinedBoundingBox(elements) {
+                    if (!elements || elements.length === 0) return null;
+                    
+                    let minLeft = Infinity;
+                    let minTop = Infinity;
+                    let maxRight = -Infinity;
+                    let maxBottom = -Infinity;
+                    
+                    for (let el of elements) {
+                        if (!el) continue;
+                        const rect = el.getBoundingClientRect();
+                        if (rect.width === 0 && rect.height === 0) continue; // Skip invisible elements
+                        minLeft = Math.min(minLeft, rect.left);
+                        minTop = Math.min(minTop, rect.top);
+                        maxRight = Math.max(maxRight, rect.right);
+                        maxBottom = Math.max(maxBottom, rect.bottom);
+                    }
+                    
+                    if (minLeft === Infinity) return null;
+                    
+                    return {
+                        left: minLeft,
+                        top: minTop,
+                        width: maxRight - minLeft,
+                        height: maxBottom - minTop
+                    };
+                }
+                
                 // Mappa i valori di data-highlight agli elementi reali dell'interfaccia
                 function getHighlightElement(highlightValue) {
                     switch (highlightValue) {
@@ -3920,20 +3977,70 @@
                                 }
                             }
                             return null;
+                        case 'player-dot':
+                            return document.getElementById('cursorDot');
+                        case 'wedge-area':
+                            return document.getElementById('wedgeFill');
+                        case 'shot-and-responder':
+                            // Ritorna un oggetto speciale per indicare elementi multipli
+                            const yellowLineEl = document.getElementById('yellowLine');
+                            const intersectionDotEl = document.getElementById('intersectionDot');
+                            return {
+                                _multiElement: true,
+                                elements: [yellowLineEl, intersectionDotEl].filter(el => el !== null)
+                            };
+                        case 'h-measure':
+                            // Ritorna un oggetto speciale per indicare elementi multipli
+                            const hMeasureEl = document.getElementById('h-measure');
+                            const hMeasureLabelEl = document.getElementById('h-measure-label');
+                            const hMeasureBadgeEl = document.getElementById('h-measure-badge');
+                            const arrowHtmlEl = document.getElementById('measureArrowHtml');
+                            return {
+                                _multiElement: true,
+                                elements: [hMeasureEl, hMeasureLabelEl, hMeasureBadgeEl, arrowHtmlEl].filter(el => el !== null)
+                            };
+                        case 'tipologia-section':
+                            // Trova la sezione Tipologia dentro panelImpostazioni
+                            const tipologiaPanel = document.getElementById('panelImpostazioni');
+                            if (tipologiaPanel) {
+                                const sections = tipologiaPanel.querySelectorAll('.control-section');
+                                for (let section of sections) {
+                                    const title = section.querySelector('.control-section-title');
+                                    if (title && title.textContent.trim().toLowerCase() === 'tipologia') {
+                                        return section;
+                                    }
+                                }
+                            }
+                            return null;
                         default:
                             return null;
                     }
                 }
                 
-                // Crea e posiziona l'overlay di evidenziazione sopra un elemento
+                // Crea e posiziona l'overlay di evidenziazione sopra un elemento o più elementi
                 function highlightElement(targetElement) {
                     if (!targetElement) return;
                     
                     // Rimuovi l'overlay esistente
                     removeHighlight();
                     
-                    // Ottieni le dimensioni e posizione dell'elemento
-                    const rect = targetElement.getBoundingClientRect();
+                    let rect;
+                    let elements = [];
+                    
+                    // Gestisci elementi multipli
+                    if (targetElement._multiElement && targetElement.elements) {
+                        elements = targetElement.elements;
+                        const combinedRect = getCombinedBoundingBox(elements);
+                        if (!combinedRect) return; // Nessun elemento visibile
+                        rect = combinedRect;
+                    } else {
+                        // Elemento singolo
+                        elements = [targetElement];
+                        rect = targetElement.getBoundingClientRect();
+                        // Skip se l'elemento non è visibile
+                        if (rect.width === 0 && rect.height === 0) return;
+                    }
+                    
                     const scrollX = window.pageXOffset || document.documentElement.scrollLeft;
                     const scrollY = window.pageYOffset || document.documentElement.scrollTop;
                     
@@ -3941,15 +4048,9 @@
                     const overlay = document.createElement('div');
                     overlay.className = 'tutorial-element-highlight';
                     
-                    // Posiziona l'overlay sopra l'elemento
-                    overlay.style.position = 'fixed';
-                    overlay.style.left = (rect.left + scrollX) + 'px';
-                    overlay.style.top = (rect.top + scrollY) + 'px';
-                    overlay.style.width = rect.width + 'px';
-                    overlay.style.height = rect.height + 'px';
-                    
                     // Aggiungi un piccolo padding per rendere l'evidenziazione più visibile
                     const padding = 4;
+                    overlay.style.position = 'fixed';
                     overlay.style.left = (rect.left + scrollX - padding) + 'px';
                     overlay.style.top = (rect.top + scrollY - padding) + 'px';
                     overlay.style.width = (rect.width + padding * 2) + 'px';
@@ -3960,8 +4061,19 @@
                     
                     // Aggiorna la posizione quando si scrolla o ridimensiona
                     const updatePosition = () => {
-                        if (!targetElement || !overlay.parentNode) return;
-                        const newRect = targetElement.getBoundingClientRect();
+                        if (!overlay.parentNode) return;
+                        
+                        let newRect;
+                        if (targetElement._multiElement && targetElement.elements) {
+                            const combinedRect = getCombinedBoundingBox(elements);
+                            if (!combinedRect) return;
+                            newRect = combinedRect;
+                        } else {
+                            if (!targetElement || !targetElement.getBoundingClientRect) return;
+                            newRect = targetElement.getBoundingClientRect();
+                            if (newRect.width === 0 && newRect.height === 0) return;
+                        }
+                        
                         const newScrollX = window.pageXOffset || document.documentElement.scrollLeft;
                         const newScrollY = window.pageYOffset || document.documentElement.scrollTop;
                         
@@ -3985,11 +4097,23 @@
                     window.addEventListener('scroll', scrollListener, true);
                     window.addEventListener('resize', resizeListener);
                     
-                    // Salva i listener per poterli rimuovere dopo
+                    // Salva i listener e gli elementi per poterli rimuovere dopo
                     overlay._scrollListener = scrollListener;
                     overlay._resizeListener = resizeListener;
                     overlay._targetElement = targetElement;
+                    overlay._elements = elements;
+                    overlay._updatePosition = updatePosition;
                 }
+                
+                // Funzione esposta globalmente per aggiornare la posizione dell'highlight
+                // Può essere chiamata dai movement handlers
+                function updateHighlightPosition() {
+                    if (!currentHighlightOverlay || !currentHighlightOverlay._updatePosition) return;
+                    currentHighlightOverlay._updatePosition();
+                }
+                
+                // Esponi la funzione globalmente
+                window.updateTutorialHighlight = updateHighlightPosition;
                 
                 // Aggiorna l'evidenziazione basandosi sullo step corrente
                 function updateHighlight() {
@@ -4017,7 +4141,7 @@
                     if (!targetElement) return;
                     
                     // Espandi automaticamente le sezioni collassate se necessario
-                    if (highlightValue === 'colpitore-section' || highlightValue === 'modalita-section') {
+                    if (highlightValue === 'colpitore-section' || highlightValue === 'modalita-section' || highlightValue === 'tipologia-section') {
                         // Se è una sezione collassata, espandila
                         const panelSection = targetElement.closest('.panel-section');
                         if (panelSection) {
@@ -4033,7 +4157,7 @@
                         }
                         
                         // Se è una control-section collassata, espandila
-                        if (targetElement.classList.contains('control-section')) {
+                        if (targetElement && targetElement.classList && targetElement.classList.contains('control-section')) {
                             if (targetElement.classList.contains('collapsed')) {
                                 targetElement.classList.remove('collapsed');
                             }
