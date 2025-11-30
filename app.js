@@ -1727,6 +1727,11 @@
                         
                         // Update mode indicator
                         updateModeIndicator(val);
+                        
+                        // Aggiorna la modalità sidebar della guida se aperta
+                        if (typeof window.updateDesktopTutorialSidebar === 'function') {
+                            window.updateDesktopTutorialSidebar();
+                        }
                     });
                 });
             }
@@ -3925,13 +3930,68 @@
                     }
                 }
                 
+                // Variabili per tracciare la posizione originale dell'overlay
+                let tutorialOverlayOriginalParent = null;
+                let tutorialOverlayOriginalNextSibling = null;
+                
+                // Funzione helper per aggiornare la classe desktop-tutorial-sidebar
+                function updateDesktopTutorialSidebar() {
+                    if (!tutorialOverlay) return;
+                    
+                    const isDesktop = window.innerWidth > 900; // Desktop = maggiore di breakpoint mobile
+                    const isOneColpo = window.__modalita__ === '1colpo';
+                    const isTutorialOpen = tutorialOverlay.classList.contains('active');
+                    const pageContainer = document.querySelector('.page-container');
+                    
+                    if (isDesktop && isOneColpo && isTutorialOpen && pageContainer) {
+                        // Modalità sidebar: sposta l'overlay dentro il page-container
+                        document.body.classList.add('desktop-tutorial-sidebar');
+                        document.body.style.overflow = ''; // Non bloccare lo scroll su desktop
+                        
+                        // Salva la posizione originale se non l'abbiamo già fatto
+                        if (!tutorialOverlayOriginalParent) {
+                            tutorialOverlayOriginalParent = tutorialOverlay.parentNode;
+                            tutorialOverlayOriginalNextSibling = tutorialOverlay.nextSibling;
+                        }
+                        
+                        // Sposta l'overlay dentro il page-container (come terza colonna)
+                        if (tutorialOverlay.parentNode !== pageContainer) {
+                            pageContainer.appendChild(tutorialOverlay);
+                        }
+                    } else {
+                        // Modalità normale: ripristina la posizione originale
+                        document.body.classList.remove('desktop-tutorial-sidebar');
+                        
+                        if (isTutorialOpen && !isDesktop) {
+                            document.body.style.overflow = 'hidden'; // Blocca scroll solo su mobile
+                        }
+                        
+                        // Ripristina la posizione originale se era stata cambiata
+                        if (tutorialOverlayOriginalParent && tutorialOverlay.parentNode !== tutorialOverlayOriginalParent) {
+                            if (tutorialOverlayOriginalNextSibling) {
+                                tutorialOverlayOriginalParent.insertBefore(tutorialOverlay, tutorialOverlayOriginalNextSibling);
+                            } else {
+                                tutorialOverlayOriginalParent.appendChild(tutorialOverlay);
+                            }
+                            // Reset delle variabili dopo il ripristino
+                            tutorialOverlayOriginalParent = null;
+                            tutorialOverlayOriginalNextSibling = null;
+                        }
+                    }
+                }
+                
+                // Esponi la funzione globalmente per poterla chiamare da altri punti del codice
+                window.updateDesktopTutorialSidebar = updateDesktopTutorialSidebar;
+                
                 // Apri il tutorial (esposta globalmente per il pallino mobile)
                 window.openTutorial = function() {
                     currentStep = 0;
                     updateUI();
                     tutorialOverlay.classList.add('active', 'fade-in');
                     tutorialOverlay.classList.remove('fade-out');
-                    document.body.style.overflow = 'hidden';
+                    
+                    // Aggiorna la classe per la modalità sidebar su desktop
+                    updateDesktopTutorialSidebar();
                     
                     // Salva che l'utente ha già visto il tutorial
                     try {
@@ -3945,6 +4005,22 @@
                 function closeTutorial() {
                     tutorialOverlay.classList.add('fade-out');
                     tutorialOverlay.classList.remove('fade-in');
+                    
+                    // Rimuovi la classe sidebar e ripristina la posizione originale
+                    document.body.classList.remove('desktop-tutorial-sidebar');
+                    
+                    // Ripristina la posizione originale se era stata cambiata
+                    if (tutorialOverlayOriginalParent && tutorialOverlay.parentNode !== tutorialOverlayOriginalParent) {
+                        if (tutorialOverlayOriginalNextSibling) {
+                            tutorialOverlayOriginalParent.insertBefore(tutorialOverlay, tutorialOverlayOriginalNextSibling);
+                        } else {
+                            tutorialOverlayOriginalParent.appendChild(tutorialOverlay);
+                        }
+                    }
+                    
+                    // Reset delle variabili per la prossima apertura
+                    tutorialOverlayOriginalParent = null;
+                    tutorialOverlayOriginalNextSibling = null;
                     
                     setTimeout(() => {
                         tutorialOverlay.classList.remove('active', 'fade-out');
@@ -3997,11 +4073,26 @@
                     }
                 });
                 
-                // Chiudi cliccando fuori dal modal
+                // Chiudi cliccando fuori dal modal (solo se non siamo in modalità sidebar desktop)
                 tutorialOverlay.addEventListener('click', (e) => {
                     if (e.target === tutorialOverlay) {
+                        // Non chiudere se siamo in modalità sidebar desktop
+                        const isDesktop = window.innerWidth > 900;
+                        const isOneColpo = window.__modalita__ === '1colpo';
+                        if (isDesktop && isOneColpo) {
+                            return; // Non chiudere in modalità sidebar
+                        }
                         closeTutorial();
                     }
+                });
+                
+                // Listener per il resize della finestra
+                let resizeTimeout;
+                window.addEventListener('resize', () => {
+                    clearTimeout(resizeTimeout);
+                    resizeTimeout = setTimeout(() => {
+                        updateDesktopTutorialSidebar();
+                    }, 250); // Debounce per performance
                 });
                 
                 // Inizializza
