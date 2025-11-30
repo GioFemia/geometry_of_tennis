@@ -664,7 +664,7 @@ body {
 
     body.mobile-dinamico #dinamicoPanel {
         position: absolute;
-        top: calc(var(--mobile-safe-top) + var(--mobile-settings-bar-height) + 20px);
+        top: calc(var(--mobile-safe-top) + var(--mobile-settings-bar-height) + 12px);
         left: 50%;
         transform: translateX(-50%);
         width: min(520px, calc(100% - 2 * var(--mobile-side-padding)));

@@ -4265,8 +4265,12 @@
                 
                 // Funzione per determinare se la guida deve essere sidebar o sostituire il campo principale
                 function shouldShowSidebar(step) {
-                    // Sidebar per step 0-6 e 9-13, sostituisce campo principale per step 7-8
-                    return (step >= 0 && step <= 6) || (step >= 9 && step < totalSteps);
+                    // Pagine in overlay: 1 (step 0), 13 (step 12), 14 (step 13), 15 (step 14)
+                    if (step === 0 || step === 12 || step === 13 || step === 14) {
+                        return false; // Overlay per queste pagine
+                    }
+                    // Sidebar per step 1-6 e 9-11, sostituisce campo principale per step 7-8
+                    return (step >= 1 && step <= 6) || (step >= 9 && step <= 11);
                 }
                 
                 // Funzione per determinare se la guida deve sostituire il campo principale
@@ -4483,7 +4487,7 @@
                                 }
                             }
                         } else {
-                            // Modalità overlay (non usata più, ma manteniamo per sicurezza)
+                            // Modalità overlay: per pagine 1, 13, 14, 15
                             document.body.classList.remove('desktop-tutorial-sidebar', 'desktop-tutorial-replace-primary');
                             document.body.style.overflow = 'hidden';
                             
