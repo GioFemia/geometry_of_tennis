@@ -443,6 +443,10 @@
                         <input id="view_cover" type="checkbox" />
                         <span>Campo da Coprire</span>
                     </label>
+                    <label class="control-option" for="view_zones">
+                        <input id="view_zones" type="checkbox" />
+                        <span>Zone del Campo</span>
+                    </label>
                     <label class="control-option" for="view_coordinates">
                         <input id="view_coordinates" type="checkbox" />
                         <span>Coordinate</span>
@@ -538,6 +542,10 @@
                             <input id="default_view_cover" type="checkbox" />
                             <span>Visualizza: Campo da Coprire</span>
                         </label>
+                        <label class="control-option" for="default_view_zones">
+                            <input id="default_view_zones" type="checkbox" />
+                            <span>Visualizza: Zone del Campo</span>
+                        </label>
                         <label class="control-option" for="default_view_coordinates">
                             <input id="default_view_coordinates" type="checkbox" />
                             <span>Visualizza: Coordinate</span>
@@ -581,6 +589,30 @@
                     <line id="h-measure" x1="300" y1="100" x2="300" y2="100" stroke="#ff6f00" stroke-width="4" opacity="0.9" />
                     <rect id="h-measure-badge" x="280" y="89" width="40" height="22" fill="white" stroke="#ff6f00" stroke-width="1" rx="4" />
                     <text id="h-measure-label" x="300" y="100" fill="#ff6f00" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle">0.0m</text>
+                    <!-- Zone del Campo -->
+                    <line id="zone-line-1" x1="242" y1="150" x2="242" y2="486" stroke="#9c27b0" stroke-width="2" opacity="0.7" style="display: none;" />
+                    <line id="zone-line-2" x1="300" y1="150" x2="300" y2="486" stroke="#9c27b0" stroke-width="2" opacity="0.7" style="display: none;" />
+                    <line id="zone-line-3" x1="358" y1="150" x2="358" y2="486" stroke="#9c27b0" stroke-width="2" opacity="0.7" style="display: none;" />
+                    <circle id="zone-circle-a" cx="213" cy="320" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-a" x="213" y="320" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">A</text>
+                    <circle id="zone-circle-b" cx="271" cy="320" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-b" x="271" y="320" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">B</text>
+                    <circle id="zone-circle-c" cx="329" cy="320" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-c" x="329" y="320" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">C</text>
+                    <circle id="zone-circle-d" cx="387" cy="320" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-d" x="387" y="320" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">D</text>
+                    <!-- Zone del Campo per Campo A (quando colpitore è Avversario) -->
+                    <line id="zone-line-a-1" x1="242" y1="486" x2="242" y2="822" stroke="#9c27b0" stroke-width="2" opacity="0.7" style="display: none;" />
+                    <line id="zone-line-a-2" x1="300" y1="486" x2="300" y2="822" stroke="#9c27b0" stroke-width="2" opacity="0.7" style="display: none;" />
+                    <line id="zone-line-a-3" x1="358" y1="486" x2="358" y2="822" stroke="#9c27b0" stroke-width="2" opacity="0.7" style="display: none;" />
+                    <circle id="zone-circle-a-field-a" cx="213" cy="654" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-a-field-a" x="213" y="654" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">A</text>
+                    <circle id="zone-circle-b-field-a" cx="271" cy="654" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-b-field-a" x="271" y="654" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">B</text>
+                    <circle id="zone-circle-c-field-a" cx="329" cy="654" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-c-field-a" x="329" y="654" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">C</text>
+                    <circle id="zone-circle-d-field-a" cx="387" cy="654" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-d-field-a" x="387" y="654" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">D</text>
                     <circle id="cursorDot" cx="300" cy="822" r="12" fill="#ff5252" stroke="#fff" stroke-width="2" />
                     <circle id="intersectionDot" cx="300" cy="100" r="8" fill="#ff5252" stroke="#fff" stroke-width="2" style="display: none; cursor: move;" />
                 </svg>
