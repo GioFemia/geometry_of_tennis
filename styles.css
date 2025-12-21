@@ -164,6 +164,21 @@ body {
 .default-subsection:last-child .control-option span {
     order: 1;
 }
+
+/* Stile per checkbox disabilitati nella sezione Default quando modalità è 2colpi */
+.default-subsection input[type="checkbox"]:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.default-subsection .control-option:has(input[type="checkbox"]:disabled) {
+    opacity: 0.8;
+    cursor: not-allowed;
+}
+
+.default-subsection .control-option:has(input[type="checkbox"]:disabled):hover {
+    background: #f5f5f5;
+}
         
         
 .control-option {

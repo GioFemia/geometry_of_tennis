@@ -1996,6 +1996,11 @@
                         }
                     }
                 });
+                
+                // Se la modalità è 2colpi, forza e disabilita i primi 4 elementi nella sezione Default
+                if (window.__modalita__ === '2colpi') {
+                    updateVisualizationCheckboxes();
+                }
             }
             
             function applyToActualControls(defaults) {
@@ -2017,6 +2022,11 @@
                         }
                     }
                 });
+                
+                // Se la modalità è 2colpi, forza i primi 4 elementi dopo aver applicato i default
+                if (window.__modalita__ === '2colpi') {
+                    updateVisualizationCheckboxes();
+                }
             }
             
             function addDefaultEventListeners() {
@@ -2025,10 +2035,39 @@
                 
                 defaultControls.forEach(control => {
                     control.addEventListener('change', function() {
-                        // Save the change
                         const key = this.id.replace('default_', '');
                         const value = this.type === 'checkbox' ? this.checked : this.value;
+                        
+                        // Se si sta cambiando la modalità, aggiorna prima window.__modalita__ per i controlli successivi
+                        let currentModalita = window.__modalita__;
+                        if (key === 'modalita') {
+                            currentModalita = value;
+                            window.__modalita__ = value;
+                        }
+                        
+                        // Se la modalità è 2colpi e si sta cercando di deselezionare uno dei primi 4 elementi, impediscilo
+                        // Usa il valore corrente (che potrebbe essere stato appena aggiornato se abbiamo cambiato modalità)
+                        if (currentModalita === '2colpi' && this.type === 'checkbox') {
+                            const criticalElements = ['view_player', 'view_responder', 'view_directions', 'view_shot'];
+                            if (criticalElements.includes(key) && !this.checked) {
+                                // Ripristina il checkbox a checked
+                                this.checked = true;
+                                return; // Non salvare né applicare il cambio
+                            }
+                        }
+                        
+                        // Save the change
                         localStorage.setItem(`default_${key}`, value);
+                        
+                        // Se si sta cambiando la modalità, aggiorna i checkbox di visualizzazione
+                        if (key === 'modalita') {
+                            // Il cambio di modalità triggererà il listener della modalità che chiamerà updateVisualizationCheckboxes()
+                            // Ma dobbiamo assicurarci che venga chiamato anche qui per aggiornare i default
+                            // Usa setTimeout per assicurarsi che window.__modalita__ sia aggiornato
+                            setTimeout(() => {
+                                updateVisualizationCheckboxes();
+                            }, 10);
+                        }
                         
                         // Apply to actual control
                         if (key.startsWith('view_')) {
@@ -2315,6 +2354,46 @@
                         window.__viewResponder__ = true;
                     }
                     
+                    // In modalità 2colpi, forza anche i checkbox nella sezione Default e li disabilita
+                    if (window.__modalita__ === '2colpi') {
+                        const defaultViewPlayer = document.getElementById('default_view_player');
+                        const defaultViewResponder = document.getElementById('default_view_responder');
+                        const defaultViewDirections = document.getElementById('default_view_directions');
+                        const defaultViewShot = document.getElementById('default_view_shot');
+                        
+                        if (defaultViewPlayer) {
+                            defaultViewPlayer.checked = true;
+                            defaultViewPlayer.disabled = true;
+                            localStorage.setItem('default_view_player', 'true');
+                        }
+                        if (defaultViewResponder) {
+                            defaultViewResponder.checked = true;
+                            defaultViewResponder.disabled = true;
+                            localStorage.setItem('default_view_responder', 'true');
+                        }
+                        if (defaultViewDirections) {
+                            defaultViewDirections.checked = true;
+                            defaultViewDirections.disabled = true;
+                            localStorage.setItem('default_view_directions', 'true');
+                        }
+                        if (defaultViewShot) {
+                            defaultViewShot.checked = true;
+                            defaultViewShot.disabled = true;
+                            localStorage.setItem('default_view_shot', 'true');
+                        }
+                    } else {
+                        // In altre modalità, riabilita i checkbox nella sezione Default
+                        const defaultViewPlayer = document.getElementById('default_view_player');
+                        const defaultViewResponder = document.getElementById('default_view_responder');
+                        const defaultViewDirections = document.getElementById('default_view_directions');
+                        const defaultViewShot = document.getElementById('default_view_shot');
+                        
+                        if (defaultViewPlayer) defaultViewPlayer.disabled = false;
+                        if (defaultViewResponder) defaultViewResponder.disabled = false;
+                        if (defaultViewDirections) defaultViewDirections.disabled = false;
+                        if (defaultViewShot) defaultViewShot.disabled = false;
+                    }
+                    
                     // Applica i cambiamenti
                     applyViewToggles();
                 } else {
@@ -2323,6 +2402,17 @@
                     if (chkPlayer) chkPlayer.disabled = false;
                     if (chkShot) chkShot.disabled = false;
                     if (chkResponder) chkResponder.disabled = false;
+                    
+                    // In altre modalità, riabilita anche i checkbox nella sezione Default
+                    const defaultViewPlayer = document.getElementById('default_view_player');
+                    const defaultViewResponder = document.getElementById('default_view_responder');
+                    const defaultViewDirections = document.getElementById('default_view_directions');
+                    const defaultViewShot = document.getElementById('default_view_shot');
+                    
+                    if (defaultViewPlayer) defaultViewPlayer.disabled = false;
+                    if (defaultViewResponder) defaultViewResponder.disabled = false;
+                    if (defaultViewDirections) defaultViewDirections.disabled = false;
+                    if (defaultViewShot) defaultViewShot.disabled = false;
                     
                     // Se il punto era finito, ripristina gli elementi
                     if (puntoFinito) {
