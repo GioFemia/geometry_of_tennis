@@ -489,6 +489,28 @@ body {
         display: flex;
         margin-bottom: 0;
         border-radius: 10px;
+        gap: 20px;
+    }
+
+    .controls-sidebar.mobile-enabled .mobile-nav-title {
+        font-family: 'Poppins', 'Roboto', sans-serif;
+        font-size: 20px;
+        font-weight: 900;
+        letter-spacing: 3px;
+        background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #ffffff 100%);
+        background-size: 200% 200%;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+        display: block !important;
+        animation: gradientShift 4s ease infinite;
+        text-transform: uppercase;
+        font-style: italic;
+    }
+
+    .controls-sidebar.mobile-enabled.mobile-open .app-title-section {
+        display: none !important;
     }
 
     .controls-sidebar.mobile-enabled.mobile-collapsed .mobile-nav-bar {
@@ -728,11 +750,32 @@ body {
 .mobile-nav-bar {
     display: none;
     justify-content: center;
+    align-items: center;
     gap: 12px;
     padding: 12px 8px;
     background: linear-gradient(135deg, #1565c0 0%, #1976d2 40%, #42a5f5 100%);
     border-radius: 12px;
     margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.mobile-nav-title {
+    font-family: 'Poppins', 'Roboto', sans-serif;
+    font-size: 10px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #ffffff 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 2px;
+    text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    text-align: center;
+    line-height: 1.2;
+    position: relative;
+    text-transform: uppercase;
+    font-style: italic;
+    animation: gradientShift 4s ease infinite;
 }
 
 .mobile-nav-pill {
@@ -788,6 +831,64 @@ body {
 
 .mobile-nav-pill .pill-label {
     display: none;
+}
+
+/* ==========================================
+   APP TITLE SECTION
+   ========================================== */
+.app-title-section {
+    margin-bottom: 16px;
+    padding: 16px 14px;
+    text-align: center;
+    background: linear-gradient(135deg, #1565c0 0%, #1976d2 50%, #1565c0 100%);
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(21, 101, 192, 0.2);
+    position: relative;
+    overflow: hidden;
+    min-width: 200px;
+    width: 100%;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.app-title-section::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: titleShine 8s linear infinite;
+}
+
+@keyframes titleShine {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.app-title {
+    font-family: 'Poppins', 'Roboto', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #ffffff 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 3px;
+    margin: 0;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+    position: relative;
+    z-index: 1;
+    animation: gradientShift 4s ease infinite;
+    text-transform: uppercase;
+    font-style: italic;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
 }
 
 /* ==========================================
@@ -1731,13 +1832,22 @@ body {
 }
 
 .tutorial-title {
+    font-family: 'Poppins', 'Roboto', sans-serif;
     font-size: 28px;
-    font-weight: 700;
-    color: #ffffff;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #ffffff 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 3px;
     margin: 0 0 8px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
     position: relative;
     z-index: 1;
+    animation: gradientShift 4s ease infinite;
+    text-transform: uppercase;
+    font-style: italic;
 }
 
 .tutorial-subtitle {
@@ -2031,6 +2141,7 @@ body {
 
     .tutorial-title {
         font-size: 22px;
+        letter-spacing: 2px;
     }
 
     .tutorial-content {

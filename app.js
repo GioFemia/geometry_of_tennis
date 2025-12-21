@@ -4320,6 +4320,21 @@
                         setModalitaSilently(newModalita);
                     }
                     
+                    // Chiudi la sezione modalità quando si arriva alle schede 10 e 11
+                    if (tutorialOverlay.classList.contains('active') && (currentStep === 10 || currentStep === 11)) {
+                        const panelModalita = document.getElementById('panelModalita');
+                        if (panelModalita) {
+                            const content = panelModalita.querySelector('.panel-section-content');
+                            const header = panelModalita.querySelector('.panel-section-header');
+                            if (content && content.classList.contains('expanded')) {
+                                content.classList.remove('expanded');
+                                if (header) {
+                                    header.setAttribute('aria-expanded', 'false');
+                                }
+                            }
+                        }
+                    }
+                    
                     // Aggiorna il layout della guida (sidebar vs overlay)
                     updateDesktopTutorialSidebar();
                     
