@@ -444,6 +444,11 @@ body {
         box-sizing: border-box;
         overflow: hidden;
     }
+    
+    /* Aggiungi spazio per il footer quando la modalità è 1 colpo */
+    body.mobile-1colpo .page-container {
+        padding-bottom: calc(var(--mobile-safe-bottom) + 40px);
+    }
 
     body.mobile-dinamico .page-container {
         padding-top: calc(
@@ -558,6 +563,35 @@ body {
     .controls-sidebar.mobile-enabled .sidebar-footer {
         display: none !important;
     }
+    
+    /* Footer per mobile (in fondo alla schermata) - visibile solo in modalità 1 colpo */
+    .page-footer-mobile {
+        display: none;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 8px var(--mobile-side-padding);
+        padding-bottom: calc(8px + var(--mobile-safe-bottom));
+        background: #ffffff;
+        border-top: 1px solid #e0e0e0;
+        text-align: center;
+        z-index: 30;
+        box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+    }
+    
+    body.mobile-1colpo .page-footer-mobile {
+        display: block;
+    }
+    
+    .page-footer-text {
+        font-size: 9px;
+        color: #90a4ae;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+        display: block;
+        line-height: 1.2;
+    }
 
     /* Panel sections in mobile */
     .controls-sidebar.mobile-enabled .panel-section {
@@ -637,6 +671,12 @@ body {
         max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 100px);
         min-width: 0;
     }
+    
+    /* Riduci l'altezza quando c'è il footer in modalità 1 colpo */
+    body.mobile-1colpo .svg-wrap {
+        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 140px);
+        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 140px);
+    }
 
     .svg-wrap svg {
         width: 100%;
@@ -644,6 +684,12 @@ body {
         max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 100px);
         max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 100px);
         min-width: 0;
+    }
+    
+    /* Riduci l'altezza quando c'è il footer in modalità 1 colpo */
+    body.mobile-1colpo .svg-wrap svg {
+        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 140px);
+        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 140px);
     }
 
     body.mobile-dinamico .svg-wrap,

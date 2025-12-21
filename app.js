@@ -1812,12 +1812,18 @@
                         if (val === '1colpo') {
                             // Single shot mode - show only primary court
                             document.querySelector('.court-container:last-of-type').style.display = 'none';
+                            document.body.classList.add('mobile-1colpo');
+                            document.body.classList.remove('mobile-2colpi', 'mobile-dinamico');
                         } else if (val === '2colpi') {
                             // Two shots mode - show both courts
                             document.querySelector('.court-container:last-of-type').style.display = 'flex';
+                            document.body.classList.add('mobile-2colpi');
+                            document.body.classList.remove('mobile-1colpo', 'mobile-dinamico');
                         } else if (val === 'dinamico') {
                             // Dynamic mode - show panel in right container
                             document.querySelector('.court-container:last-of-type').style.display = 'flex';
+                            document.body.classList.add('mobile-dinamico');
+                            document.body.classList.remove('mobile-1colpo', 'mobile-2colpi');
                         }
                         
                         // Update the display
@@ -1850,6 +1856,23 @@
                         }
                     });
                 });
+                
+                // Inizializza la classe basandosi sul valore iniziale
+                const initialModalita = document.querySelector('input[name="modalita"]:checked');
+                if (initialModalita) {
+                    const initialVal = initialModalita.value;
+                    window.__modalita__ = initialVal;
+                    if (initialVal === '1colpo') {
+                        document.body.classList.add('mobile-1colpo');
+                        document.body.classList.remove('mobile-2colpi', 'mobile-dinamico');
+                    } else if (initialVal === '2colpi') {
+                        document.body.classList.add('mobile-2colpi');
+                        document.body.classList.remove('mobile-1colpo', 'mobile-dinamico');
+                    } else if (initialVal === 'dinamico') {
+                        document.body.classList.add('mobile-dinamico');
+                        document.body.classList.remove('mobile-1colpo', 'mobile-2colpi');
+                    }
+                }
             }
             
             // Update mode indicator (icon and text)
