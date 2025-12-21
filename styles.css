@@ -688,8 +688,8 @@ body {
     
     /* Riduci l'altezza quando c'è il footer in modalità 1 colpo */
     body.mobile-1colpo .svg-wrap svg {
-        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 140px);
-        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 140px);
+        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 80px);
+        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 80px);
     }
 
     body.mobile-dinamico .svg-wrap,
