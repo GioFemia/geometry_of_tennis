@@ -2279,9 +2279,14 @@ body {
         transform: none;
     }
 
-    /* Nascondi il campo secondario quando la guida è aperta su desktop in modalità sidebar */
-    body.desktop-tutorial-sidebar .secondary-court {
+    /* Nascondi il campo secondario quando la guida è aperta su desktop in modalità sidebar (ma non quando è sopra la sidebar) */
+    body.desktop-tutorial-sidebar:not(.desktop-tutorial-over-sidebar) .secondary-court {
         display: none !important;
+    }
+
+    /* Mostra il campo secondario quando la guida è sopra la sidebar (step 7-8) */
+    body.desktop-tutorial-over-sidebar .secondary-court {
+        display: flex !important;
     }
 
     /* Il pulsante chiudi ha uno stile leggermente diverso quando è sidebar */
@@ -2291,7 +2296,49 @@ body {
         right: 16px;
     }
 
-    /* Quando la guida sostituisce il campo principale (step 7-8) */
+    /* Assicura che il page-container sia relativo per il posizionamento assoluto */
+    body.desktop-tutorial-over-sidebar .page-container {
+        position: relative;
+    }
+
+    /* Quando la guida è sopra la sidebar (step 7-8) */
+    body.desktop-tutorial-over-sidebar .tutorial-overlay {
+        position: absolute;
+        top: 0.8em;
+        left: calc(8em + 0.8em); /* margin-left della sidebar + padding del page-container */
+        width: 500px; /* Larghezza maggiore per migliore leggibilità */
+        max-width: 500px;
+        max-height: calc(100vh - 1.6em);
+        z-index: 50; /* Sopra la sidebar */
+        grid-column: unset; /* Rimuove il grid-column */
+        margin: 0; /* Rimuove eventuali margini */
+    }
+
+    @media (max-width: 1600px) {
+        body.desktop-tutorial-over-sidebar .tutorial-overlay {
+            left: calc(4em + 0.8em);
+        }
+    }
+
+    @media (max-width: 1400px) {
+        body.desktop-tutorial-over-sidebar .tutorial-overlay {
+            left: calc(2em + 0.5em);
+        }
+    }
+
+    @media (max-width: 1200px) {
+        body.desktop-tutorial-over-sidebar .tutorial-overlay {
+            left: calc(1em + 0.4em);
+        }
+    }
+
+    @media (max-width: 1100px) {
+        body.desktop-tutorial-over-sidebar .tutorial-overlay {
+            left: calc(0.5em + 0.3em);
+        }
+    }
+
+    /* Quando la guida sostituisce il campo principale (non più usato per step 7-8) */
     body.desktop-tutorial-replace-primary .tutorial-overlay {
         position: relative;
         background: #ffffff;

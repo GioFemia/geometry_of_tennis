@@ -4470,13 +4470,18 @@
                     if (step === 0 || step === 12 || step === 13 || step === 14) {
                         return false; // Overlay per queste pagine
                     }
-                    // Sidebar per step 1-6 e 9-11, sostituisce campo principale per step 7-8
-                    return (step >= 1 && step <= 6) || (step >= 9 && step <= 11);
+                    // Sidebar per step 1-6, 7-8 (sopra la sidebar), e 9-11
+                    return (step >= 1 && step <= 11);
                 }
                 
                 // Funzione per determinare se la guida deve sostituire il campo principale
                 function shouldReplacePrimaryCourt(step) {
-                    // Sostituisce il campo principale per step 7-8
+                    // Non sostituisce più il campo principale per step 7-8
+                    return false;
+                }
+                
+                // Funzione per determinare se la guida deve essere sopra la sidebar (step 7-8)
+                function shouldShowOverSidebar(step) {
                     return step === 7 || step === 8;
                 }
                 
@@ -4635,29 +4640,53 @@
                     // Determina se mostrare sidebar o sostituire il campo principale in base allo step
                     const showSidebar = shouldShowSidebar(currentStep);
                     const replacePrimaryCourt = shouldReplacePrimaryCourt(currentStep);
+                    const showOverSidebar = shouldShowOverSidebar(currentStep);
                     
                     // Su desktop, mostra sidebar o sostituisce campo principale in base allo step
                     if (isDesktop && isTutorialOpen && pageContainer) {
                         if (showSidebar) {
-                            // Modalità sidebar: sposta l'overlay dentro il page-container (colonna 3)
-                            document.body.classList.add('desktop-tutorial-sidebar');
-                            document.body.classList.remove('desktop-tutorial-replace-primary');
-                            document.body.style.overflow = ''; // Non bloccare lo scroll su desktop
-                            
-                            // Mostra il campo principale
-                            if (primaryCourt) {
-                                primaryCourt.style.display = '';
-                            }
-                            
-                            // Salva la posizione originale se non l'abbiamo già fatto
-                            if (!tutorialOverlayOriginalParent) {
-                                tutorialOverlayOriginalParent = tutorialOverlay.parentNode;
-                                tutorialOverlayOriginalNextSibling = tutorialOverlay.nextSibling;
-                            }
-                            
-                            // Sposta l'overlay dentro il page-container (come terza colonna)
-                            if (tutorialOverlay.parentNode !== pageContainer) {
-                                pageContainer.appendChild(tutorialOverlay);
+                            if (showOverSidebar) {
+                                // Modalità sopra la sidebar: step 7-8, posiziona sopra la sidebar
+                                document.body.classList.add('desktop-tutorial-sidebar', 'desktop-tutorial-over-sidebar');
+                                document.body.classList.remove('desktop-tutorial-replace-primary');
+                                document.body.style.overflow = ''; // Non bloccare lo scroll su desktop
+                                
+                                // Mostra il campo principale
+                                if (primaryCourt) {
+                                    primaryCourt.style.display = '';
+                                }
+                                
+                                // Salva la posizione originale se non l'abbiamo già fatto
+                                if (!tutorialOverlayOriginalParent) {
+                                    tutorialOverlayOriginalParent = tutorialOverlay.parentNode;
+                                    tutorialOverlayOriginalNextSibling = tutorialOverlay.nextSibling;
+                                }
+                                
+                                // Sposta l'overlay dentro il page-container (per posizionamento assoluto sopra la sidebar)
+                                if (tutorialOverlay.parentNode !== pageContainer) {
+                                    pageContainer.appendChild(tutorialOverlay);
+                                }
+                            } else {
+                                // Modalità sidebar normale: sposta l'overlay dentro il page-container (colonna 3)
+                                document.body.classList.add('desktop-tutorial-sidebar');
+                                document.body.classList.remove('desktop-tutorial-replace-primary', 'desktop-tutorial-over-sidebar');
+                                document.body.style.overflow = ''; // Non bloccare lo scroll su desktop
+                                
+                                // Mostra il campo principale
+                                if (primaryCourt) {
+                                    primaryCourt.style.display = '';
+                                }
+                                
+                                // Salva la posizione originale se non l'abbiamo già fatto
+                                if (!tutorialOverlayOriginalParent) {
+                                    tutorialOverlayOriginalParent = tutorialOverlay.parentNode;
+                                    tutorialOverlayOriginalNextSibling = tutorialOverlay.nextSibling;
+                                }
+                                
+                                // Sposta l'overlay dentro il page-container (come terza colonna)
+                                if (tutorialOverlay.parentNode !== pageContainer) {
+                                    pageContainer.appendChild(tutorialOverlay);
+                                }
                             }
                         } else if (replacePrimaryCourt) {
                             // Modalità sostituisce campo principale: sposta l'overlay nella colonna del campo principale
@@ -4694,7 +4723,7 @@
                             }
                         } else {
                             // Modalità overlay: per pagine 1, 13, 14, 15
-                            document.body.classList.remove('desktop-tutorial-sidebar', 'desktop-tutorial-replace-primary');
+                            document.body.classList.remove('desktop-tutorial-sidebar', 'desktop-tutorial-replace-primary', 'desktop-tutorial-over-sidebar');
                             document.body.style.overflow = 'hidden';
                             
                             // Mostra il campo principale
@@ -4713,7 +4742,7 @@
                         }
                     } else {
                         // Modalità normale: ripristina la posizione originale
-                        document.body.classList.remove('desktop-tutorial-sidebar', 'desktop-tutorial-replace-primary');
+                        document.body.classList.remove('desktop-tutorial-sidebar', 'desktop-tutorial-replace-primary', 'desktop-tutorial-over-sidebar');
                         
                         // Mostra il campo principale
                         if (primaryCourt) {
@@ -4798,7 +4827,7 @@
                     setModalitaInputsEnabled(true);
                     
                     // Rimuovi le classi e ripristina la posizione originale
-                    document.body.classList.remove('desktop-tutorial-sidebar', 'desktop-tutorial-replace-primary');
+                    document.body.classList.remove('desktop-tutorial-sidebar', 'desktop-tutorial-replace-primary', 'desktop-tutorial-over-sidebar');
                     
                     // Mostra il campo principale
                     const primaryCourt = document.querySelector('.court-container.primary-court');
