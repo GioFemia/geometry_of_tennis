@@ -740,6 +740,37 @@ body {
         overflow: hidden;
     }
 
+    body.mobile-dinamico #dinamicoPanel {
+        display: flex;
+        flex-direction: column;
+    }
+
+    body.mobile-dinamico #dinamicoPanel .dinamico-primary-row {
+        margin-top: 0;
+        margin-bottom: 12px;
+        order: 1; /* Primo elemento quando il pannello è expanded */
+    }
+
+    body.mobile-dinamico #dinamicoPanel .control-field {
+        order: 2;
+    }
+
+    body.mobile-dinamico #dinamicoPanel .ultimo-colpo-field {
+        order: 3;
+    }
+
+    body.mobile-dinamico #dinamicoPanel #visualizzaScambioButton {
+        order: 4;
+    }
+
+    body.mobile-dinamico #dinamicoPanel #pauseResumeButton {
+        order: 5;
+    }
+
+    body.mobile-dinamico #dinamicoPanel #nuovoScambioButton {
+        order: 6;
+    }
+
     body.mobile-dinamico #dinamicoPanel.mobile-collapsed > :not(.dinamico-primary-row) {
         display: none !important;
     }
@@ -1201,7 +1232,8 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-top: 12px;
+    margin-top: 0;
+    margin-bottom: 12px;
 }
 
 .dinamico-primary-row .colpo-button {

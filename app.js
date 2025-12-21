@@ -329,7 +329,8 @@
                     xRight = computeIntersectionX(dotX, dotY, rightPassX, rightPassY, yH);
                 }
                 
-                const coverVisible = window.__viewCover__ !== false;
+                // Durante l'animazione "Visualizza Punto", nascondi sempre il campo da coprire
+                const coverVisible = (window.__viewCover__ !== false) && !animazioneInCorso;
                 const receiverVisible = window.__viewResponder__ !== false;
                 
                 const x1 = Math.min(xLeft, xRight);
@@ -1463,10 +1464,12 @@
                 if (dot) dot.style.display = (window.__viewPlayer__ === false) ? 'none' : '';
                 if (yellowLine) yellowLine.style.display = (window.__viewShot__ === false) ? 'none' : '';
                 if (bisectorLine) bisectorLine.style.display = (window.__viewCenter__ === false) ? 'none' : '';
-                if (hMeasure) hMeasure.style.display = (window.__viewCover__ === false) ? 'none' : '';
-                if (hMeasureLabel) hMeasureLabel.style.display = (window.__viewCover__ === false) ? 'none' : '';
-                if (hMeasureBadge) hMeasureBadge.style.display = (window.__viewCover__ === false) ? 'none' : '';
-                if (arrowHtml) arrowHtml.style.display = (window.__viewCover__ === false) ? 'none' : 'block';
+                // Durante l'animazione "Visualizza Punto", nascondi sempre il campo da coprire
+                const shouldHideCover = window.__viewCover__ === false || animazioneInCorso;
+                if (hMeasure) hMeasure.style.display = shouldHideCover ? 'none' : '';
+                if (hMeasureLabel) hMeasureLabel.style.display = shouldHideCover ? 'none' : '';
+                if (hMeasureBadge) hMeasureBadge.style.display = shouldHideCover ? 'none' : '';
+                if (arrowHtml) arrowHtml.style.display = shouldHideCover ? 'none' : 'block';
                 updateZones();
                 updateSecondaryCourtLock();
                 updateSecondaryFromLeft();
@@ -2512,12 +2515,19 @@
                         passanteRadio.disabled = false;
                         if (passanteLabel) passanteLabel.style.opacity = '1';
                     }
-                    if (attaccoRadio) {
-                        const attaccoEnabled = !isOneColpo;
-                        attaccoRadio.disabled = !attaccoEnabled;
-                        if (attaccoLabel) attaccoLabel.style.opacity = attaccoEnabled ? '1' : '0.5';
-                        if (!attaccoEnabled && attaccoRadio.checked) {
-                            forceNonAttaccoSelection();
+                    if (attaccoRadio && attaccoLabel) {
+                        if (isOneColpo) {
+                            // Nascondi completamente l'opzione "Attacco" in modalità 1 colpo
+                            attaccoLabel.style.display = 'none';
+                            // Se è selezionato, seleziona un'altra opzione
+                            if (attaccoRadio.checked) {
+                                forceNonAttaccoSelection();
+                            }
+                        } else {
+                            // Mostra l'opzione quando non è modalità 1 colpo
+                            attaccoLabel.style.display = '';
+                            attaccoRadio.disabled = false;
+                            attaccoLabel.style.opacity = '1';
                         }
                     }
                 }
@@ -2655,7 +2665,7 @@
                     // Nascondi tutti gli elementi tranne i cerchietti rossi
                     const elementsToHide = [
                         leftLine, rightLine, bisectorLine, yellowLine, 
-                        wedge, hMeasure, arrowHtml, dot, intersectionDot
+                        wedge, hMeasure, hMeasureLabel, hMeasureBadge, arrowHtml, dot, intersectionDot
                     ];
                     elementsToHide.forEach(el => {
                         if (el) el.style.display = 'none';
@@ -2690,9 +2700,8 @@
                                 // Ripristina gli elementi nascosti
                                 elementsToHide.forEach(el => {
                                     if (el) {
-                                        if (el === arrowHtml) {
-                                            el.style.display = (window.__viewCover__ === false) ? 'none' : 'block';
-                                        } else {
+                                        // Gli elementi h-measure e arrowHtml vengono gestiti separatamente dopo
+                                        if (el !== arrowHtml && el !== hMeasure && el !== hMeasureLabel && el !== hMeasureBadge) {
                                             el.style.display = '';
                                         }
                                     }
@@ -2701,7 +2710,7 @@
                                 // Ripristina il cerchietto del colpo precedente
                                 if (previousShotDot) previousShotDot.style.display = '';
                                 
-                                // Riapplica i toggle di visibilità
+                                // Riapplica i toggle di visibilità (questo ripristinerà correttamente h-measure e arrowHtml in base a viewCover)
                                 applyViewToggles();
                                 
                                 // Ricalcola le linee
