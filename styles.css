@@ -489,14 +489,15 @@ body {
         display: flex;
         margin-bottom: 0;
         border-radius: 10px;
-        gap: 20px;
+        gap: 12px;
+        flex-wrap: nowrap;
     }
 
     .controls-sidebar.mobile-enabled .mobile-nav-title {
         font-family: 'Poppins', 'Roboto', sans-serif;
-        font-size: 20px;
+        font-size: 16px;
         font-weight: 900;
-        letter-spacing: 3px;
+        letter-spacing: 1.5px;
         background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #ffffff 100%);
         background-size: 200% 200%;
         -webkit-background-clip: text;
@@ -507,6 +508,7 @@ body {
         animation: gradientShift 4s ease infinite;
         text-transform: uppercase;
         font-style: italic;
+        white-space: nowrap;
     }
 
     .controls-sidebar.mobile-enabled.mobile-open .app-title-section {
@@ -751,12 +753,12 @@ body {
     display: none;
     justify-content: center;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     padding: 12px 8px;
     background: linear-gradient(135deg, #1565c0 0%, #1976d2 40%, #42a5f5 100%);
     border-radius: 12px;
     margin-bottom: 12px;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
 
 .mobile-nav-title {

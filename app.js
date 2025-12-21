@@ -4320,8 +4320,8 @@
                         setModalitaSilently(newModalita);
                     }
                     
-                    // Chiudi la sezione modalità quando si arriva alle schede 10 e 11
-                    if (tutorialOverlay.classList.contains('active') && (currentStep === 10 || currentStep === 11)) {
+                    // Chiudi la sezione modalità quando si arriva alle schede 9 e 10
+                    if (tutorialOverlay.classList.contains('active') && (currentStep === 9 || currentStep === 10)) {
                         const panelModalita = document.getElementById('panelModalita');
                         if (panelModalita) {
                             const content = panelModalita.querySelector('.panel-section-content');
