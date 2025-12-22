@@ -447,7 +447,8 @@ body {
     
     /* Aggiungi spazio per il footer quando la modalità è 1 colpo */
     body.mobile-1colpo .page-container {
-        padding-bottom: calc(var(--mobile-safe-bottom) + 40px);
+        padding-top: calc(var(--mobile-safe-top) + var(--mobile-settings-bar-height) - 10px);
+        padding-bottom: calc(var(--mobile-safe-bottom) + 20px);
     }
 
     body.mobile-dinamico .page-container {
@@ -649,6 +650,10 @@ body {
         justify-content: center;
     }
 
+    body.mobile-1colpo .court-container {
+        padding: 2px 0 1px;
+    }
+
     .primary-court,
     .secondary-court {
         width: 100%;
@@ -678,29 +683,29 @@ body {
     .svg-wrap {
         width: 100%;
         height: auto;
-        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 100px);
-        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 100px);
+        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 75px);
+        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 75px);
         min-width: 0;
     }
     
     /* Riduci l'altezza quando c'è il footer in modalità 1 colpo */
     body.mobile-1colpo .svg-wrap {
-        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 80px);
-        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 80px);
+        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 40px);
+        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 40px);
     }
 
     .svg-wrap svg {
         width: 100%;
         height: auto;
-        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 100px);
-        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 100px);
+        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 75px);
+        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 75px);
         min-width: 0;
     }
     
     /* Riduci l'altezza quando c'è il footer in modalità 1 colpo */
     body.mobile-1colpo .svg-wrap svg {
-        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 80px);
-        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 80px);
+        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 40px);
+        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 40px);
     }
 
     body.mobile-dinamico .svg-wrap,
@@ -744,7 +749,7 @@ body {
     .mobile-panel-toggle {
         display: none;
         position: relative;
-        margin: 20px auto 0;
+        margin: auto 0;
         align-self: center;
         z-index: 5;
         width: auto;
@@ -781,7 +786,7 @@ body {
 
     body.mobile-dinamico #dinamicoPanel {
         position: absolute;
-        top: calc(var(--mobile-safe-top) + var(--mobile-settings-bar-height) + 12px);
+        top: calc(var(--mobile-safe-top) + var(--mobile-settings-bar-height));
         left: 50%;
         transform: translateX(-50%);
         width: min(520px, calc(100% - 2 * var(--mobile-side-padding)));
