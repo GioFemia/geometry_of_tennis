@@ -230,6 +230,49 @@ body {
     flex: 1;
 }
 
+/* Freccia tra i campi per modalità 2 colpi (solo desktop) */
+.courts-arrow {
+    position: absolute;
+    /* Posizionata al centro tra i due campi: considerando che la sidebar è a sinistra e i due campi occupano ciascuno 1fr */
+    /* Il page-container ha grid: auto 1fr 1fr, quindi la freccia deve essere al 75% circa della larghezza totale */
+    left: 61.5%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 64px;
+    height: 64px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+    border-radius: 50%;
+    box-shadow: 0 4px 16px rgba(25, 118, 210, 0.35);
+    z-index: 10;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.courts-arrow svg {
+    width: 32px;
+    height: 32px;
+    color: #ffffff;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+/* Mostra la freccia solo su schermi grandi e in modalità 2 colpi */
+@media (min-width: 901px) {
+    body:not(.mobile-1colpo):not(.mobile-dinamico) .courts-arrow {
+        display: flex;
+    }
+    
+    /* Nascondi la freccia quando si è in modalità dinamico */
+    body.mobile-dinamico .courts-arrow,
+    .secondary-court:has(#dinamicoPanel.active) ~ .courts-arrow,
+    .secondary-court:has(#dinamicoPanel.active) + .courts-arrow,
+    body:has(#dinamicoPanel.active) .courts-arrow {
+        display: none !important;
+    }
+}
+
 .primary-court,
 .secondary-court {
     display: flex;
@@ -1686,8 +1729,6 @@ body {
     background: #f5f5f5;
     border-color: #1976d2;
     color: #1976d2;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.2);
 }
         
 .draw-tool-button.active {
@@ -1695,10 +1736,6 @@ body {
     border-color: #1976d2;
     color: #ffffff;
     box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
-}
-        
-.draw-tool-button:active {
-    transform: translateY(0);
 }
         
 .draw-clear-button {
@@ -1719,12 +1756,6 @@ body {
 .draw-clear-button:hover {
     background: #f44336;
     color: #ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(244, 67, 54, 0.3);
-}
-        
-.draw-clear-button:active {
-    transform: translateY(0);
 }
         
 .draw-color-picker,
@@ -2498,5 +2529,127 @@ body {
         position: absolute;
         top: 16px;
         right: 16px;
+    }
+}
+
+/* ==========================================
+   ALERT MOVIMENTO COLPITORE IN MODALITÀ DINAMICO
+   ========================================== */
+.colpitore-movement-alert {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10001;
+    padding: 20px;
+    box-sizing: border-box;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.colpitore-movement-alert.active {
+    display: flex;
+    opacity: 1;
+}
+
+.colpitore-alert-modal {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    max-width: 500px;
+    width: 100%;
+    padding: 32px;
+    position: relative;
+    transform: scale(0.9) translateY(20px);
+    animation: colpitoreAlertModalIn 0.4s ease forwards;
+}
+
+@keyframes colpitoreAlertModalIn {
+    to {
+        transform: scale(1) translateY(0);
+    }
+}
+
+.colpitore-alert-content {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+}
+
+.colpitore-alert-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #f44336;
+    text-align: center;
+    margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.colpitore-alert-message {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #263238;
+    text-align: center;
+    margin: 0;
+    font-weight: 500;
+}
+
+.colpitore-alert-button {
+    background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+    border: none;
+    border-radius: 12px;
+    padding: 14px 32px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+    transition: all 0.3s ease;
+    min-width: 150px;
+}
+
+.colpitore-alert-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.4);
+}
+
+.colpitore-alert-button:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+}
+
+/* Mobile responsive */
+@media (max-width: 900px) {
+    .colpitore-movement-alert {
+        padding: 12px;
+    }
+
+    .colpitore-alert-modal {
+        padding: 24px;
+        border-radius: 16px;
+    }
+
+    .colpitore-alert-title {
+        font-size: 20px;
+    }
+
+    .colpitore-alert-message {
+        font-size: 14px;
+    }
+
+    .colpitore-alert-button {
+        padding: 12px 24px;
+        font-size: 14px;
     }
 }

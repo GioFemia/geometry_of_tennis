@@ -90,7 +90,7 @@
                 <!-- Step 5: Campo da Colpire -->
                 <div class="tutorial-step" data-step="5">
                     <h2>Il Campo da Colpire</h2>
-                    <p>La <strong>linea orizzontale</strong> nel campo del ricevitore mostra la lunghezzza del campo che deve coprire.</p>
+                    <p>La <strong>linea orizzontale</strong> nel campo del ricevitore mostra la lunghezza del campo che deve coprire.</p>
                     <p>Il campo da coprire varia in case a:</p>
                     <ul class="tutorial-list">
                         <li>La posizione del colpitore</li>
@@ -164,7 +164,7 @@
                 
                 <!-- Step 10: Scelta Tipologia -->
                 <div class="tutorial-step" data-step="10">
-                    <h2>Scelta della Tipologia</h2>
+                    <h2>Scelta del Colpo</h2>
                     <p>Ogni <strong>tipo di colpo</strong> ha caratteristiche geometriche diverse:</p>
                     <ul class="tutorial-list">
                         <li><strong>Palleggio:</strong> Colpi di scambio normali - angolazioni standard</li>
@@ -345,7 +345,7 @@
             
             <!-- Tipologia di Colpo -->
             <div class="control-section collapsed">
-                <h3 class="control-section-title">Tipologia</h3>
+                <h3 class="control-section-title">Colpo</h3>
                 <div class="control-options">
                     <label class="control-option" for="tipo_pal">
                         <input id="tipo_pal" type="radio" name="tipologia" value="palleggio" checked />
@@ -362,6 +362,45 @@
                     <label class="control-option" for="tipo_ser">
                         <input id="tipo_ser" type="radio" name="tipologia" value="servizio" />
                         <span>Servizio</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Visualizza -->
+            <div class="control-section collapsed">
+                <h3 class="control-section-title">Visualizza</h3>
+                <div class="control-options">
+                    <label class="control-option" for="view_player">
+                        <input id="view_player" type="checkbox" checked />
+                        <span>Colpitore</span>
+                    </label>
+                    <label class="control-option" for="view_responder">
+                        <input id="view_responder" type="checkbox" checked />
+                        <span>Ricevitore</span>
+                    </label>
+                    <label class="control-option" for="view_directions">
+                        <input id="view_directions" type="checkbox" checked />
+                        <span>Direzioni</span>
+                    </label>
+                    <label class="control-option" for="view_shot">
+                        <input id="view_shot" type="checkbox" checked />
+                        <span>Colpo</span>
+                    </label>
+                    <label class="control-option" for="view_center">
+                        <input id="view_center" type="checkbox" checked />
+                        <span>Centro</span>
+                    </label>
+                    <label class="control-option" for="view_cover">
+                        <input id="view_cover" type="checkbox" />
+                        <span>Campo da Coprire</span>
+                    </label>
+                    <label class="control-option" for="view_zones">
+                        <input id="view_zones" type="checkbox" />
+                        <span>Zone del Campo</span>
+                    </label>
+                    <label class="control-option" for="view_coordinates">
+                        <input id="view_coordinates" type="checkbox" />
+                        <span>Coordinate</span>
                     </label>
                 </div>
             </div>
@@ -422,45 +461,6 @@
                 </div>
             </div>
             
-            <!-- Visualizza -->
-            <div class="control-section collapsed">
-                <h3 class="control-section-title">Visualizza</h3>
-                <div class="control-options">
-                    <label class="control-option" for="view_player">
-                        <input id="view_player" type="checkbox" checked />
-                        <span>Colpitore</span>
-                    </label>
-                    <label class="control-option" for="view_responder">
-                        <input id="view_responder" type="checkbox" checked />
-                        <span>Ricevitore</span>
-                    </label>
-                    <label class="control-option" for="view_directions">
-                        <input id="view_directions" type="checkbox" checked />
-                        <span>Direzioni</span>
-                    </label>
-                    <label class="control-option" for="view_shot">
-                        <input id="view_shot" type="checkbox" checked />
-                        <span>Colpo</span>
-                    </label>
-                    <label class="control-option" for="view_center">
-                        <input id="view_center" type="checkbox" checked />
-                        <span>Centro</span>
-                    </label>
-                    <label class="control-option" for="view_cover">
-                        <input id="view_cover" type="checkbox" />
-                        <span>Campo da Coprire</span>
-                    </label>
-                    <label class="control-option" for="view_zones">
-                        <input id="view_zones" type="checkbox" />
-                        <span>Zone del Campo</span>
-                    </label>
-                    <label class="control-option" for="view_coordinates">
-                        <input id="view_coordinates" type="checkbox" />
-                        <span>Coordinate</span>
-                    </label>
-                </div>
-            </div>
-            
             <!-- Superficie Campo -->
             <div class="control-section collapsed">
                 <h3 class="control-section-title">Superficie</h3>
@@ -505,7 +505,7 @@
                     </div>
                     <div class="default-subsection">
                         <label class="control-option" for="default_tipologia">
-                            <span>Tipologia:</span>
+                            <span>Colpo:</span>
                             <select id="default_tipologia" name="default_tipologia">
                                 <option value="palleggio" selected>Palleggio</option>
                                 <option value="passante">Passante</option>
@@ -644,6 +644,13 @@
             </div>
         </div>
         
+        <!-- Freccia tra i campi per modalità 2 colpi (solo desktop) -->
+        <div id="courtsArrow" class="courts-arrow">
+            <svg viewBox="0 0 24 24" width="48" height="48">
+                <path fill="currentColor" d="M8.59,16.58L13.17,12L8.59,7.41L10,6L16,12L10,18L8.59,16.58Z" />
+            </svg>
+        </div>
+        
         <div class="court-container secondary-court">
             <div class="svg-wrap secondary">
                 <!-- Campo secondario generato in JS -->
@@ -698,6 +705,17 @@
     <!-- Footer per mobile (in fondo alla schermata) -->
     <div class="page-footer-mobile">
         <span class="page-footer-text">© Web App di Giovanni Femia 2025</span>
+    </div>
+    
+    <!-- Alert overlay per movimento colpitore in modalità dinamico -->
+    <div id="colpitoreMovementAlert" class="colpitore-movement-alert">
+        <div class="colpitore-alert-modal">
+            <div class="colpitore-alert-content">
+                <h2 class="colpitore-alert-title">Attenzione!</h2>
+                <p class="colpitore-alert-message">Stai cercando di muovere il colpitore in una posizione diversa rispetto al colpo che ha ricevuto, in questo modo non potrai simulare un punto realistico!</p>
+                <button id="colpitoreAlertContinue" class="colpitore-alert-button">Continua</button>
+            </div>
+        </div>
     </div>
 
         <script src="app.js"></script>

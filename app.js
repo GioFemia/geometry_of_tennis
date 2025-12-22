@@ -59,6 +59,7 @@
             const visualizzaScambioButton = document.getElementById('visualizzaScambioButton');
             const pauseResumeButton = document.getElementById('pauseResumeButton');
             const nuovoScambioButton = document.getElementById('nuovoScambioButton');
+            const colpitoreAlertContinue = document.getElementById('colpitoreAlertContinue');
             const controlsSidebar = document.querySelector('.controls-sidebar');
             const settingsTitleTrigger = document.querySelector('.settings-title');
             const mobilePanelToggle = document.getElementById('mobilePanelToggle');
@@ -594,19 +595,45 @@
                 return window.innerWidth <= MOBILE_BREAKPOINT;
             }
 
+            // Flag per tracciare se l'alert è stato già mostrato
+            let colpitoreAlertShown = false;
+
             function isColpitoreMovementLocked() {
-                return false;
+                // In modalità dinamico, blocca il movimento se numero colpo > 1
+                return window.__modalita__ === 'dinamico' && window.__numeroColpo__ > 1;
             }
 
             function updateColpitoreDragState() {
                 if (!dot) return;
+                // Mostra un cursore di avvertimento se il movimento è "bloccato" ma permette comunque il movimento
                 if (isColpitoreMovementLocked()) {
-                    dot.style.cursor = 'not-allowed';
+                    dot.style.cursor = 'grab';
                 } else if (draggingDot) {
                     dot.style.cursor = 'grabbing';
                 } else {
                     dot.style.cursor = 'grab';
                 }
+            }
+
+            // Funzioni per gestire l'alert del movimento colpitore
+            function showColpitoreMovementAlert() {
+                const alert = document.getElementById('colpitoreMovementAlert');
+                if (alert && !colpitoreAlertShown) {
+                    alert.classList.add('active');
+                    colpitoreAlertShown = true;
+                }
+            }
+
+            function hideColpitoreMovementAlert() {
+                const alert = document.getElementById('colpitoreMovementAlert');
+                if (alert) {
+                    alert.classList.remove('active');
+                }
+            }
+
+            function resetColpitoreAlertFlag() {
+                colpitoreAlertShown = false;
+                hideColpitoreMovementAlert();
             }
 
             function setMobileSecondaryVisible(visible) {
@@ -1343,10 +1370,9 @@
             }
 
             function onDotPointerDown(evt) {
+                // Mostra l'alert se il movimento è "bloccato" ma permette comunque il movimento
                 if (isColpitoreMovementLocked()) {
-                    evt.preventDefault();
-                    updateColpitoreDragState();
-                    return;
+                    showColpitoreMovementAlert();
                 }
                 draggingDot = true;
                 svg.setPointerCapture && svg.setPointerCapture(evt.pointerId);
@@ -1635,11 +1661,15 @@
                 }
                 const point = toSvgPoint(evt);
                 let handled = false;
-                if (dot && window.__viewPlayer__ !== false && !isColpitoreMovementLocked()) {
+                if (dot && window.__viewPlayer__ !== false) {
                     const dotX = parseFloat(dot.getAttribute('cx'));
                     const dotY = parseFloat(dot.getAttribute('cy'));
                     const dotDistance = Math.hypot(point.x - dotX, point.y - dotY);
                     if (dotDistance <= TOUCH_PICK_RADIUS) {
+                        // Mostra l'alert se il movimento è "bloccato" ma permette comunque il movimento
+                        if (isColpitoreMovementLocked()) {
+                            showColpitoreMovementAlert();
+                        }
                         onDotPointerDown(evt);
                         onDotPointerMove(evt);
                         handled = true;
@@ -1807,6 +1837,9 @@
                     inp.addEventListener('change', (e) => {
                         const val = e.target && e.target.value ? e.target.value : '1colpo';
                         window.__modalita__ = val;
+                        
+                        // Reset flag alert quando si cambia modalità
+                        resetColpitoreAlertFlag();
                         
                         // Handle different modes
                         if (val === '1colpo') {
@@ -2588,6 +2621,13 @@
             // Inizializza il display e i pulsanti di navigazione
             updateNumeroColpoDisplay();
 
+            // Gestione pulsante CONTINUA dell'alert movimento colpitore
+            if (colpitoreAlertContinue) {
+                colpitoreAlertContinue.addEventListener('click', function() {
+                    hideColpitoreMovementAlert();
+                });
+            }
+
             // Gestione pulsante NUOVO SCAMBIO
             if (nuovoScambioButton) {
                 nuovoScambioButton.addEventListener('click', function() {
@@ -2595,6 +2635,9 @@
                     if (puntoFinito) {
                         ripristinaElementiDopoFinePunto();
                     }
+                    
+                    // Reset flag alert quando si inizia un nuovo punto
+                    resetColpitoreAlertFlag();
                     
                     // 1. Reset NUMERO COLPO a 1
                     window.__numeroColpo__ = 1;
