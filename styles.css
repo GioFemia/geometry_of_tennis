@@ -493,39 +493,52 @@ body {
     .controls-sidebar.mobile-enabled {
         position: absolute;
         top: var(--mobile-safe-top);
-        left: 50%;
-        right: auto;
-        transform: translateX(-50%);
+        left: 0;
+        right: 0;
+        transform: none;
+        width: 100%;
         z-index: 40;
-        border-radius: 0 0 18px 18px;
+        border-radius: 0;
         background: rgba(255, 255, 255, 0.98);
         box-shadow: none;
         max-height: calc(100vh - var(--mobile-safe-top) - 8px);
         max-height: calc(100dvh - var(--mobile-safe-top) - 8px);
         overflow: hidden;
-        padding: 12px 14px 16px;
+        padding: 0;
         scrollbar-width: none;
         -ms-overflow-style: none;
+        max-width: none;
+    }
+
+    .controls-sidebar.mobile-enabled.mobile-open {
+        padding: 0 0 16px 0;
+        overflow-y: auto;
+    }
+
+    .controls-sidebar.mobile-enabled.mobile-open > :not(.mobile-nav-bar) {
+        padding-left: var(--mobile-side-padding);
+        padding-right: var(--mobile-side-padding);
+    }
+
+    .controls-sidebar.mobile-enabled.mobile-collapsed {
+        padding: 0;
     }
 
     .controls-sidebar.mobile-enabled::-webkit-scrollbar {
         display: none;
     }
 
-    .controls-sidebar.mobile-enabled.mobile-open {
-        overflow-y: auto;
-    }
-
-    .controls-sidebar.mobile-enabled.mobile-collapsed {
-        padding: 10px 14px;
-    }
 
     /* Mobile nav bar visible on mobile */
     .controls-sidebar.mobile-enabled .mobile-nav-bar {
         display: flex;
         margin-bottom: 0;
-        border-radius: 10px;
-        gap: 12px;
+        border-radius: 0;
+        width: 100%;
+        margin: 0;
+        padding: 12px var(--mobile-side-padding);
+        box-sizing: border-box;
+        gap: 20px;
         flex-wrap: nowrap;
     }
 
@@ -545,15 +558,13 @@ body {
         text-transform: uppercase;
         font-style: italic;
         white-space: nowrap;
+        margin-right: 8px;
     }
 
     .controls-sidebar.mobile-enabled.mobile-open .app-title-section {
         display: none !important;
     }
 
-    .controls-sidebar.mobile-enabled.mobile-collapsed .mobile-nav-bar {
-        margin-bottom: 0;
-    }
 
     .controls-sidebar.mobile-enabled.mobile-collapsed > :not(.mobile-nav-bar) {
         display: none !important;
@@ -674,8 +685,8 @@ body {
     
     /* Riduci l'altezza quando c'è il footer in modalità 1 colpo */
     body.mobile-1colpo .svg-wrap {
-        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 140px);
-        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 140px);
+        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 80px);
+        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 80px);
     }
 
     .svg-wrap svg {
