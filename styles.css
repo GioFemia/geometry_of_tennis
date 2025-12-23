@@ -848,6 +848,7 @@ body {
     body.mobile-dinamico #dinamicoPanel .dinamico-primary-row {
         margin-top: 0;
         margin-bottom: 6px;
+        gap: 8px;
         order: 1; /* Primo elemento quando il pannello è expanded */
     }
 
@@ -889,6 +890,105 @@ body {
 
     body.mobile-dinamico #dinamicoMobileToggle {
         display: flex;
+    }
+
+    /* ==========================================
+       OVERRIDE DIMENSIONI PANNELLO DINAMICO SU MOBILE
+       ========================================== */
+    
+    /* Riduzione dimensioni pulsante COLPO su mobile */
+    .colpo-button {
+        padding: 14px 28px;
+        font-size: 15px;
+        letter-spacing: 1.5px;
+    }
+    
+    .colpo-button::before,
+    .colpo-button::after {
+        left: 16px;
+        right: 16px;
+        font-size: 17px;
+    }
+    
+    .colpo-button::after {
+        left: auto;
+        right: 16px;
+    }
+    
+    /* Riduzione control-field su mobile */
+    .control-field {
+        gap: 8px;
+    }
+    
+    .control-field label {
+        font-size: 11px;
+        letter-spacing: 0.3px;
+    }
+    
+    .control-field .numero-display {
+        border-radius: 6px;
+        padding: 8px 12px;
+        font-size: 15px;
+        min-width: 36px;
+    }
+    
+    .numero-navigation {
+        gap: 6px;
+    }
+    
+    /* Riduzione nav-arrow su mobile */
+    .nav-arrow {
+        width: 32px;
+        height: 32px;
+        font-size: 15px;
+    }
+    
+    /* Riduzione ultimo-colpo-label su mobile */
+    .ultimo-colpo-label {
+        gap: 6px;
+        padding: 6px 12px;
+        border-radius: 6px;
+    }
+    
+    .ultimo-colpo-label input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+    }
+    
+    .ultimo-colpo-label span {
+        font-size: 11px;
+        letter-spacing: 0.4px;
+    }
+    
+    /* Riduzione pulsanti azione su mobile */
+    .nuovo-scambio-button,
+    .visualizza-scambio-button {
+        padding: 10px 20px;
+        font-size: 13px;
+        letter-spacing: 0.8px;
+        margin-top: 6px;
+    }
+    
+    /* Riduzione pause button su mobile */
+    .pause-resume-button {
+        width: 48px;
+        height: 48px;
+        margin-top: 6px;
+    }
+    
+    .pause-icon {
+        font-size: 24px;
+    }
+    
+    /* Riduzione dinamico-mobile-toggle su mobile */
+    .dinamico-mobile-toggle {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .dinamico-mobile-toggle .chevron {
+        width: 10px;
+        height: 10px;
     }
 
     /* Pulsanti modalità più piccoli su mobile */
@@ -1331,9 +1431,9 @@ body {
     width: 100%;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
     margin-top: 0;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
 }
 
 .dinamico-primary-row .colpo-button {
@@ -1348,8 +1448,8 @@ body {
 
 .dinamico-mobile-toggle {
     display: none;
-    width: 32px;
-    height: 32px;
+    width: 38px;
+    height: 38px;
     border: none;
     border-radius: 999px;
     background: rgba(25, 118, 210, 0.12);
@@ -1361,8 +1461,8 @@ body {
 }
 
 .dinamico-mobile-toggle .chevron {
-    width: 10px;
-    height: 10px;
+    width: 12px;
+    height: 12px;
     border: solid currentColor;
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
@@ -1406,47 +1506,47 @@ body {
 .control-field {
     display: flex;
     flex-direction: row;
-    gap: 8px;
+    gap: 12px;
     width: 100%;
     align-items: center;
     justify-content: center;
 }
         
 .control-field label {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     color: #607d8b;
     text-align: left;
     text-transform: uppercase;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.4px;
 }
         
 .control-field .numero-display {
     background: #ffffff;
     border: 2px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-size: 15px;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 16px;
     font-weight: 600;
     color: #1976d2;
     text-align: center;
-    min-width: 36px;
+    min-width: 40px;
     box-sizing: border-box;
 }
         
 .numero-navigation {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
 }
         
 .nav-arrow {
     background: linear-gradient(135deg, #42a5f5 0%, #64b5f6 50%, #42a5f5 100%);
     border: none;
     border-radius: 6px;
-    width: 32px;
-    height: 32px;
-    font-size: 15px;
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
     font-weight: 700;
     color: #ffffff;
     cursor: pointer;
@@ -1487,11 +1587,11 @@ body {
 .ultimo-colpo-label {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     cursor: pointer;
     user-select: none;
-    padding: 6px 12px;
-    border-radius: 6px;
+    padding: 8px 16px;
+    border-radius: 8px;
     background: #f5f5f5;
     border: 2px solid #e0e0e0;
     transition: all 0.2s ease;
@@ -1504,17 +1604,17 @@ body {
         
 .ultimo-colpo-label input[type="checkbox"] {
     accent-color: #ff6b35;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     cursor: pointer;
 }
         
 .ultimo-colpo-label span {
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 700;
     color: #263238;
     text-transform: uppercase;
-    letter-spacing: 0.4px;
+    letter-spacing: 0.5px;
 }
         
 .ultimo-colpo-label input[type="checkbox"]:checked + span {
@@ -1527,12 +1627,12 @@ body {
     background-position: 0% 50%;
     border: 3px solid #fff;
     border-radius: 12px;
-    padding: 14px 28px;
-    font-size: 15px;
+    padding: 18px 32px;
+    font-size: 16px;
     font-weight: 700;
     color: #ffffff;
     text-transform: uppercase;
-    letter-spacing: 1.5px;
+    letter-spacing: 2px;
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(255, 107, 53, 0.5), 0 0 20px rgba(255, 215, 0, 0.3);
     transition: all 0.3s ease;
@@ -1546,16 +1646,16 @@ body {
 .colpo-button::before {
     content: '🎾';
     position: absolute;
-    left: 16px;
-    font-size: 17px;
+    left: 20px;
+    font-size: 20px;
     animation: bounce 1s ease-in-out infinite;
 }
         
 .colpo-button::after {
     content: '🎾';
     position: absolute;
-    right: 16px;
-    font-size: 17px;
+    right: 20px;
+    font-size: 20px;
     animation: bounce 1s ease-in-out infinite;
     animation-delay: 0.5s;
 }
@@ -1609,17 +1709,17 @@ body {
     background: linear-gradient(135deg, #42a5f5 0%, #64b5f6 50%, #42a5f5 100%);
     border: none;
     border-radius: 8px;
-    padding: 10px 20px;
-    font-size: 13px;
+    padding: 16px 32px;
+    font-size: 14px;
     font-weight: 700;
     color: #ffffff;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 1px;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
     transition: all 0.3s ease;
     width: 100%;
-    margin-top: 6px;
+    margin-top: 12px;
 }
         
 .nuovo-scambio-button:hover {
@@ -1636,17 +1736,17 @@ body {
     background: linear-gradient(135deg, #42a5f5 0%, #64b5f6 50%, #42a5f5 100%);
     border: none;
     border-radius: 8px;
-    padding: 10px 20px;
-    font-size: 13px;
+    padding: 16px 32px;
+    font-size: 14px;
     font-weight: 700;
     color: #ffffff;
     text-transform: uppercase;
-    letter-spacing: 0.8px;
+    letter-spacing: 1px;
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
     transition: all 0.3s ease;
     width: 100%;
-    margin-top: 6px;
+    margin-top: 12px;
 }
         
 .visualizza-scambio-button:hover {
@@ -1673,9 +1773,9 @@ body {
     cursor: pointer;
     box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
     transition: all 0.3s ease;
-    width: 48px;
-    height: 48px;
-    margin-top: 6px;
+    width: 60px;
+    height: 60px;
+    margin-top: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1692,7 +1792,7 @@ body {
 }
         
 .pause-icon {
-    font-size: 24px;
+    font-size: 28px;
     line-height: 1;
 }
         
