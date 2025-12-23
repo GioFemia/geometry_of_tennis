@@ -501,7 +501,7 @@ body {
             + var(--mobile-settings-bar-height)
             + var(--mobile-dinamico-bar-height)
         );
-        padding-bottom: calc(var(--mobile-safe-bottom) + 20px);
+        padding-bottom: calc(var(--mobile-safe-bottom) + 10px);
         overflow: visible;
     }
 
@@ -848,7 +848,6 @@ body {
     body.mobile-dinamico #dinamicoPanel .dinamico-primary-row {
         margin-top: 0;
         margin-bottom: 6px;
-        gap: 8px;
         order: 1; /* Primo elemento quando il pannello è expanded */
     }
 
@@ -892,30 +891,45 @@ body {
         display: flex;
     }
 
+    /* Pulsanti modalità più piccoli su mobile */
+    .mode-options {
+        gap: 5px;
+    }
+
+    .mode-option-content {
+        padding: 8px 10px;
+        gap: 8px;
+        border-radius: 8px;
+    }
+
+    .mode-option-icon {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+    }
+
+    .mode-option-label {
+        font-size: 11px;
+    }
+    
     /* ==========================================
-       OVERRIDE DIMENSIONI PANNELLO DINAMICO SU MOBILE
+       PANNELLO DINAMICO - Dimensioni ridotte per mobile
        ========================================== */
-    
-    /* Riduzione dimensioni pulsante COLPO su mobile */
-    .colpo-button {
-        padding: 14px 28px;
-        font-size: 15px;
-        letter-spacing: 1.5px;
+    .dinamico-primary-row {
+        gap: 8px;
+        margin-bottom: 8px;
     }
     
-    .colpo-button::before,
-    .colpo-button::after {
-        left: 16px;
-        right: 16px;
-        font-size: 17px;
+    .dinamico-mobile-toggle {
+        width: 32px;
+        height: 32px;
     }
     
-    .colpo-button::after {
-        left: auto;
-        right: 16px;
+    .dinamico-mobile-toggle .chevron {
+        width: 10px;
+        height: 10px;
     }
     
-    /* Riduzione control-field su mobile */
     .control-field {
         gap: 8px;
     }
@@ -936,14 +950,12 @@ body {
         gap: 6px;
     }
     
-    /* Riduzione nav-arrow su mobile */
     .nav-arrow {
         width: 32px;
         height: 32px;
         font-size: 15px;
     }
     
-    /* Riduzione ultimo-colpo-label su mobile */
     .ultimo-colpo-label {
         gap: 6px;
         padding: 6px 12px;
@@ -960,7 +972,25 @@ body {
         letter-spacing: 0.4px;
     }
     
-    /* Riduzione pulsanti azione su mobile */
+    .colpo-button {
+        padding: 14px 28px;
+        font-size: 15px;
+        letter-spacing: 1.5px;
+    }
+    
+    .colpo-button::before,
+    .colpo-button::after {
+        font-size: 17px;
+    }
+    
+    .colpo-button::before {
+        left: 16px;
+    }
+    
+    .colpo-button::after {
+        right: 16px;
+    }
+    
     .nuovo-scambio-button,
     .visualizza-scambio-button {
         padding: 10px 20px;
@@ -969,7 +999,6 @@ body {
         margin-top: 6px;
     }
     
-    /* Riduzione pause button su mobile */
     .pause-resume-button {
         width: 48px;
         height: 48px;
@@ -978,38 +1007,6 @@ body {
     
     .pause-icon {
         font-size: 24px;
-    }
-    
-    /* Riduzione dinamico-mobile-toggle su mobile */
-    .dinamico-mobile-toggle {
-        width: 32px;
-        height: 32px;
-    }
-    
-    .dinamico-mobile-toggle .chevron {
-        width: 10px;
-        height: 10px;
-    }
-
-    /* Pulsanti modalità più piccoli su mobile */
-    .mode-options {
-        gap: 5px;
-    }
-
-    .mode-option-content {
-        padding: 8px 10px;
-        gap: 8px;
-        border-radius: 8px;
-    }
-
-    .mode-option-icon {
-        width: 24px;
-        height: 24px;
-        font-size: 12px;
-    }
-
-    .mode-option-label {
-        font-size: 11px;
     }
 }
 
