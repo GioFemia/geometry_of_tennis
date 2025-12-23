@@ -483,23 +483,25 @@ body {
         height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom));
         height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom));
         padding-top: calc(var(--mobile-safe-top) + var(--mobile-settings-bar-height));
-        padding-bottom: calc(var(--mobile-safe-bottom) + 12px);
+        padding-bottom: calc(var(--mobile-safe-bottom) + 30px);
         box-sizing: border-box;
         overflow: hidden;
     }
     
-    /* Aggiungi spazio per il footer quando la modalità è 1 colpo */
+    /* Modalità 1 colpo: padding ridotto */
     body.mobile-1colpo .page-container {
         padding-top: calc(var(--mobile-safe-top) + var(--mobile-settings-bar-height) - 10px);
         padding-bottom: calc(var(--mobile-safe-bottom) + 20px);
     }
 
+    /* Modalità dinamico: padding ridotto */
     body.mobile-dinamico .page-container {
         padding-top: calc(
             var(--mobile-safe-top)
             + var(--mobile-settings-bar-height)
             + var(--mobile-dinamico-bar-height)
         );
+        padding-bottom: calc(var(--mobile-safe-bottom) + 20px);
         overflow: visible;
     }
 
@@ -619,9 +621,9 @@ body {
         display: none !important;
     }
     
-    /* Footer per mobile (in fondo alla schermata) - visibile solo in modalità 1 colpo */
+    /* Footer per mobile (in fondo alla schermata) - visibile in tutte le modalità mobile */
     .page-footer-mobile {
-        display: none;
+        display: block;
         position: fixed;
         bottom: 0;
         left: 0;
@@ -633,10 +635,6 @@ body {
         text-align: center;
         z-index: 30;
         box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
-    }
-    
-    body.mobile-1colpo .page-footer-mobile {
-        display: block;
     }
     
     .page-footer-text {
@@ -725,26 +723,26 @@ body {
     .svg-wrap {
         width: 100%;
         height: auto;
-        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 75px);
-        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 75px);
+        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 85px);
+        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 85px);
         min-width: 0;
     }
     
-    /* Riduci l'altezza quando c'è il footer in modalità 1 colpo */
+    /* Riduzione ulteriore per modalità 1 colpo */
     body.mobile-1colpo .svg-wrap {
         max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 40px);
-        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 40px);
+        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) -40px);
     }
 
     .svg-wrap svg {
         width: 100%;
         height: auto;
-        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 75px);
-        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 75px);
+        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 85px);
+        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 85px);
         min-width: 0;
     }
     
-    /* Riduci l'altezza quando c'è il footer in modalità 1 colpo */
+    /* Riduzione ulteriore per modalità 1 colpo */
     body.mobile-1colpo .svg-wrap svg {
         max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 40px);
         max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 40px);
@@ -758,7 +756,7 @@ body {
             - var(--mobile-safe-bottom)
             - var(--mobile-settings-bar-height)
             - var(--mobile-dinamico-bar-height)
-            - 50px
+            - 60px
         );
         max-height: calc(
             100dvh
@@ -766,7 +764,7 @@ body {
             - var(--mobile-safe-bottom)
             - var(--mobile-settings-bar-height)
             - var(--mobile-dinamico-bar-height)
-            - 50px
+            - 60px
         );
     }
 
