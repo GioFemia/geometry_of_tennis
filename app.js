@@ -4264,13 +4264,15 @@
                                 elements: [hMeasureEl, hMeasureLabelEl, hMeasureBadgeEl, arrowHtmlEl].filter(el => el !== null)
                             };
                         case 'tipologia-section':
-                            // Trova la sezione Tipologia dentro panelImpostazioni
+                            // Trova la sezione Colpo (precedentemente chiamata Tipologia) dentro panelImpostazioni
                             const tipologiaPanel = document.getElementById('panelImpostazioni');
                             if (tipologiaPanel) {
                                 const sections = tipologiaPanel.querySelectorAll('.control-section');
                                 for (let section of sections) {
                                     const title = section.querySelector('.control-section-title');
-                                    if (title && title.textContent.trim().toLowerCase() === 'tipologia') {
+                                    // Cerca sia "Colpo" che "Tipologia" per compatibilità
+                                    const titleText = title.textContent.trim().toLowerCase();
+                                    if (titleText === 'colpo' || titleText === 'tipologia') {
                                         return section;
                                     }
                                 }
@@ -4503,6 +4505,9 @@
                     // Aggiorna il layout della guida (sidebar vs overlay)
                     updateDesktopTutorialSidebar();
                     
+                    // Gestisci la visibilità della freccia tra i campi
+                    updateCourtsArrowVisibility();
+                    
                     // Aggiorna l'evidenziazione
                     updateHighlight();
                 }
@@ -4700,6 +4705,30 @@
                     // Applica i cambiamenti
                     if (typeof applyViewToggles === 'function') {
                         applyViewToggles();
+                    }
+                }
+                
+                // Funzione per aggiornare la visibilità della freccia tra i campi
+                function updateCourtsArrowVisibility() {
+                    const courtsArrow = document.getElementById('courtsArrow');
+                    if (!courtsArrow) return;
+                    
+                    const isTutorialOpen = tutorialOverlay && tutorialOverlay.classList.contains('active');
+                    const isDesktop = window.innerWidth > 900;
+                    
+                    // Se la guida è aperta su desktop
+                    if (isTutorialOpen && isDesktop) {
+                        // Mostra la freccia solo se siamo nello step 7 (Modalità 2 Colpi)
+                        if (currentStep === 7) {
+                            // Aggiungi classe CSS per mostrare la freccia nello step 7
+                            document.body.classList.add('tutorial-step-7');
+                        } else {
+                            // Rimuovi la classe per nascondere la freccia
+                            document.body.classList.remove('tutorial-step-7');
+                        }
+                    } else {
+                        // Rimuovi la classe quando il tutorial è chiuso
+                        document.body.classList.remove('tutorial-step-7');
                     }
                 }
                 
@@ -4902,7 +4931,13 @@
                     setModalitaInputsEnabled(true);
                     
                     // Rimuovi le classi e ripristina la posizione originale
-                    document.body.classList.remove('desktop-tutorial-sidebar', 'desktop-tutorial-replace-primary', 'desktop-tutorial-over-sidebar');
+                    document.body.classList.remove('desktop-tutorial-sidebar', 'desktop-tutorial-replace-primary', 'desktop-tutorial-over-sidebar', 'tutorial-step-7');
+                    
+                    // Ripristina la visibilità della freccia tra i campi (non più necessario con il nuovo sistema basato su classi CSS)
+                    // const courtsArrow = document.getElementById('courtsArrow');
+                    // if (courtsArrow) {
+                    //     courtsArrow.style.display = '';
+                    // }
                     
                     // Mostra il campo principale
                     const primaryCourt = document.querySelector('.court-container.primary-court');

@@ -271,6 +271,18 @@ body {
     body:has(#dinamicoPanel.active) .courts-arrow {
         display: none !important;
     }
+    
+    /* Nascondi la freccia quando il tutorial è aperto su desktop */
+    body.desktop-tutorial-sidebar .courts-arrow,
+    body.desktop-tutorial-over-sidebar .courts-arrow,
+    body.desktop-tutorial-replace-primary .courts-arrow {
+        display: none !important;
+    }
+    
+    /* Mostra la freccia solo nello step 7 del tutorial (Modalità 2 Colpi) */
+    body.tutorial-step-7 .courts-arrow {
+        display: flex !important;
+    }
 }
 
 .primary-court,
