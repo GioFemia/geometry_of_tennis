@@ -1794,7 +1794,12 @@
                         if (window.__shotTypeIsServizio__) {
                             if (dot) {
                                 const originY = isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
-                                dot.setAttribute('cx', String(ORIGIN_X));
+                                // Posiziona il pallino a coordinate (20; 0) nel sistema di coordinate del campo
+                                // Per Campo A (Tu): X = 20 significa 20 unità a destra del centro, Y = 0 sulla linea di fondo
+                                // SVG: X = ORIGIN_X + 20 = 320, Y = ORIGIN_BOTTOM_Y (822) per Tu, ORIGIN_TOP_Y (150) per Avversario
+                                const servizioOffsetX = 20; // Offset di 20 unità dal centro
+                                const dotXServizio = isPlayer ? ORIGIN_X + servizioOffsetX : ORIGIN_X - servizioOffsetX;
+                                dot.setAttribute('cx', String(dotXServizio));
                                 dot.setAttribute('cy', String(originY));
                             }
                         }
