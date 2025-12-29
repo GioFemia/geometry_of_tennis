@@ -285,6 +285,10 @@
                             <span class="field-label">Spazio Colpo (Da Rete):</span>
                             <span class="field-value" id="spazioColpo">-</span>
                         </div>
+                        <div class="algoritmo-field">
+                            <span class="field-label">Rischio Errore Laterale:</span>
+                            <span class="field-value" id="rischioErroreLaterale">-</span>
+                        </div>
                     </div>
                 </div>
 
@@ -485,6 +489,7 @@
                 const posizioneColpitoreSpan = document.getElementById('posizioneColpitore');
                 const spazioColpoSpan = document.getElementById('spazioColpo');
                 const spazioColpo2Span = document.getElementById('spazioColpo2');
+                const rischioErroreLateraleSpan = document.getElementById('rischioErroreLaterale');
                 const spostamentoAvversarioSpan = document.getElementById('spostamentoAvversario');
                 const distanzaMidPointSpan = document.getElementById('distanzaMidPoint');
                 const campoDaCoprireSpan = document.getElementById('campoDaCoprire');
@@ -650,6 +655,49 @@
                             } else {
                                 console.log('Spazio Colpo: linea fuori dal rettangolo valido');
                             }
+                        }
+                        
+                        // Calcola Rischio Errore Laterale
+                        // 1. Trova Y media tra 250 e la Y più lontana dalla rete (Y=0 in Campo B)
+                        // 2. Trova X della linea gialla a questa Y media
+                        // 3. Calcola: 115 - |X| (distanza dal bordo laterale)
+                        let rischioErroreLaterale = 0;
+                        
+                        console.log('=== Calcolo Rischio Errore Laterale ===');
+                        
+                        if (yellowLine) {
+                            const x1_svg = parseFloat(yellowLine.getAttribute('x1'));
+                            const y1_svg = parseFloat(yellowLine.getAttribute('y1'));
+                            const x2_svg = parseFloat(yellowLine.getAttribute('x2'));
+                            const y2_svg = parseFloat(yellowLine.getAttribute('y2'));
+                            
+                            // Y media tra 250 e 0 (limiti Y per Spazio Colpo) = 125 in Campo B
+                            // In SVG: Y_svg = FIELD_B_ORIGIN_Y + 125 = 150 + 125 = 275
+                            const Y_MEDIA_FIELD_B = (250 + 0) / 2; // = 125
+                            const Y_MEDIA_SVG = FIELD_B_ORIGIN_Y + Y_MEDIA_FIELD_B; // = 275
+                            
+                            console.log('Y media (Campo B):', Y_MEDIA_FIELD_B);
+                            console.log('Y media (SVG):', Y_MEDIA_SVG);
+                            
+                            // Trova X della linea gialla a Y_MEDIA_SVG
+                            let yellowX_atYMedia = x1_svg;
+                            if (Math.abs(y2_svg - y1_svg) > 0.001) {
+                                const t = (Y_MEDIA_SVG - y1_svg) / (y2_svg - y1_svg);
+                                yellowX_atYMedia = x1_svg + t * (x2_svg - x1_svg);
+                            }
+                            
+                            console.log('X linea gialla a Y media (SVG):', yellowX_atYMedia);
+                            
+                            // Converti in coordinate Campo B
+                            const yellowX_fieldB = yellowX_atYMedia - FIELD_B_ORIGIN_X;
+                            
+                            console.log('X linea gialla (Campo B):', yellowX_fieldB);
+                            
+                            // Rischio Errore Laterale = 115 - |X|
+                            // Rappresenta la distanza dal bordo laterale più vicino
+                            rischioErroreLaterale = 115 - Math.abs(yellowX_fieldB);
+                            
+                            console.log('Rischio Errore Laterale = 115 - |' + yellowX_fieldB + '| = ' + rischioErroreLaterale);
                         }
                         
                         // Calcola Spostamento Avversario
@@ -838,6 +886,10 @@
                         
                         if (spazioColpo2Span) {
                             spazioColpo2Span.textContent = spazioColpo2.toFixed(2);
+                        }
+                        
+                        if (rischioErroreLateraleSpan) {
+                            rischioErroreLateraleSpan.textContent = rischioErroreLaterale.toFixed(2);
                         }
                         
                         if (spostamentoAvversarioSpan) {
