@@ -54,10 +54,10 @@ Una pagina interattiva che visualizza e spiega in modo intuitivo la geometria de
 
 ## Struttura del progetto
 
-- `geometry_of_tennis.html`: pagina web completa con stile, SVG del campo e logica interattiva.
+- `geometryoftennis.netlify.app`: pagina web completa con stile, SVG del campo e logica interattiva.
 - `README.md`: questo documento.
 
 ## Compatibilità
 
-- Testato su browser moderni desktop. Su schermi piccoli l’SVG scala mantenendo le proporzioni; è consigliato l’uso in orizzontale.
+- Testato su browser moderni desktop e su mobile.
 
