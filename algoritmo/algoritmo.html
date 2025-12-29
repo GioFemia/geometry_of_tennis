@@ -274,6 +274,10 @@
                     <h2 class="algoritmo-section-title">Rischio Tecnico</h2>
                     <div class="algoritmo-section-content">
                         <div class="algoritmo-field">
+                            <span class="field-label">Posizione Colpitore:</span>
+                            <span class="field-value" id="posizioneColpitore">-</span>
+                        </div>
+                        <div class="algoritmo-field">
                             <span class="field-label">Spazio Colpo:</span>
                             <span class="field-value" id="spazioColpo2">-</span>
                         </div>
@@ -287,6 +291,10 @@
                 <div class="algoritmo-section">
                     <h2 class="algoritmo-section-title">Rischio Tattico</h2>
                     <div class="algoritmo-section-content">
+                        <div class="algoritmo-field">
+                            <span class="field-label">Spostamento Avversario:</span>
+                            <span class="field-value" id="spostamentoAvversario">-</span>
+                        </div>
                         <div class="algoritmo-field">
                             <span class="field-label">Distanza Mid Point:</span>
                             <span class="field-value" id="distanzaMidPoint">-</span>
@@ -474,8 +482,10 @@
             setTimeout(function() {
                 const calcolaButton = document.getElementById('calcolaButton');
                 const risultatiDiv = document.getElementById('risultatiAlgoritmo');
+                const posizioneColpitoreSpan = document.getElementById('posizioneColpitore');
                 const spazioColpoSpan = document.getElementById('spazioColpo');
                 const spazioColpo2Span = document.getElementById('spazioColpo2');
+                const spostamentoAvversarioSpan = document.getElementById('spostamentoAvversario');
                 const distanzaMidPointSpan = document.getElementById('distanzaMidPoint');
                 const campoDaCoprireSpan = document.getElementById('campoDaCoprire');
                 
@@ -503,6 +513,21 @@
                                 x: svgX - FIELD_A_ORIGIN_X,
                                 y: FIELD_A_ORIGIN_Y - svgY
                             };
+                        }
+                        
+                        // Calcola Posizione Colpitore
+                        // La Y del colpitore nel campo principale (in coordinate Campo A)
+                        const cursorDot = document.getElementById('cursorDot');
+                        let posizioneColpitore = 0;
+                        
+                        if (cursorDot) {
+                            const dotY_svg = parseFloat(cursorDot.getAttribute('cy'));
+                            // Converti in coordinate Campo A (Y positivo verso l'alto)
+                            posizioneColpitore = FIELD_A_ORIGIN_Y - dotY_svg;
+                            
+                            console.log('=== Posizione Colpitore ===');
+                            console.log('Colpitore Y (SVG):', dotY_svg);
+                            console.log('Posizione Colpitore (Campo A):', posizioneColpitore);
                         }
                         
                         // Calcola Spazio Colpo e Spazio Colpo (Da Rete)
@@ -625,6 +650,52 @@
                             } else {
                                 console.log('Spazio Colpo: linea fuori dal rettangolo valido');
                             }
+                        }
+                        
+                        // Calcola Spostamento Avversario
+                        // Distanza orizzontale nel Campo B del campo principale
+                        // tra il ricevitore (intersectionDot) e la linea tratteggiata (bisectorLine)
+                        // nel punto in cui la bisetrice ha la stessa Y del ricevitore
+                        const intersectionDot = document.getElementById('intersectionDot');
+                        const bisectorLine = document.getElementById('bisectorLine');
+                        let spostamentoAvversario = 0;
+                        
+                        console.log('=== Calcolo Spostamento Avversario ===');
+                        
+                        if (intersectionDot && bisectorLine) {
+                            // Coordinate SVG del ricevitore
+                            const ricevitoreX_svg = parseFloat(intersectionDot.getAttribute('cx'));
+                            const ricevitoreY_svg = parseFloat(intersectionDot.getAttribute('cy'));
+                            
+                            // Coordinate SVG della linea tratteggiata
+                            const bisX1 = parseFloat(bisectorLine.getAttribute('x1'));
+                            const bisY1 = parseFloat(bisectorLine.getAttribute('y1'));
+                            const bisX2 = parseFloat(bisectorLine.getAttribute('x2'));
+                            const bisY2 = parseFloat(bisectorLine.getAttribute('y2'));
+                            
+                            console.log('Ricevitore (SVG): x=' + ricevitoreX_svg + ', y=' + ricevitoreY_svg);
+                            console.log('Linea tratteggiata (SVG): (' + bisX1 + ',' + bisY1 + ') -> (' + bisX2 + ',' + bisY2 + ')');
+                            
+                            // Calcola X della bisetrice alla stessa Y del ricevitore
+                            let bisectorX_svg = bisX1;
+                            if (Math.abs(bisY2 - bisY1) > 0.001) {
+                                const t = (ricevitoreY_svg - bisY1) / (bisY2 - bisY1);
+                                bisectorX_svg = bisX1 + t * (bisX2 - bisX1);
+                            }
+                            
+                            console.log('X della bisetrice alla Y=' + ricevitoreY_svg + ': ' + bisectorX_svg);
+                            
+                            // Converti in coordinate Campo B
+                            const ricevitoreX_fieldB = ricevitoreX_svg - FIELD_B_ORIGIN_X;
+                            const bisX_fieldB = bisectorX_svg - FIELD_B_ORIGIN_X;
+                            
+                            console.log('Ricevitore (Campo B): X=' + ricevitoreX_fieldB);
+                            console.log('Bisetrice (Campo B): X=' + bisX_fieldB);
+                            
+                            // Distanza orizzontale: differenza assoluta tra le X
+                            spostamentoAvversario = Math.abs(ricevitoreX_fieldB - bisX_fieldB);
+                            
+                            console.log('Spostamento Avversario = |' + ricevitoreX_fieldB + ' - (' + bisX_fieldB + ')| = ' + spostamentoAvversario);
                         }
                         
                          // Calcola Distanza Mid Point
@@ -757,12 +828,20 @@
                         }
                         
                         // Mostra risultati (senza unità di misura, sono coordinate SVG)
+                        if (posizioneColpitoreSpan) {
+                            posizioneColpitoreSpan.textContent = posizioneColpitore.toFixed(2);
+                        }
+                        
                         if (spazioColpoSpan) {
                             spazioColpoSpan.textContent = spazioColpo.toFixed(2);
                         }
                         
                         if (spazioColpo2Span) {
                             spazioColpo2Span.textContent = spazioColpo2.toFixed(2);
+                        }
+                        
+                        if (spostamentoAvversarioSpan) {
+                            spostamentoAvversarioSpan.textContent = spostamentoAvversario.toFixed(2);
                         }
                         
                         if (distanzaMidPointSpan) {
