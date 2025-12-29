@@ -291,6 +291,10 @@
                             <span class="field-label">Distanza Mid Point:</span>
                             <span class="field-value" id="distanzaMidPoint">-</span>
                         </div>
+                        <div class="algoritmo-field">
+                            <span class="field-label">Campo da Coprire:</span>
+                            <span class="field-value" id="campoDaCoprire">-</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -473,6 +477,7 @@
                 const spazioColpoSpan = document.getElementById('spazioColpo');
                 const spazioColpo2Span = document.getElementById('spazioColpo2');
                 const distanzaMidPointSpan = document.getElementById('distanzaMidPoint');
+                const campoDaCoprireSpan = document.getElementById('campoDaCoprire');
                 
                 if (calcolaButton) {
                     calcolaButton.addEventListener('click', function() {
@@ -681,6 +686,76 @@
                             }
                         }
                         
+                        // Calcola Campo da Coprire
+                        // Nel campo secondario, campo in basso (Campo A):
+                        // Distanza orizzontale tra le due linee blu (leftLine2 e rightLine2)
+                        // nel punto in cui hanno la stessa Y del colpitore (cursorDotReplica2)
+                        let campoDaCoprire = 0;
+                        
+                        console.log('=== Calcolo Campo da Coprire ===');
+                        
+                        if (svg2) {
+                            // Pallino rosso nel Campo A (colpitore nel campo in basso)
+                            const dotReplica = svg2.querySelector('#cursorDotReplica2');
+                            // Linee blu delle direzioni
+                            const leftLine2 = svg2.querySelector('#leftLine2');
+                            const rightLine2 = svg2.querySelector('#rightLine2');
+                            
+                            console.log('cursorDotReplica2 trovato:', !!dotReplica);
+                            console.log('leftLine2 trovato:', !!leftLine2);
+                            console.log('rightLine2 trovato:', !!rightLine2);
+                            
+                            if (dotReplica && leftLine2 && rightLine2) {
+                                // Y del colpitore nel campo in basso
+                                const dotY_svg = parseFloat(dotReplica.getAttribute('cy'));
+                                
+                                // Coordinate della linea sinistra
+                                const leftX1 = parseFloat(leftLine2.getAttribute('x1'));
+                                const leftY1 = parseFloat(leftLine2.getAttribute('y1'));
+                                const leftX2 = parseFloat(leftLine2.getAttribute('x2'));
+                                const leftY2 = parseFloat(leftLine2.getAttribute('y2'));
+                                
+                                // Coordinate della linea destra
+                                const rightX1 = parseFloat(rightLine2.getAttribute('x1'));
+                                const rightY1 = parseFloat(rightLine2.getAttribute('y1'));
+                                const rightX2 = parseFloat(rightLine2.getAttribute('x2'));
+                                const rightY2 = parseFloat(rightLine2.getAttribute('y2'));
+                                
+                                console.log('Y del colpitore (SVG):', dotY_svg);
+                                console.log('Linea sinistra (SVG): (' + leftX1 + ',' + leftY1 + ') -> (' + leftX2 + ',' + leftY2 + ')');
+                                console.log('Linea destra (SVG): (' + rightX1 + ',' + rightY1 + ') -> (' + rightX2 + ',' + rightY2 + ')');
+                                
+                                // Calcola X della linea sinistra alla Y del colpitore
+                                let leftX_atDotY = leftX1;
+                                if (Math.abs(leftY2 - leftY1) > 0.001) {
+                                    const t = (dotY_svg - leftY1) / (leftY2 - leftY1);
+                                    leftX_atDotY = leftX1 + t * (leftX2 - leftX1);
+                                }
+                                
+                                // Calcola X della linea destra alla Y del colpitore
+                                let rightX_atDotY = rightX1;
+                                if (Math.abs(rightY2 - rightY1) > 0.001) {
+                                    const t = (dotY_svg - rightY1) / (rightY2 - rightY1);
+                                    rightX_atDotY = rightX1 + t * (rightX2 - rightX1);
+                                }
+                                
+                                console.log('X linea sinistra alla Y=' + dotY_svg + ': ' + leftX_atDotY);
+                                console.log('X linea destra alla Y=' + dotY_svg + ': ' + rightX_atDotY);
+                                
+                                // Converti in coordinate Campo A (solo X, la differenza è la stessa)
+                                const leftX_fieldA = leftX_atDotY - FIELD_A_ORIGIN_X;
+                                const rightX_fieldA = rightX_atDotY - FIELD_A_ORIGIN_X;
+                                
+                                console.log('X linea sinistra (Campo A):', leftX_fieldA);
+                                console.log('X linea destra (Campo A):', rightX_fieldA);
+                                
+                                // Campo da coprire: distanza orizzontale tra le due linee
+                                campoDaCoprire = Math.abs(rightX_fieldA - leftX_fieldA);
+                                
+                                console.log('Campo da Coprire = |' + rightX_fieldA + ' - (' + leftX_fieldA + ')| = ' + campoDaCoprire);
+                            }
+                        }
+                        
                         // Mostra risultati (senza unità di misura, sono coordinate SVG)
                         if (spazioColpoSpan) {
                             spazioColpoSpan.textContent = spazioColpo.toFixed(2);
@@ -692,6 +767,10 @@
                         
                         if (distanzaMidPointSpan) {
                             distanzaMidPointSpan.textContent = distanzaMidPoint.toFixed(2);
+                        }
+                        
+                        if (campoDaCoprireSpan) {
+                            campoDaCoprireSpan.textContent = campoDaCoprire.toFixed(2);
                         }
                         
                         if (risultatiDiv) {
