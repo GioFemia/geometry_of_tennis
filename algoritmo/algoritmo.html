@@ -78,22 +78,22 @@
         .algoritmo-section {
             background: #f5f5f5;
             border-radius: 12px;
-            padding: 16px;
+            padding: 12px;
         }
 
         .algoritmo-section-title {
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 700;
             color: #263238;
-            margin: 0 0 12px 0;
+            margin: 0 0 8px 0;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
         .algoritmo-section-content {
-            font-size: 14px;
+            font-size: 13px;
             color: #546e7a;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         .calcola-button {
@@ -125,7 +125,7 @@
         .algoritmo-field {
             display: flex;
             flex-direction: column;
-            padding: 10px 0;
+            padding: 6px 0;
             border-bottom: 1px solid #e0e0e0;
         }
 
@@ -137,18 +137,18 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .field-label {
             font-weight: 600;
             color: #263238;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .field-value {
             font-weight: 700;
-            font-size: 18px;
+            font-size: 16px;
             color: #1976d2;
             font-family: 'Courier New', monospace;
         }
@@ -157,13 +157,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
         }
 
         .field-range {
             display: flex;
-            gap: 8px;
-            font-size: 11px;
+            gap: 6px;
+            font-size: 10px;
             color: #78909c;
             font-family: 'Courier New', monospace;
         }
@@ -171,42 +171,42 @@
         .field-min, .field-max {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
         }
 
         .field-min-label, .field-max-label {
             font-weight: 600;
             text-transform: uppercase;
-            font-size: 10px;
+            font-size: 9px;
         }
 
         .field-normalized {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
 
         .normalized-bar {
-            width: 60px;
-            height: 8px;
+            width: 55px;
+            height: 6px;
             background: #e0e0e0;
-            border-radius: 4px;
+            border-radius: 3px;
             overflow: hidden;
         }
 
         .normalized-fill {
             height: 100%;
             background: linear-gradient(90deg, #4caf50 0%, #8bc34a 50%, #ffc107 75%, #f44336 100%);
-            border-radius: 4px;
+            border-radius: 3px;
             transition: width 0.3s ease;
         }
 
         .normalized-value {
             font-weight: 700;
-            font-size: 12px;
+            font-size: 11px;
             color: #455a64;
             font-family: 'Courier New', monospace;
-            min-width: 36px;
+            min-width: 32px;
             text-align: right;
         }
 
@@ -339,9 +339,31 @@
             <button id="calcolaButton" class="calcola-button">Calcola</button>
             
             <div class="algoritmo-content" id="risultatiAlgoritmo" style="display: none;">
-                <div class="algoritmo-section">
-                    <h2 class="algoritmo-section-title">Rischio Tecnico</h2>
-                    <div class="algoritmo-section-content">
+                <!-- Rischio Colpo Totale -->
+                <div class="algoritmo-section" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4caf50; margin-bottom: 16px;">
+                    <div class="algoritmo-section-content" style="padding: 12px;">
+                        <div class="field-header" style="justify-content: center; margin-bottom: 6px;">
+                            <span class="field-label" style="font-size: 14px; color: #2e7d32; text-transform: uppercase; font-weight: 900;">Rischio Colpo</span>
+                        </div>
+                        <div class="field-header" style="justify-content: center;">
+                            <span class="field-value" id="rischioColpoTotale" style="font-size: 32px; color: #2e7d32; font-weight: 900;">-</span>
+                        </div>
+                        <div class="field-details" style="justify-content: center; margin-top: 6px;">
+                            <div class="normalized-bar" style="width: 120px; height: 10px;"><div class="normalized-fill" id="rischioColpoTotaleFill" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rischio Tecnico -->
+                <div class="algoritmo-section collapsible-section" style="margin-bottom: 12px;">
+                    <div class="section-header-clickable" style="cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f5f5f5; border-radius: 12px; margin-bottom: 6px;">
+                        <span style="font-size: 14px; font-weight: 700; color: #1976d2; text-transform: uppercase;">Rischio Tecnico</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="field-value" id="rischioTecnicoTotale" style="font-size: 20px; color: #1976d2; font-weight: 700;">-</span>
+                            <span class="collapse-icon" style="font-size: 16px; color: #1976d2;">▼</span>
+                        </div>
+                    </div>
+                    <div class="algoritmo-section-content collapsible-content" style="display: none;">
                         <div class="algoritmo-field">
                             <div class="field-header">
                                 <span class="field-label">Posizione Colpitore:</span>
@@ -390,24 +412,19 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="algoritmo-field" style="margin-top: 16px; padding-top: 16px; border-top: 2px solid #1976d2;">
-                            <div class="field-header">
-                                <span class="field-label" style="font-size: 16px; color: #1976d2; text-transform: uppercase;">Rischio Tecnico:</span>
-                                <span class="field-value" id="rischioTecnicoTotale" style="font-size: 24px; color: #1976d2;">-</span>
-                            </div>
-                            <div class="field-details">
-                                <div class="field-normalized">
-                                    <div class="normalized-bar" style="width: 100px;"><div class="normalized-fill" id="rischioTecnicoTotaleFill" style="width: 0%"></div></div>
-                                    <span class="normalized-value" id="rischioTecnicoTotaleNorm" style="font-size: 16px;">-</span>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
-                <div class="algoritmo-section">
-                    <h2 class="algoritmo-section-title">Rischio Tattico</h2>
-                    <div class="algoritmo-section-content">
+                <!-- Rischio Tattico -->
+                <div class="algoritmo-section collapsible-section" style="margin-bottom: 12px;">
+                    <div class="section-header-clickable" style="cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f5f5f5; border-radius: 12px; margin-bottom: 6px;">
+                        <span style="font-size: 14px; font-weight: 700; color: #1976d2; text-transform: uppercase;">Rischio Tattico</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="field-value" id="rischioTatticoTotale" style="font-size: 20px; color: #1976d2; font-weight: 700;">-</span>
+                            <span class="collapse-icon" style="font-size: 16px; color: #1976d2;">▼</span>
+                        </div>
+                    </div>
+                    <div class="algoritmo-section-content collapsible-content" style="display: none;">
                         <div class="algoritmo-field">
                             <div class="field-header">
                                 <span class="field-label">Spostamento Avversario:</span>
@@ -453,36 +470,6 @@
                                 <div class="field-normalized">
                                     <div class="normalized-bar"><div class="normalized-fill" id="campoDaCoprireFill" style="width: 0%"></div></div>
                                     <span class="normalized-value" id="campoDaCoprireNorm">-</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="algoritmo-field" style="margin-top: 16px; padding-top: 16px; border-top: 2px solid #1976d2;">
-                            <div class="field-header">
-                                <span class="field-label" style="font-size: 16px; color: #1976d2; text-transform: uppercase;">Rischio Tattico:</span>
-                                <span class="field-value" id="rischioTatticoTotale" style="font-size: 24px; color: #1976d2;">-</span>
-                            </div>
-                            <div class="field-details">
-                                <div class="field-normalized">
-                                    <div class="normalized-bar" style="width: 100px;"><div class="normalized-fill" id="rischioTatticoTotaleFill" style="width: 0%"></div></div>
-                                    <span class="normalized-value" id="rischioTatticoTotaleNorm" style="font-size: 16px;">-</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="algoritmo-section" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4caf50;">
-                    <h2 class="algoritmo-section-title" style="color: #2e7d32; border-bottom-color: #4caf50;">Rischio Colpo</h2>
-                    <div class="algoritmo-section-content">
-                        <div class="algoritmo-field" style="border: none;">
-                            <div class="field-header">
-                                <span class="field-label" style="font-size: 20px; color: #2e7d32; text-transform: uppercase; font-weight: 900;">Rischio Colpo:</span>
-                                <span class="field-value" id="rischioColpoTotale" style="font-size: 32px; color: #2e7d32; font-weight: 900;">-</span>
-                            </div>
-                            <div class="field-details">
-                                <div class="field-normalized">
-                                    <div class="normalized-bar" style="width: 120px; height: 12px;"><div class="normalized-fill" id="rischioColpoTotaleFill" style="width: 0%"></div></div>
-                                    <span class="normalized-value" id="rischioColpoTotaleNorm" style="font-size: 18px; color: #2e7d32; font-weight: 700;">-</span>
                                 </div>
                             </div>
                         </div>
@@ -1384,25 +1371,19 @@
                         const rischioTecnicoTotaleNormSpan = document.getElementById('rischioTecnicoTotaleNorm');
                         const rischioTecnicoTotaleFill = document.getElementById('rischioTecnicoTotaleFill');
                         
+                        // Aggiorna i valori mostrando solo il numero 0-1 (senza percentuale, 2 decimali)
                         if (rischioTecnicoTotaleSpan) {
-                            rischioTecnicoTotaleSpan.textContent = (rischioTecnicoTotale * 100).toFixed(1) + '%';
-                        }
-                        if (rischioTecnicoTotaleNormSpan) {
-                            rischioTecnicoTotaleNormSpan.textContent = rischioTecnicoTotale.toFixed(2);
+                            rischioTecnicoTotaleSpan.textContent = rischioTecnicoTotale.toFixed(2);
                         }
                         if (rischioTecnicoTotaleFill) {
                             rischioTecnicoTotaleFill.style.width = (rischioTecnicoTotale * 100) + '%';
                         }
                         
                         const rischioTatticoTotaleSpan = document.getElementById('rischioTatticoTotale');
-                        const rischioTatticoTotaleNormSpan = document.getElementById('rischioTatticoTotaleNorm');
                         const rischioTatticoTotaleFill = document.getElementById('rischioTatticoTotaleFill');
                         
                         if (rischioTatticoTotaleSpan) {
-                            rischioTatticoTotaleSpan.textContent = (rischioTatticoTotale * 100).toFixed(1) + '%';
-                        }
-                        if (rischioTatticoTotaleNormSpan) {
-                            rischioTatticoTotaleNormSpan.textContent = rischioTatticoTotale.toFixed(2);
+                            rischioTatticoTotaleSpan.textContent = rischioTatticoTotale.toFixed(2);
                         }
                         if (rischioTatticoTotaleFill) {
                             rischioTatticoTotaleFill.style.width = (rischioTatticoTotale * 100) + '%';
@@ -1415,14 +1396,10 @@
                         console.log('Rischio Colpo Totale:', rischioColpoTotale);
                         
                         const rischioColpoTotaleSpan = document.getElementById('rischioColpoTotale');
-                        const rischioColpoTotaleNormSpan = document.getElementById('rischioColpoTotaleNorm');
                         const rischioColpoTotaleFill = document.getElementById('rischioColpoTotaleFill');
                         
                         if (rischioColpoTotaleSpan) {
-                            rischioColpoTotaleSpan.textContent = (rischioColpoTotale * 100).toFixed(1) + '%';
-                        }
-                        if (rischioColpoTotaleNormSpan) {
-                            rischioColpoTotaleNormSpan.textContent = rischioColpoTotale.toFixed(2);
+                            rischioColpoTotaleSpan.textContent = rischioColpoTotale.toFixed(2);
                         }
                         if (rischioColpoTotaleFill) {
                             rischioColpoTotaleFill.style.width = (rischioColpoTotale * 100) + '%';
@@ -1532,6 +1509,33 @@
                      console.log('Secondary court coordinates setup complete');
                  }
              }, 500);
+             
+             // Setup collapsible sections for Rischio Tecnico and Rischio Tattico
+             setTimeout(function() {
+                 const collapsibleSections = document.querySelectorAll('.collapsible-section');
+                 
+                 collapsibleSections.forEach(function(section) {
+                     const header = section.querySelector('.section-header-clickable');
+                     const content = section.querySelector('.collapsible-content');
+                     const icon = section.querySelector('.collapse-icon');
+                     
+                     if (header && content && icon) {
+                         header.addEventListener('click', function() {
+                             const isOpen = content.style.display !== 'none';
+                             
+                             if (isOpen) {
+                                 content.style.display = 'none';
+                                 icon.textContent = '▼';
+                             } else {
+                                 content.style.display = 'block';
+                                 icon.textContent = '▲';
+                             }
+                         });
+                     }
+                 });
+                 
+                 console.log('Collapsible sections setup complete');
+             }, 600);
          });
     </script>
 </body>
