@@ -40,6 +40,8 @@ posizioneColpitore = dotX_svg - FIELD_A_ORIGIN_X
 - Valori vicini a 0 indicano posizione centrale (migliore)
 - Valori estremi indicano posizione laterale (peggiore)
 
+**Nota**: Questa variabile utilizza una **normalizzazione lineare semplice** invece della sigmoidea, per una relazione diretta e proporzionale tra posizione e rischio.
+
 ### 2. Spazio Colpo
 
 **Descrizione**: Lunghezza della traiettoria valida del colpo all'interno del Campo B, limitata dalla zona di gioco (Y da 0 a 250).
@@ -151,6 +153,8 @@ campoDaCoprire = abs(rightX_fieldA - leftX_fieldA)
 **Interpretazione**: 
 - Campo maggiore da coprire = posizione più vulnerabile = maggiore rischio tattico
 
+**Nota**: Questa variabile utilizza una **funzione di normalizzazione speciale** (potenza con esponente 0.2) invece della sigmoidea standard, per riflettere la crescita estremamente rapida del rischio anche per piccoli incrementi del campo da coprire (vedi sezione "Normalizzazione Speciale per Campo da Coprire").
+
 ## Calcolo Min/Max Dinamici
 
 Per le variabili **Spazio Colpo**, **Spostamento Avversario**, **Distanza Mid Point** e **Campo da Coprire**, i valori min/max vengono calcolati dinamicamente:
@@ -177,11 +181,43 @@ for (let i = 0; i < 100; i++) {
 }
 ```
 
-## Normalizzazione con Funzione Sigmoidea
+## Funzioni di Normalizzazione
 
-Ogni variabile viene normalizzata tra 0 e 1 usando una **funzione sigmoidea** invece di una semplice normalizzazione lineare.
+Le variabili vengono normalizzate tra 0 e 1 usando **tre diverse funzioni** a seconda delle caratteristiche specifiche:
 
-### Formula
+| Variabile                | Funzione di Normalizzazione | Motivazione |
+|--------------------------|----------------------------|-------------|
+| **Posizione Colpitore**  | Lineare                    | Relazione diretta e proporzionale |
+| Spazio Colpo             | Sigmoidea                  | Transizione graduale agli estremi |
+| Rischio Errore Laterale  | Sigmoidea                  | Percezione non-lineare del rischio |
+| Spostamento Avversario   | Sigmoidea                  | Transizione graduale agli estremi |
+| Distanza Mid Point       | Sigmoidea                  | Percezione non-lineare del rischio |
+| **Campo da Coprire**     | Potenza (exp 0.2)          | Crescita estremamente rapida |
+
+### 1. Normalizzazione Lineare
+
+Utilizzata per **Posizione Colpitore**, fornisce una relazione diretta e proporzionale tra valore e rischio.
+
+#### Formula
+
+```javascript
+function normalizeLinear(value, min, max) {
+    const normalized = (value - min) / (max - min);
+    return clamp(normalized, 0, 1); // Limita tra 0 e 1
+}
+```
+
+#### Comportamento
+
+- Crescita costante e proporzionale
+- Valore al centro = 0.5 esattamente
+- Facile da interpretare: ogni unità contribuisce allo stesso modo
+
+### 2. Normalizzazione Sigmoidea
+
+La maggior parte delle variabili utilizza una **funzione sigmoidea** per una rappresentazione più realistica della percezione del rischio.
+
+#### Formula
 
 ```javascript
 function normalizeValue(value, min, max) {
@@ -213,6 +249,60 @@ function normalizeValue(value, min, max) {
 | 0.0            | ≈ 0.0025         |
 | 0.5            | 0.5000           |
 | 1.0            | ≈ 0.9975         |
+
+### 3. Normalizzazione con Funzione Potenza (Campo da Coprire)
+
+La variabile **Campo da Coprire** richiede una funzione di normalizzazione diversa dalla sigmoidea standard, poiché deve:
+- **Crescere molto rapidamente** per valori bassi (appena sopra il minimo di 250)
+- **Essere già quasi al massimo** per valori sopra 300-310
+- Riflettere il fatto che anche un piccolo aumento nel campo da coprire aumenta significativamente il rischio tattico
+
+#### Formula
+
+```javascript
+function normalizeCampoDaCoprire(value, min, max) {
+    if (value >= max) return 1;
+    if (value <= min) return 0;
+    
+    // Normalizzazione lineare [0, 1]
+    const linear = (value - min) / (max - min);
+    
+    // Applica funzione potenza con esponente < 1
+    // Esponente 0.2 produce crescita molto rapida all'inizio
+    const result = Math.pow(linear, 0.2);
+    
+    return result;
+}
+```
+
+#### Caratteristiche della Funzione Potenza
+
+- **Esponente 0.2**: Crea una curva concava che cresce rapidamente all'inizio
+- **Non-lineare**: La crescita è molto più veloce della normalizzazione lineare
+- **Rapido raggiungimento del massimo**: A 300-310 il valore è già al 72-75%
+
+#### Comportamento Dettagliato
+
+Con range min=250, max=500:
+
+| Campo da Coprire | Lineare | Potenza (exp 0.2) | Differenza |
+|------------------|---------|-------------------|------------|
+| 250              | 0.00    | 0.00              | -          |
+| 260              | 0.04    | **0.53**          | +0.49      |
+| 280              | 0.12    | **0.66**          | +0.54      |
+| 300              | 0.20    | **0.73**          | +0.53      |
+| 310              | 0.24    | **0.75**          | +0.51      |
+| 350              | 0.40    | **0.83**          | +0.43      |
+| 400              | 0.60    | **0.90**          | +0.30      |
+| 450              | 0.80    | **0.96**          | +0.16      |
+| 500              | 1.00    | 1.00              | -          |
+
+#### Interpretazione
+
+- **260 cm** (appena 10 cm sopra il minimo): già **53%** di rischio
+- **300 cm**: **73%** di rischio - quasi massimo
+- **350 cm**: **83%** di rischio - molto alto
+- Questo riflette la realtà tattica: coprire anche 260 cm è già molto difficile, e oltre 300 cm diventa quasi impossibile gestire efficacemente
 
 ## Rischi Aggregati
 

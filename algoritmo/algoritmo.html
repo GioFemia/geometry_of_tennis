@@ -1284,6 +1284,30 @@
                             return sigmoid;
                         }
                         
+                        // Funzione di normalizzazione lineare semplice
+                        function normalizeLinear(value, min, max) {
+                            if (max === min) return 0.5;
+                            const normalized = (value - min) / (max - min);
+                            return Math.max(0, Math.min(1, normalized)); // Clamp tra 0 e 1
+                        }
+                        
+                        // Funzione speciale per normalizzare il Campo da Coprire
+                        // Crescita molto rapida all'inizio, quasi massimo già a 300-310
+                        function normalizeCampoDaCoprire(value, min, max) {
+                            if (max === min) return 0.5;
+                            if (value >= max) return 1;
+                            if (value <= min) return 0;
+                            
+                            // Normalizzazione lineare [0, 1]
+                            const linear = (value - min) / (max - min);
+                            
+                            // Applica funzione potenza con esponente < 1 per crescita rapida iniziale
+                            // Esponente 0.2 dà: 260→0.53, 300→0.73, 310→0.75, 350→0.83
+                            const result = Math.pow(linear, 0.2);
+                            
+                            return result;
+                        }
+                        
                         // Funzione per aggiornare un campo con valore, min, max e normalizzato
                         function updateField(id, value, min, max) {
                             const valueSpan = document.getElementById(id);
@@ -1302,7 +1326,7 @@
                         }
                         
                         // Funzione speciale per campi con overflow (mostra "X+" se supera il max)
-                        function updateFieldWithOverflow(id, value, min, max) {
+                        function updateFieldWithOverflow(id, value, min, max, normalizeFn = normalizeValue) {
                             const valueSpan = document.getElementById(id);
                             const minSpan = document.getElementById(id + 'Min');
                             const maxSpan = document.getElementById(id + 'Max');
@@ -1310,7 +1334,7 @@
                             const fillDiv = document.getElementById(id + 'Fill');
                             
                             const exceedsMax = value > max;
-                            const normalized = exceedsMax ? 1 : normalizeValue(value, min, max);
+                            const normalized = exceedsMax ? 1 : normalizeFn(value, min, max);
                             
                             if (valueSpan) {
                                 if (exceedsMax) {
@@ -1327,7 +1351,7 @@
                         
                         // Aggiorna tutti i campi
                         updateFieldWithOverflow('posizioneColpitore', posizioneColpitore, 
-                            ranges.posizioneColpitore.min, ranges.posizioneColpitore.max);
+                            ranges.posizioneColpitore.min, ranges.posizioneColpitore.max, normalizeLinear);
                         
                         updateField('spazioColpo2', spazioColpo2, 
                             ranges.spazioColpo2.min, ranges.spazioColpo2.max);
@@ -1343,11 +1367,11 @@
                             ranges.distanzaMidPoint.min, ranges.distanzaMidPoint.max);
                         
                         updateFieldWithOverflow('campoDaCoprire', campoDaCoprire, 
-                            ranges.campoDaCoprire.min, ranges.campoDaCoprire.max);
+                            ranges.campoDaCoprire.min, ranges.campoDaCoprire.max, normalizeCampoDaCoprire);
                         
                         // Calcola i valori normalizzati per i rischi totali
                         const posizioneColpitoreNorm = posizioneColpitore > ranges.posizioneColpitore.max ? 1 : 
-                            normalizeValue(posizioneColpitore, ranges.posizioneColpitore.min, ranges.posizioneColpitore.max);
+                            normalizeLinear(posizioneColpitore, ranges.posizioneColpitore.min, ranges.posizioneColpitore.max);
                         const spazioColpo2Norm = normalizeValue(spazioColpo2, 
                             ranges.spazioColpo2.min, ranges.spazioColpo2.max);
                         const rischioErroreLateraleNorm = normalizeValue(rischioErroreLaterale, 
@@ -1357,7 +1381,7 @@
                         const distanzaMidPointNorm = distanzaMidPoint > ranges.distanzaMidPoint.max ? 1 : 
                             normalizeValue(distanzaMidPoint, ranges.distanzaMidPoint.min, ranges.distanzaMidPoint.max);
                         const campoDaCoprireNorm = campoDaCoprire > ranges.campoDaCoprire.max ? 1 : 
-                            normalizeValue(campoDaCoprire, ranges.campoDaCoprire.min, ranges.campoDaCoprire.max);
+                            normalizeCampoDaCoprire(campoDaCoprire, ranges.campoDaCoprire.min, ranges.campoDaCoprire.max);
                         
                         // Calcola Rischio Tecnico Totale
                         // Media di: (1 - posizioneColpitore_norm), (1 - spazioColpo_norm), rischioErroreLaterale_norm
