@@ -124,14 +124,26 @@
 
         .algoritmo-field {
             display: flex;
+            flex-direction: column;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .algoritmo-field:last-child {
+            border-bottom: none;
+        }
+
+        .field-header {
+            display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
+            margin-bottom: 8px;
         }
 
         .field-label {
             font-weight: 600;
             color: #263238;
+            font-size: 13px;
         }
 
         .field-value {
@@ -139,6 +151,63 @@
             font-size: 18px;
             color: #1976d2;
             font-family: 'Courier New', monospace;
+        }
+
+        .field-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .field-range {
+            display: flex;
+            gap: 8px;
+            font-size: 11px;
+            color: #78909c;
+            font-family: 'Courier New', monospace;
+        }
+
+        .field-min, .field-max {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .field-min-label, .field-max-label {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+
+        .field-normalized {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .normalized-bar {
+            width: 60px;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .normalized-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50 0%, #8bc34a 50%, #ffc107 75%, #f44336 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .normalized-value {
+            font-weight: 700;
+            font-size: 12px;
+            color: #455a64;
+            font-family: 'Courier New', monospace;
+            min-width: 36px;
+            text-align: right;
         }
 
         /* Hide the arrow between courts */
@@ -274,20 +343,68 @@
                     <h2 class="algoritmo-section-title">Rischio Tecnico</h2>
                     <div class="algoritmo-section-content">
                         <div class="algoritmo-field">
-                            <span class="field-label">Posizione Colpitore:</span>
-                            <span class="field-value" id="posizioneColpitore">-</span>
+                            <div class="field-header">
+                                <span class="field-label">Posizione Colpitore:</span>
+                                <span class="field-value" id="posizioneColpitore">-</span>
+                            </div>
+                            <div class="field-details">
+                                <div class="field-range">
+                                    <span class="field-min"><span class="field-min-label">Min:</span> <span id="posizioneColpitoreMin">-</span></span>
+                                    <span class="field-max"><span class="field-max-label">Max:</span> <span id="posizioneColpitoreMax">-</span></span>
+                                </div>
+                                <div class="field-normalized">
+                                    <div class="normalized-bar"><div class="normalized-fill" id="posizioneColpitoreFill" style="width: 0%"></div></div>
+                                    <span class="normalized-value" id="posizioneColpitoreNorm">-</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="algoritmo-field">
-                            <span class="field-label">Spazio Colpo:</span>
-                            <span class="field-value" id="spazioColpo2">-</span>
+                            <div class="field-header">
+                                <span class="field-label">Spazio Colpo:</span>
+                                <span class="field-value" id="spazioColpo2">-</span>
+                            </div>
+                            <div class="field-details">
+                                <div class="field-range">
+                                    <span class="field-min"><span class="field-min-label">Min:</span> <span id="spazioColpo2Min">-</span></span>
+                                    <span class="field-max"><span class="field-max-label">Max:</span> <span id="spazioColpo2Max">-</span></span>
+                                </div>
+                                <div class="field-normalized">
+                                    <div class="normalized-bar"><div class="normalized-fill" id="spazioColpo2Fill" style="width: 0%"></div></div>
+                                    <span class="normalized-value" id="spazioColpo2Norm">-</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="algoritmo-field">
-                            <span class="field-label">Spazio Colpo (Da Rete):</span>
-                            <span class="field-value" id="spazioColpo">-</span>
+                            <div class="field-header">
+                                <span class="field-label">Spazio Colpo (Da Rete):</span>
+                                <span class="field-value" id="spazioColpo">-</span>
+                            </div>
+                            <div class="field-details">
+                                <div class="field-range">
+                                    <span class="field-min"><span class="field-min-label">Min:</span> <span id="spazioColpoMin">-</span></span>
+                                    <span class="field-max"><span class="field-max-label">Max:</span> <span id="spazioColpoMax">-</span></span>
+                                </div>
+                                <div class="field-normalized">
+                                    <div class="normalized-bar"><div class="normalized-fill" id="spazioColpoFill" style="width: 0%"></div></div>
+                                    <span class="normalized-value" id="spazioColpoNorm">-</span>
+                                </div>
+                            </div>
                         </div>
                         <div class="algoritmo-field">
-                            <span class="field-label">Rischio Errore Laterale:</span>
-                            <span class="field-value" id="rischioErroreLaterale">-</span>
+                            <div class="field-header">
+                                <span class="field-label">Rischio Errore Laterale:</span>
+                                <span class="field-value" id="rischioErroreLaterale">-</span>
+                            </div>
+                            <div class="field-details">
+                                <div class="field-range">
+                                    <span class="field-min"><span class="field-min-label">Min:</span> <span id="rischioErroreLateraleMin">-</span></span>
+                                    <span class="field-max"><span class="field-max-label">Max:</span> <span id="rischioErroreLateraleMax">-</span></span>
+                                </div>
+                                <div class="field-normalized">
+                                    <div class="normalized-bar"><div class="normalized-fill" id="rischioErroreLateraleFill" style="width: 0%"></div></div>
+                                    <span class="normalized-value" id="rischioErroreLateraleNorm">-</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -460,6 +577,53 @@
                 if (bisectorLine) {
                     bisectorLine.style.display = '';
                     console.log('Bisector line display:', bisectorLine.style.display);
+                }
+                
+                // Estendi la linea gialla fino al bordo del campo
+                const yellowLine = document.getElementById('yellowLine');
+                if (yellowLine) {
+                    let isExtending = false;
+                    
+                    function extendYellowLine() {
+                        if (isExtending) return;
+                        
+                        const x1 = parseFloat(yellowLine.getAttribute('x1'));
+                        const y1 = parseFloat(yellowLine.getAttribute('y1'));
+                        const x2 = parseFloat(yellowLine.getAttribute('x2'));
+                        const y2 = parseFloat(yellowLine.getAttribute('y2'));
+                        
+                        // Determina la direzione (verso l'alto o verso il basso)
+                        const END_Y = (y1 > 486) ? 0 : 1006; // Se colpitore sotto la rete, vai in alto
+                        
+                        // Verifica se la linea è già estesa
+                        if (Math.abs(y2 - END_Y) < 1) return;
+                        
+                        // Calcola dove la linea estesa interseca il bordo
+                        if (Math.abs(y2 - y1) > 0.001) {
+                            const t = (END_Y - y1) / (y2 - y1);
+                            const extendedX = x1 + t * (x2 - x1);
+                            
+                            // Aggiorna x2 e y2 per estendere fino al bordo
+                            isExtending = true;
+                            yellowLine.setAttribute('x2', String(extendedX));
+                            yellowLine.setAttribute('y2', String(END_Y));
+                            isExtending = false;
+                        }
+                    }
+                    
+                    // Osserva le modifiche alla linea gialla e estendila
+                    const observer = new MutationObserver(function(mutations) {
+                        if (!isExtending) {
+                            setTimeout(extendYellowLine, 10);
+                        }
+                    });
+                    
+                    observer.observe(yellowLine, { attributes: true, attributeFilter: ['x1', 'y1', 'x2', 'y2'] });
+                    
+                    // Estendi inizialmente
+                    setTimeout(extendYellowLine, 100);
+                    
+                    console.log('Yellow line extension enabled');
                 }
                 
                 // Additional timeout to ensure everything is loaded
