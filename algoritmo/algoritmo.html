@@ -366,8 +366,8 @@
                     <div class="algoritmo-section-content collapsible-content" style="display: none;">
                         <div class="algoritmo-field">
                             <div class="field-header">
-                                <span class="field-label">Posizione Colpitore:</span>
-                                <span class="field-value" id="posizioneColpitore">-</span>
+                            <span class="field-label">Posizione Colpitore:</span>
+                            <span class="field-value" id="posizioneColpitore">-</span>
                             </div>
                             <div class="field-details">
                                 <div class="field-range">
@@ -382,9 +382,9 @@
                         </div>
                         <div class="algoritmo-field">
                             <div class="field-header">
-                                <span class="field-label">Spazio Colpo:</span>
-                                <span class="field-value" id="spazioColpo2">-</span>
-                            </div>
+                            <span class="field-label">Spazio Colpo:</span>
+                            <span class="field-value" id="spazioColpo2">-</span>
+                        </div>
                             <div class="field-details">
                                 <div class="field-range">
                                     <span class="field-min"><span class="field-min-label">Min:</span> <span id="spazioColpo2Min">-</span></span>
@@ -398,9 +398,9 @@
                         </div>
                         <div class="algoritmo-field">
                             <div class="field-header">
-                                <span class="field-label">Rischio Errore Laterale:</span>
-                                <span class="field-value" id="rischioErroreLaterale">-</span>
-                            </div>
+                            <span class="field-label">Rischio Errore Laterale:</span>
+                            <span class="field-value" id="rischioErroreLaterale">-</span>
+                        </div>
                             <div class="field-details">
                                 <div class="field-range">
                                     <span class="field-min"><span class="field-min-label">Min:</span> <span id="rischioErroreLateraleMin">-</span></span>
@@ -427,8 +427,8 @@
                     <div class="algoritmo-section-content collapsible-content" style="display: none;">
                         <div class="algoritmo-field">
                             <div class="field-header">
-                                <span class="field-label">Spostamento Avversario:</span>
-                                <span class="field-value" id="spostamentoAvversario">-</span>
+                            <span class="field-label">Spostamento Avversario:</span>
+                            <span class="field-value" id="spostamentoAvversario">-</span>
                             </div>
                             <div class="field-details">
                                 <div class="field-range">
@@ -443,8 +443,8 @@
                         </div>
                         <div class="algoritmo-field">
                             <div class="field-header">
-                                <span class="field-label">Distanza Mid Point:</span>
-                                <span class="field-value" id="distanzaMidPoint">-</span>
+                            <span class="field-label">Distanza Mid Point:</span>
+                            <span class="field-value" id="distanzaMidPoint">-</span>
                             </div>
                             <div class="field-details">
                                 <div class="field-range">
@@ -459,9 +459,9 @@
                         </div>
                         <div class="algoritmo-field">
                             <div class="field-header">
-                                <span class="field-label">Campo da Coprire:</span>
-                                <span class="field-value" id="campoDaCoprire">-</span>
-                            </div>
+                            <span class="field-label">Campo da Coprire:</span>
+                            <span class="field-value" id="campoDaCoprire">-</span>
+                        </div>
                             <div class="field-details">
                                 <div class="field-range">
                                     <span class="field-min"><span class="field-min-label">Min:</span> <span id="campoDaCoprireMin">-</span></span>
@@ -762,54 +762,54 @@
                         const Y_MAX_SVG_250 = FIELD_B_ORIGIN_Y + 250; // 400 (Y = 250 in Campo B)
                         
                         // Algoritmo di Cohen-Sutherland per clipping della linea (definito globalmente)
-                        function clipLine(x1, y1, x2, y2, xMin, xMax, yMin, yMax) {
-                            const INSIDE = 0, LEFT = 1, RIGHT = 2, BOTTOM = 4, TOP = 8;
-                            
-                            function computeCode(x, y) {
-                                let code = INSIDE;
-                                if (x < xMin) code |= LEFT;
-                                else if (x > xMax) code |= RIGHT;
-                                if (y < yMin) code |= TOP;
-                                else if (y > yMax) code |= BOTTOM;
-                                return code;
-                            }
-                            
-                            let code1 = computeCode(x1, y1);
-                            let code2 = computeCode(x2, y2);
-                            
-                            while (true) {
-                                if (!(code1 | code2)) {
-                                    return { x1, y1, x2, y2, valid: true };
-                                } else if (code1 & code2) {
-                                    return { valid: false };
-                                } else {
-                                    let x, y;
-                                    const codeOut = code1 ? code1 : code2;
-                                    
-                                    if (codeOut & BOTTOM) {
-                                        x = x1 + (x2 - x1) * (yMax - y1) / (y2 - y1);
-                                        y = yMax;
-                                    } else if (codeOut & TOP) {
-                                        x = x1 + (x2 - x1) * (yMin - y1) / (y2 - y1);
-                                        y = yMin;
-                                    } else if (codeOut & RIGHT) {
-                                        y = y1 + (y2 - y1) * (xMax - x1) / (x2 - x1);
-                                        x = xMax;
-                                    } else if (codeOut & LEFT) {
-                                        y = y1 + (y2 - y1) * (xMin - x1) / (x2 - x1);
-                                        x = xMin;
-                                    }
-                                    
-                                    if (codeOut === code1) {
-                                        x1 = x; y1 = y;
-                                        code1 = computeCode(x1, y1);
+                            function clipLine(x1, y1, x2, y2, xMin, xMax, yMin, yMax) {
+                                const INSIDE = 0, LEFT = 1, RIGHT = 2, BOTTOM = 4, TOP = 8;
+                                
+                                function computeCode(x, y) {
+                                    let code = INSIDE;
+                                    if (x < xMin) code |= LEFT;
+                                    else if (x > xMax) code |= RIGHT;
+                                    if (y < yMin) code |= TOP;
+                                    else if (y > yMax) code |= BOTTOM;
+                                    return code;
+                                }
+                                
+                                let code1 = computeCode(x1, y1);
+                                let code2 = computeCode(x2, y2);
+                                
+                                while (true) {
+                                    if (!(code1 | code2)) {
+                                        return { x1, y1, x2, y2, valid: true };
+                                    } else if (code1 & code2) {
+                                        return { valid: false };
                                     } else {
-                                        x2 = x; y2 = y;
-                                        code2 = computeCode(x2, y2);
+                                        let x, y;
+                                        const codeOut = code1 ? code1 : code2;
+                                        
+                                        if (codeOut & BOTTOM) {
+                                            x = x1 + (x2 - x1) * (yMax - y1) / (y2 - y1);
+                                            y = yMax;
+                                        } else if (codeOut & TOP) {
+                                            x = x1 + (x2 - x1) * (yMin - y1) / (y2 - y1);
+                                            y = yMin;
+                                        } else if (codeOut & RIGHT) {
+                                            y = y1 + (y2 - y1) * (xMax - x1) / (x2 - x1);
+                                            x = xMax;
+                                        } else if (codeOut & LEFT) {
+                                            y = y1 + (y2 - y1) * (xMin - x1) / (x2 - x1);
+                                            x = xMin;
+                                        }
+                                        
+                                        if (codeOut === code1) {
+                                            x1 = x; y1 = y;
+                                            code1 = computeCode(x1, y1);
+                                        } else {
+                                            x2 = x; y2 = y;
+                                            code2 = computeCode(x2, y2);
+                                        }
                                     }
                                 }
                             }
-                        }
                         
                         if (yellowLine) {
                             const x1_svg = parseFloat(yellowLine.getAttribute('x1'));
@@ -1225,8 +1225,8 @@
                                 if (secondary.distanzaMidPoint > distMPMax) distMPMax = secondary.distanzaMidPoint;
                                 if (secondary.campoDaCoprire < campoMin) campoMin = secondary.campoDaCoprire;
                                 if (secondary.campoDaCoprire > campoMax) campoMax = secondary.campoDaCoprire;
-                            }
-                            
+                        }
+                        
                             // Assegna i valori trovati
                             if (spazioMin !== Infinity && spazioMax !== -Infinity) {
                                 spazioColpo2Min = spazioMin;
@@ -1258,7 +1258,7 @@
                             rischioErroreLaterale: { min: 0, max: 115 },
                             spostamentoAvversario: { min: spostamentoAvversarioMin, max: spostamentoAvversarioMax },
                             distanzaMidPoint: { min: 0, max: 200 },      // Fisso: min=0, max=200
-                            campoDaCoprire: { min: 0, max: 500 }         // Fisso: min=0, max=500
+                            campoDaCoprire: { min: 250, max: 500 }       // Fisso: min=250, max=500
                         };
                         
                         // Inverti il rischio errore laterale: 115 - valore calcolato
@@ -1266,9 +1266,22 @@
                         
                         // Funzione per calcolare il valore normalizzato (0-1)
                         function normalizeValue(value, min, max) {
-                            if (max === min) return 0;
-                            const normalized = (value - min) / (max - min);
-                            return Math.max(0, Math.min(1, normalized)); // Clamp tra 0 e 1
+                            if (max === min) return 0.5; // Valore centrale se min == max
+                            
+                            // Normalizzazione lineare [0, 1]
+                            const linear = (value - min) / (max - min);
+                            const clamped = Math.max(0, Math.min(1, linear));
+                            
+                            // Mappa su [-6, 6] per la sigmoidea
+                            // Quando clamped = 0 -> x = -6
+                            // Quando clamped = 0.5 -> x = 0
+                            // Quando clamped = 1 -> x = 6
+                            const x = (clamped - 0.5) * 12;
+                            
+                            // Applica funzione sigmoidea: σ(x) = 1 / (1 + e^(-x))
+                            const sigmoid = 1 / (1 + Math.exp(-x));
+                            
+                            return sigmoid;
                         }
                         
                         // Funzione per aggiornare un campo con valore, min, max e normalizzato
@@ -1304,7 +1317,7 @@
                                     valueSpan.textContent = max.toFixed(0) + '+';
                                 } else {
                                     valueSpan.textContent = value.toFixed(2);
-                                }
+                        }
                             }
                             if (minSpan) minSpan.textContent = min.toFixed(0);
                             if (maxSpan) maxSpan.textContent = max.toFixed(0);
