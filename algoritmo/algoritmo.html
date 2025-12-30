@@ -1253,7 +1253,7 @@
                         
                         // Definizione Min/Max per ogni variabile
                         const ranges = {
-                            posizioneColpitore: { min: -180, max: 335 },
+                            posizioneColpitore: { min: -180, max: 180 },
                             spazioColpo2: { min: spazioColpo2Min, max: spazioColpo2Max },
                             rischioErroreLaterale: { min: 0, max: 115 },
                             spostamentoAvversario: { min: spostamentoAvversarioMin, max: spostamentoAvversarioMax },
@@ -1326,7 +1326,7 @@
                         }
                         
                         // Aggiorna tutti i campi
-                        updateField('posizioneColpitore', posizioneColpitore, 
+                        updateFieldWithOverflow('posizioneColpitore', posizioneColpitore, 
                             ranges.posizioneColpitore.min, ranges.posizioneColpitore.max);
                         
                         updateField('spazioColpo2', spazioColpo2, 
@@ -1346,8 +1346,8 @@
                             ranges.campoDaCoprire.min, ranges.campoDaCoprire.max);
                         
                         // Calcola i valori normalizzati per i rischi totali
-                        const posizioneColpitoreNorm = normalizeValue(posizioneColpitore, 
-                            ranges.posizioneColpitore.min, ranges.posizioneColpitore.max);
+                        const posizioneColpitoreNorm = posizioneColpitore > ranges.posizioneColpitore.max ? 1 : 
+                            normalizeValue(posizioneColpitore, ranges.posizioneColpitore.min, ranges.posizioneColpitore.max);
                         const spazioColpo2Norm = normalizeValue(spazioColpo2, 
                             ranges.spazioColpo2.min, ranges.spazioColpo2.max);
                         const rischioErroreLateraleNorm = normalizeValue(rischioErroreLaterale, 
