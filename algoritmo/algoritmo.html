@@ -390,6 +390,18 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="algoritmo-field" style="margin-top: 16px; padding-top: 16px; border-top: 2px solid #1976d2;">
+                            <div class="field-header">
+                                <span class="field-label" style="font-size: 16px; color: #1976d2; text-transform: uppercase;">Rischio Tecnico:</span>
+                                <span class="field-value" id="rischioTecnicoTotale" style="font-size: 24px; color: #1976d2;">-</span>
+                            </div>
+                            <div class="field-details">
+                                <div class="field-normalized">
+                                    <div class="normalized-bar" style="width: 100px;"><div class="normalized-fill" id="rischioTecnicoTotaleFill" style="width: 0%"></div></div>
+                                    <span class="normalized-value" id="rischioTecnicoTotaleNorm" style="font-size: 16px;">-</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -441,6 +453,36 @@
                                 <div class="field-normalized">
                                     <div class="normalized-bar"><div class="normalized-fill" id="campoDaCoprireFill" style="width: 0%"></div></div>
                                     <span class="normalized-value" id="campoDaCoprireNorm">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="algoritmo-field" style="margin-top: 16px; padding-top: 16px; border-top: 2px solid #1976d2;">
+                            <div class="field-header">
+                                <span class="field-label" style="font-size: 16px; color: #1976d2; text-transform: uppercase;">Rischio Tattico:</span>
+                                <span class="field-value" id="rischioTatticoTotale" style="font-size: 24px; color: #1976d2;">-</span>
+                            </div>
+                            <div class="field-details">
+                                <div class="field-normalized">
+                                    <div class="normalized-bar" style="width: 100px;"><div class="normalized-fill" id="rischioTatticoTotaleFill" style="width: 0%"></div></div>
+                                    <span class="normalized-value" id="rischioTatticoTotaleNorm" style="font-size: 16px;">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="algoritmo-section" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4caf50;">
+                    <h2 class="algoritmo-section-title" style="color: #2e7d32; border-bottom-color: #4caf50;">Rischio Colpo</h2>
+                    <div class="algoritmo-section-content">
+                        <div class="algoritmo-field" style="border: none;">
+                            <div class="field-header">
+                                <span class="field-label" style="font-size: 20px; color: #2e7d32; text-transform: uppercase; font-weight: 900;">Rischio Colpo:</span>
+                                <span class="field-value" id="rischioColpoTotale" style="font-size: 32px; color: #2e7d32; font-weight: 900;">-</span>
+                            </div>
+                            <div class="field-details">
+                                <div class="field-normalized">
+                                    <div class="normalized-bar" style="width: 120px; height: 12px;"><div class="normalized-fill" id="rischioColpoTotaleFill" style="width: 0%"></div></div>
+                                    <span class="normalized-value" id="rischioColpoTotaleNorm" style="font-size: 18px; color: #2e7d32; font-weight: 700;">-</span>
                                 </div>
                             </div>
                         </div>
@@ -1302,6 +1344,89 @@
                         
                         updateFieldWithOverflow('campoDaCoprire', campoDaCoprire, 
                             ranges.campoDaCoprire.min, ranges.campoDaCoprire.max);
+                        
+                        // Calcola i valori normalizzati per i rischi totali
+                        const posizioneColpitoreNorm = normalizeValue(posizioneColpitore, 
+                            ranges.posizioneColpitore.min, ranges.posizioneColpitore.max);
+                        const spazioColpo2Norm = normalizeValue(spazioColpo2, 
+                            ranges.spazioColpo2.min, ranges.spazioColpo2.max);
+                        const rischioErroreLateraleNorm = normalizeValue(rischioErroreLaterale, 
+                            ranges.rischioErroreLaterale.min, ranges.rischioErroreLaterale.max);
+                        const spostamentoAvversarioNorm = normalizeValue(spostamentoAvversario, 
+                            ranges.spostamentoAvversario.min, ranges.spostamentoAvversario.max);
+                        const distanzaMidPointNorm = distanzaMidPoint > ranges.distanzaMidPoint.max ? 1 : 
+                            normalizeValue(distanzaMidPoint, ranges.distanzaMidPoint.min, ranges.distanzaMidPoint.max);
+                        const campoDaCoprireNorm = campoDaCoprire > ranges.campoDaCoprire.max ? 1 : 
+                            normalizeValue(campoDaCoprire, ranges.campoDaCoprire.min, ranges.campoDaCoprire.max);
+                        
+                        // Calcola Rischio Tecnico Totale
+                        // Media di: (1 - posizioneColpitore_norm), (1 - spazioColpo_norm), rischioErroreLaterale_norm
+                        const rischioTecnicoTotale = (
+                            (1 - posizioneColpitoreNorm) + 
+                            (1 - spazioColpo2Norm) + 
+                            rischioErroreLateraleNorm
+                        ) / 3;
+                        
+                        // Calcola Rischio Tattico Totale
+                        // Media di: (1 - spostamentoAvversario_norm), distanzaMidPoint_norm, campoDaCoprire_norm
+                        const rischioTatticoTotale = (
+                            (1 - spostamentoAvversarioNorm) + 
+                            distanzaMidPointNorm + 
+                            campoDaCoprireNorm
+                        ) / 3;
+                        
+                        console.log('=== Rischi Totali ===');
+                        console.log('Rischio Tecnico Totale:', rischioTecnicoTotale);
+                        console.log('Rischio Tattico Totale:', rischioTatticoTotale);
+                        
+                        // Aggiorna i campi dei rischi totali
+                        const rischioTecnicoTotaleSpan = document.getElementById('rischioTecnicoTotale');
+                        const rischioTecnicoTotaleNormSpan = document.getElementById('rischioTecnicoTotaleNorm');
+                        const rischioTecnicoTotaleFill = document.getElementById('rischioTecnicoTotaleFill');
+                        
+                        if (rischioTecnicoTotaleSpan) {
+                            rischioTecnicoTotaleSpan.textContent = (rischioTecnicoTotale * 100).toFixed(1) + '%';
+                        }
+                        if (rischioTecnicoTotaleNormSpan) {
+                            rischioTecnicoTotaleNormSpan.textContent = rischioTecnicoTotale.toFixed(2);
+                        }
+                        if (rischioTecnicoTotaleFill) {
+                            rischioTecnicoTotaleFill.style.width = (rischioTecnicoTotale * 100) + '%';
+                        }
+                        
+                        const rischioTatticoTotaleSpan = document.getElementById('rischioTatticoTotale');
+                        const rischioTatticoTotaleNormSpan = document.getElementById('rischioTatticoTotaleNorm');
+                        const rischioTatticoTotaleFill = document.getElementById('rischioTatticoTotaleFill');
+                        
+                        if (rischioTatticoTotaleSpan) {
+                            rischioTatticoTotaleSpan.textContent = (rischioTatticoTotale * 100).toFixed(1) + '%';
+                        }
+                        if (rischioTatticoTotaleNormSpan) {
+                            rischioTatticoTotaleNormSpan.textContent = rischioTatticoTotale.toFixed(2);
+                        }
+                        if (rischioTatticoTotaleFill) {
+                            rischioTatticoTotaleFill.style.width = (rischioTatticoTotale * 100) + '%';
+                        }
+                        
+                        // Calcola Rischio Colpo Totale
+                        // Media tra Rischio Tecnico e Rischio Tattico
+                        const rischioColpoTotale = (rischioTecnicoTotale + rischioTatticoTotale) / 2;
+                        
+                        console.log('Rischio Colpo Totale:', rischioColpoTotale);
+                        
+                        const rischioColpoTotaleSpan = document.getElementById('rischioColpoTotale');
+                        const rischioColpoTotaleNormSpan = document.getElementById('rischioColpoTotaleNorm');
+                        const rischioColpoTotaleFill = document.getElementById('rischioColpoTotaleFill');
+                        
+                        if (rischioColpoTotaleSpan) {
+                            rischioColpoTotaleSpan.textContent = (rischioColpoTotale * 100).toFixed(1) + '%';
+                        }
+                        if (rischioColpoTotaleNormSpan) {
+                            rischioColpoTotaleNormSpan.textContent = rischioColpoTotale.toFixed(2);
+                        }
+                        if (rischioColpoTotaleFill) {
+                            rischioColpoTotaleFill.style.width = (rischioColpoTotale * 100) + '%';
+                        }
                         
                         if (risultatiDiv) {
                             risultatiDiv.style.display = 'flex';
