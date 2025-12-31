@@ -17,7 +17,7 @@ L'algoritmo utilizza due sistemi di coordinate:
 - `FIELD_A_ORIGIN_X = 300`, `FIELD_A_ORIGIN_Y = 822`
 - `FIELD_B_ORIGIN_X = 300`, `FIELD_B_ORIGIN_Y = 150`
 - `NET_Y = 486` (posizione della rete in coordinate SVG)
-- Larghezza campo: -115 a +115 (230 cm totale)
+- Larghezza campo: -117 a +117 (234 cm totale)
 - Lunghezza campo: 0 a 250 (Campo B), 0 a 336 (fino alla rete)
 
 ## Variabili Tecniche
@@ -40,7 +40,7 @@ posizioneColpitore = dotX_svg - FIELD_A_ORIGIN_X
 - Valori vicini a 0 indicano posizione centrale (migliore)
 - Valori estremi indicano posizione laterale (peggiore)
 
-**Nota**: Questa variabile utilizza una **normalizzazione lineare semplice** invece della sigmoidea, per una relazione diretta e proporzionale tra posizione e rischio.
+**Nota**: Questa variabile utilizza una **normalizzazione concava** (potenza con esponente 0.5) invece della sigmoidea. Questo significa che le variazioni vicino ai valori minimi (posizioni estreme) hanno un effetto maggiore sul rischio rispetto alle variazioni vicino ai massimi (posizione centrale). In pratica: essere molto fuori posizione è già molto rischioso, e piccoli miglioramenti verso il centro hanno grande effetto (vedi sezione "Normalizzazione Concava per Posizione Colpitore").
 
 ### 2. Spazio Colpo
 
@@ -48,7 +48,7 @@ posizioneColpitore = dotX_svg - FIELD_A_ORIGIN_X
 
 **Calcolo**:
 1. Si utilizza l'algoritmo **Cohen-Sutherland** per clippare la linea gialla (traiettoria del colpo) all'interno del rettangolo:
-   - X: da -115 a +115 (Campo B)
+   - X: da -117 a +117 (Campo B)
    - Y: da 0 a 250 (Campo B)
 2. Si calcola la distanza euclidea tra i due punti clippati
 
@@ -64,27 +64,55 @@ spazioColpo = sqrt(dx² + dy²)
 **Interpretazione**: 
 - Spazio maggiore = più margine di errore = minore rischio
 
+**Nota**: Questa variabile utilizza una **normalizzazione convessa** (potenza con esponente 3) invece della sigmoidea standard. Questo significa che le variazioni vicino ai valori massimi di spazio hanno un effetto **estremamente maggiore** sul rischio rispetto alle variazioni vicino ai minimi. In pratica: avere molto spazio riduce il rischio in modo **fortemente accelerato** (vedi sezione "Normalizzazione Convessa").
+
 ### 3. Rischio Errore Laterale
 
-**Descrizione**: Distanza minima dai bordi laterali del campo alla Y media della zona di gioco.
+**Descrizione**: Posizione orizzontale (X) del colpo alla Y media della porzione valida della traiettoria nel Campo B.
 
 **Calcolo**:
-1. Si trova l'intersezione della linea gialla con Y = 125 (media tra 0 e 250) nel Campo B
-2. Si calcola: `115 - |X|` dove X è la coordinata orizzontale in quella posizione
-3. Si inverte il risultato: `rischioErroreLaterale = 115 - valore_calcolato`
+1. Si utilizza la porzione clippata della linea gialla (traiettoria del colpo) già calcolata per Spazio Colpo (zona 0 < Y < 250 e -117 < X < 117 nel Campo B)
+2. Si identificano Y_min e Y_max della porzione clippata
+3. Si calcola Y_media = (Y_min + Y_max) / 2
+4. Si trova la coordinata X corrispondente a questa Y_media
+5. Questa X rappresenta il rischio di errore laterale
 
 ```javascript
-yellowX_fieldB = yellowX_atYMedia - FIELD_B_ORIGIN_X
-rischioErroreLaterale = 115 - abs(yellowX_fieldB)
-rischioErroreLaterale = 115 - rischioErroreLaterale  // Inversione
+// Clippa la linea nel rettangolo di Spazio Colpo
+const clipped250 = clipLine(x1_svg, y1_svg, x2_svg, y2_svg, X_MIN_SVG, X_MAX_SVG, Y_MIN_SVG, Y_MAX_SVG_250);
+
+// Trova Y_min e Y_max
+const y_min_svg = min(clipped250.y1, clipped250.y2);
+const y_max_svg = max(clipped250.y1, clipped250.y2);
+
+// Calcola Y media
+const y_media_svg = (y_min_svg + y_max_svg) / 2;
+
+// Trova X a Y media
+const t = (y_media_svg - clipped250.y1) / (clipped250.y2 - clipped250.y1);
+yellowX_atYMedia = clipped250.x1 + t * (clipped250.x2 - clipped250.x1);
+
+// Converti in coordinate Campo B
+rischioErroreLaterale = yellowX_atYMedia - FIELD_B_ORIGIN_X;
 ```
 
 **Range**:
-- Min: **0**
-- Max: **115**
+- Valore grezzo: da **-117** (bordo sinistro) a **+117** (bordo destro)
+- **Visualizzazione nella UI**: valore assoluto da **0** (centro) a **117** (bordo)
 
-**Interpretazione**: 
-- Valore alto = colpo più vicino al bordo = maggiore rischio di errore laterale
+**Interpretazione del valore grezzo**: 
+- Valore **negativo** = colpo verso **sinistra** (verso X negativo)
+- Valore **positivo** = colpo verso **destra** (verso X positivo)
+- Valore vicino a **0** = colpo al **centro** (minore rischio laterale)
+- Valore **estremo** (vicino a ±117) = colpo vicino ai **bordi laterali** (maggiore rischio di uscita laterale)
+
+**Visualizzazione e Normalizzazione**: 
+- Nella **UI viene mostrato il valore assoluto** |X| per facilitare l'interpretazione: 0 = centro campo (rischio minimo), 117 = bordo (rischio massimo)
+- Per la **normalizzazione** (0-1) si utilizza lo stesso valore assoluto:
+```javascript
+rischioErroreLateraleNorm = normalizeValue(abs(rischioErroreLaterale), 0, 115)
+```
+Questo riflette il fatto che il rischio è simmetrico: sia X = -117 che X = +117 rappresentano lo stesso livello di rischio (massimo), mentre X = 0 rappresenta il rischio minimo.
 
 ## Variabili Tattiche
 
@@ -187,16 +215,16 @@ Le variabili vengono normalizzate tra 0 e 1 usando **tre diverse funzioni** a se
 
 | Variabile                | Funzione di Normalizzazione | Motivazione |
 |--------------------------|----------------------------|-------------|
-| **Posizione Colpitore**  | Lineare                    | Relazione diretta e proporzionale |
-| Spazio Colpo             | Sigmoidea                  | Transizione graduale agli estremi |
-| Rischio Errore Laterale  | Sigmoidea                  | Percezione non-lineare del rischio |
+| **Posizione Colpitore**  | Potenza Concava (exp 0.5)  | Crescita rapida all'inizio |
+| **Spazio Colpo**         | **Potenza Convessa (exp 3)** | Variazioni massime → effetto molto maggiore |
+| **Rischio Errore Laterale** | **Lineare su \|X\|**  | Rischio simmetrico proporzionale |
 | Spostamento Avversario   | Sigmoidea                  | Transizione graduale agli estremi |
 | Distanza Mid Point       | Sigmoidea                  | Percezione non-lineare del rischio |
-| **Campo da Coprire**     | Potenza (exp 0.2)          | Crescita estremamente rapida |
+| **Campo da Coprire**     | Potenza Concava (exp 0.2)  | Crescita estremamente rapida |
 
 ### 1. Normalizzazione Lineare
 
-Utilizzata per **Posizione Colpitore**, fornisce una relazione diretta e proporzionale tra valore e rischio.
+Utilizzata per **Rischio Errore Laterale**, fornisce una relazione diretta e proporzionale tra valore e rischio.
 
 #### Formula
 
@@ -213,7 +241,100 @@ function normalizeLinear(value, min, max) {
 - Valore al centro = 0.5 esattamente
 - Facile da interpretare: ogni unità contribuisce allo stesso modo
 
-### 2. Normalizzazione Sigmoidea
+### 1b. Normalizzazione Concava per Posizione Colpitore
+
+Utilizzata per **Posizione Colpitore**, implementa una funzione con **derivata seconda sempre negativa** (funzione concava), dove le variazioni vicino ai valori minimi hanno effetti maggiori rispetto alle variazioni ai valori massimi.
+
+#### Formula
+
+```javascript
+function normalizePosizioneColpitore(value, min, max) {
+    // Normalizzazione lineare [0, 1]
+    const linear = (value - min) / (max - min);
+    
+    // Applica funzione potenza con esponente < 1 (concava)
+    // Esponente 0.5 = radice quadrata
+    const result = Math.pow(linear, 0.5);
+    
+    return result;
+}
+```
+
+#### Caratteristiche della Funzione Concava
+
+- **Esponente 0.5**: Crea una curva concava (radice quadrata)
+- **Derivata prima**: sempre crescente ma decrescente
+- **Derivata seconda**: sempre negativa → concavità
+- **Effetto**: Piccole variazioni vicino al minimo hanno impatto maggiore rispetto a piccole variazioni vicino al massimo
+
+#### Comportamento Dettagliato
+
+| Valore Lineare | Concavo (x^0.5) | Delta da step precedente |
+|----------------|-----------------|--------------------------|
+| 0.0            | 0.000           | -                        |
+| 0.2            | 0.447           | +0.447                   |
+| 0.4            | 0.632           | +0.185 (0.41x)           |
+| 0.6            | 0.775           | +0.143 (0.31x)           |
+| 0.8            | 0.894           | +0.119 (0.27x)           |
+| 1.0            | 1.000           | +0.106 (0.24x)           |
+
+**Confronto incrementi**: Un incremento lineare di 0.2 produce effetti **decrescenti** man mano che ci si avvicina al massimo (0.447 → 0.185 → 0.143 → 0.119 → 0.106).
+
+#### Interpretazione per Posizione Colpitore
+
+- **Posizioni vicine al minimo** (estremi laterali): variazioni hanno **impatto maggiore** sul rischio
+- **Posizioni vicine al massimo** (centro campo): variazioni hanno **impatto minore** sul rischio
+- Riflette il fatto che **essere molto fuori posizione** è già molto rischioso, e piccoli miglioramenti hanno grande effetto
+
+### 2. Normalizzazione Convessa (Spazio Colpo)
+
+Utilizzata per **Spazio Colpo**, implementa una funzione con **derivata seconda sempre positiva** (funzione convessa), dove le variazioni vicino ai valori massimi hanno effetti maggiori rispetto alle variazioni ai valori minimi.
+
+#### Formula
+
+```javascript
+function normalizeSpazioColpo(value, min, max) {
+    // Normalizzazione lineare [0, 1]
+    const linear = (value - min) / (max - min);
+    
+    // Applica funzione potenza con esponente > 1 (convessa)
+    // Esponente 3 dà crescita molto lenta all'inizio, forte accelerazione verso il massimo
+    const result = Math.pow(linear, 3);
+    
+    return result;
+}
+```
+
+#### Caratteristiche della Funzione Convessa
+
+- **Esponente 3**: Crea una funzione cubica con forte convessità
+- **Derivata prima**: sempre crescente → accelerazione crescente
+- **Derivata seconda**: sempre positiva e crescente → convessità accentuata
+- **Effetto**: Piccole variazioni vicino al massimo hanno impatto **estremamente maggiore** rispetto a piccole variazioni vicino al minimo
+
+#### Comportamento Dettagliato
+
+| Valore Lineare | Convesso (x³) | Delta da step precedente |
+|----------------|---------------|--------------------------|
+| 0.0            | 0.000         | -                        |
+| 0.2            | 0.008         | +0.008                   |
+| 0.4            | 0.064         | +0.056 (7x più grande)   |
+| 0.6            | 0.216         | +0.152 (19x più grande)  |
+| 0.8            | 0.512         | +0.296 (37x più grande)  |
+| 1.0            | 1.000         | +0.488 (61x più grande)  |
+
+**Confronto incrementi**: Un incremento lineare di 0.2 produce effetti **estremamente crescenti** man mano che ci si avvicina al massimo (0.008 → 0.056 → 0.152 → 0.296 → 0.488).
+
+**Confronto con esponente 2**: Con x³ rispetto a x², l'accelerazione è molto più marcata. Ad esempio, a 0.8 lineare: x² = 0.64, x³ = 0.512 (più conservativo all'inizio), ma a 0.9: x² = 0.81, x³ = 0.729 (accelera di più verso il massimo).
+
+#### Interpretazione per Spazio Colpo
+
+- **Spazi piccoli** (vicini al minimo): variazioni hanno **impatto molto limitato** sul rischio
+- **Spazi medi**: l'impatto inizia a crescere in modo significativo
+- **Spazi grandi** (vicini al massimo): variazioni hanno **impatto estremamente elevato** sul rischio
+- Riflette il fatto che **maggiore spazio = maggiore margine di errore**, e questo vantaggio cresce in modo **fortemente accelerato** con esponente cubico (x³)
+
+### 3. Normalizzazione Sigmoidea
 
 La maggior parte delle variabili utilizza una **funzione sigmoidea** per una rappresentazione più realistica della percezione del rischio.
 
@@ -250,7 +371,50 @@ function normalizeValue(value, min, max) {
 | 0.5            | 0.5000           |
 | 1.0            | ≈ 0.9975         |
 
-### 3. Normalizzazione con Funzione Potenza (Campo da Coprire)
+### 4. Normalizzazione Lineare per Rischio Errore Laterale
+
+La variabile **Rischio Errore Laterale** utilizza una **normalizzazione lineare** sul valore assoluto, che tiene conto della **simmetria** del rischio rispetto al centro del campo.
+
+#### Caratteristiche
+
+Il valore grezzo di Rischio Errore Laterale è una coordinata X che va da **-117** (bordo sinistro) a **+117** (bordo destro), con **0** al centro. Il rischio è:
+- **Minimo** al centro (X = 0)
+- **Massimo** ai bordi (X = ±117)
+- **Simmetrico**: X = -100 e X = +100 hanno lo stesso rischio
+
+Per la **visualizzazione nella UI**, viene mostrato il **valore assoluto** |X| (da 0 a 115) per facilitare l'interpretazione.
+
+#### Formula
+
+```javascript
+function normalizeRischioErroreLaterale(value, min, max) {
+    // Usa il valore assoluto per la normalizzazione lineare
+    const absValue = Math.abs(value);
+    return normalizeLinear(absValue, 0, 117);
+}
+```
+
+#### Comportamento
+
+| X (Campo B) | \|X\| (visualizzato) | Normalizzato (Lineare) | Interpretazione |
+|-------------|----------------------|------------------------|-----------------|
+| -117        | 117                  | 1.00                   | Massimo rischio (bordo sinistro) |
+| -80         | 80                   | 0.68                   | Alto rischio |
+| -50         | 50                   | 0.43                   | Rischio moderato |
+| 0           | 0                    | 0.00                   | Minimo rischio (centro) |
+| +50         | 50                   | 0.43                   | Rischio moderato |
+| +80         | 80                   | 0.68                   | Alto rischio |
+| +117        | 117                  | 1.00                   | Massimo rischio (bordo destro) |
+
+**Nota**: La colonna "|X| (visualizzato)" rappresenta il valore mostrato nell'interfaccia utente.
+
+**Caratteristiche della Normalizzazione Lineare**:
+- **Crescita proporzionale**: Ogni cm di distanza dal centro contribuisce allo stesso modo
+- **Facile interpretazione**: 50 cm dal centro = 43% di rischio (50/117)
+- **Simmetria perfetta**: -X e +X producono lo stesso risultato
+- **Differenza con sigmoidea**: La sigmoidea comprimerebbe i valori agli estremi; la lineare mantiene una progressione costante
+
+### 5. Normalizzazione Concava con Funzione Potenza (Campo da Coprire)
 
 La variabile **Campo da Coprire** richiede una funzione di normalizzazione diversa dalla sigmoidea standard, poiché deve:
 - **Crescere molto rapidamente** per valori bassi (appena sopra il minimo di 250)
@@ -275,9 +439,9 @@ function normalizeCampoDaCoprire(value, min, max) {
 }
 ```
 
-#### Caratteristiche della Funzione Potenza
+#### Caratteristiche della Funzione Potenza Concava
 
-- **Esponente 0.2**: Crea una curva concava che cresce rapidamente all'inizio
+- **Esponente 0.2** (< 1): Crea una curva concava che cresce rapidamente all'inizio
 - **Non-lineare**: La crescita è molto più veloce della normalizzazione lineare
 - **Rapido raggiungimento del massimo**: A 300-310 il valore è già al 72-75%
 

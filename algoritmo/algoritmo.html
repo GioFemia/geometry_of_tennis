@@ -750,11 +750,11 @@
                         let spazioColpo2 = 0;     // Standard (Y fino a 250)
                         
                         // Limiti X in coordinate Campo B
-                        const X_MIN_FIELD_B = -115;
-                        const X_MAX_FIELD_B = 115;
+                        const X_MIN_FIELD_B = -117;
+                        const X_MAX_FIELD_B = 117;
                         // Limiti X in coordinate SVG
-                        const X_MIN_SVG = FIELD_B_ORIGIN_X + X_MIN_FIELD_B; // 300 - 115 = 185
-                        const X_MAX_SVG = FIELD_B_ORIGIN_X + X_MAX_FIELD_B; // 300 + 115 = 415
+                        const X_MIN_SVG = FIELD_B_ORIGIN_X + X_MIN_FIELD_B; // 300 - 117 = 183
+                        const X_MAX_SVG = FIELD_B_ORIGIN_X + X_MAX_FIELD_B; // 300 + 117 = 417
                         
                         // Limiti Y in coordinate SVG
                         const Y_MIN_SVG = FIELD_B_ORIGIN_Y; // 150 (Y = 0 in Campo B)
@@ -864,9 +864,11 @@
                         }
                         
                         // Calcola Rischio Errore Laterale
-                        // 1. Trova Y media tra 250 e la Y più lontana dalla rete (Y=0 in Campo B)
-                        // 2. Trova X della linea gialla a questa Y media
-                        // 3. Calcola: 115 - |X| (distanza dal bordo laterale)
+                        // Usa la porzione clippata della linea gialla (già calcolata per Spazio Colpo)
+                        // 1. Trova Y_min e Y_max della porzione clippata
+                        // 2. Calcola Y_media = (Y_min + Y_max) / 2
+                        // 3. Trova X corrispondente a questa Y_media
+                        // 4. Usa questa X come valore di rischio errore laterale
                         let rischioErroreLaterale = 0;
                         
                         console.log('=== Calcolo Rischio Errore Laterale ===');
@@ -877,19 +879,26 @@
                             const x2_svg = parseFloat(yellowLine.getAttribute('x2'));
                             const y2_svg = parseFloat(yellowLine.getAttribute('y2'));
                             
-                            // Y media tra 250 e 0 (limiti Y per Spazio Colpo) = 125 in Campo B
-                            // In SVG: Y_svg = FIELD_B_ORIGIN_Y + 125 = 150 + 125 = 275
-                            const Y_MEDIA_FIELD_B = (250 + 0) / 2; // = 125
-                            const Y_MEDIA_SVG = FIELD_B_ORIGIN_Y + Y_MEDIA_FIELD_B; // = 275
+                            // Clippa la linea nel rettangolo di Spazio Colpo (Y da 0 a 250)
+                            const clipped250 = clipLine(x1_svg, y1_svg, x2_svg, y2_svg, X_MIN_SVG, X_MAX_SVG, Y_MIN_SVG, Y_MAX_SVG_250);
                             
-                            console.log('Y media (Campo B):', Y_MEDIA_FIELD_B);
-                            console.log('Y media (SVG):', Y_MEDIA_SVG);
-                            
-                            // Trova X della linea gialla a Y_MEDIA_SVG
-                            let yellowX_atYMedia = x1_svg;
-                            if (Math.abs(y2_svg - y1_svg) > 0.001) {
-                                const t = (Y_MEDIA_SVG - y1_svg) / (y2_svg - y1_svg);
-                                yellowX_atYMedia = x1_svg + t * (x2_svg - x1_svg);
+                            if (clipped250.valid) {
+                                // Trova Y_min e Y_max della porzione clippata (in coordinate SVG)
+                                const y_min_svg = Math.min(clipped250.y1, clipped250.y2);
+                                const y_max_svg = Math.max(clipped250.y1, clipped250.y2);
+                                
+                                // Calcola Y media
+                                const y_media_svg = (y_min_svg + y_max_svg) / 2;
+                                
+                                console.log('Y min (SVG):', y_min_svg);
+                                console.log('Y max (SVG):', y_max_svg);
+                                console.log('Y media (SVG):', y_media_svg);
+                                
+                                // Trova X della linea gialla a Y_media
+                                let yellowX_atYMedia = clipped250.x1;
+                                if (Math.abs(clipped250.y2 - clipped250.y1) > 0.001) {
+                                    const t = (y_media_svg - clipped250.y1) / (clipped250.y2 - clipped250.y1);
+                                    yellowX_atYMedia = clipped250.x1 + t * (clipped250.x2 - clipped250.x1);
                             }
                             
                             console.log('X linea gialla a Y media (SVG):', yellowX_atYMedia);
@@ -899,11 +908,13 @@
                             
                             console.log('X linea gialla (Campo B):', yellowX_fieldB);
                             
-                            // Rischio Errore Laterale = 115 - |X|
-                            // Rappresenta la distanza dal bordo laterale più vicino
-                            rischioErroreLaterale = 115 - Math.abs(yellowX_fieldB);
+                                // Rischio Errore Laterale = X (direttamente)
+                                rischioErroreLaterale = yellowX_fieldB;
                             
-                            console.log('Rischio Errore Laterale = 115 - |' + yellowX_fieldB + '| = ' + rischioErroreLaterale);
+                                console.log('Rischio Errore Laterale:', rischioErroreLaterale);
+                            } else {
+                                console.log('Rischio Errore Laterale: linea fuori dal rettangolo valido');
+                            }
                         }
                         
                         // Calcola Spostamento Avversario
@@ -1255,14 +1266,11 @@
                         const ranges = {
                             posizioneColpitore: { min: -180, max: 180 },
                             spazioColpo2: { min: spazioColpo2Min, max: spazioColpo2Max },
-                            rischioErroreLaterale: { min: 0, max: 115 },
+                            rischioErroreLaterale: { min: -117, max: 117 },
                             spostamentoAvversario: { min: spostamentoAvversarioMin, max: spostamentoAvversarioMax },
                             distanzaMidPoint: { min: 0, max: 200 },      // Fisso: min=0, max=200
                             campoDaCoprire: { min: 250, max: 500 }       // Fisso: min=250, max=500
                         };
-                        
-                        // Inverti il rischio errore laterale: 115 - valore calcolato
-                        rischioErroreLaterale = 115 - rischioErroreLaterale;
                         
                         // Funzione per calcolare il valore normalizzato (0-1)
                         function normalizeValue(value, min, max) {
@@ -1291,6 +1299,51 @@
                             return Math.max(0, Math.min(1, normalized)); // Clamp tra 0 e 1
                         }
                         
+                        // Funzione di normalizzazione concava per Posizione Colpitore (esponente 0.5)
+                        // Crescita rapida all'inizio, rallenta verso il massimo
+                        function normalizePosizioneColpitore(value, min, max) {
+                            if (max === min) return 0.5;
+                            if (value >= max) return 1;
+                            if (value <= min) return 0;
+                            
+                            // Normalizzazione lineare [0, 1]
+                            const linear = (value - min) / (max - min);
+                            
+                            // Applica funzione potenza con esponente < 1 (concava)
+                            // Esponente 0.5 = radice quadrata: crescita rapida all'inizio, rallenta verso il massimo
+                            // 0.2→0.447, 0.5→0.707, 0.8→0.894, 0.9→0.949
+                            const result = Math.pow(linear, 0.5);
+                            
+                            return result;
+                        }
+                        
+                        // Funzione di normalizzazione per Spazio Colpo (funzione convessa)
+                        // Derivata seconda sempre positiva: le variazioni vicino ai massimi hanno effetti maggiori
+                        function normalizeSpazioColpo(value, min, max) {
+                            if (max === min) return 0.5;
+                            if (value >= max) return 1;
+                            if (value <= min) return 0;
+                            
+                            // Normalizzazione lineare [0, 1]
+                            const linear = (value - min) / (max - min);
+                            
+                            // Applica funzione potenza con esponente > 1 (convessa)
+                            // Esponente 3 dà crescita molto lenta all'inizio, forte accelerazione verso il massimo
+                            // Derivata seconda sempre positiva e crescente
+                            // 0.2→0.008, 0.5→0.125, 0.8→0.512, 0.9→0.729, 0.95→0.857
+                            const result = Math.pow(linear, 3);
+                            
+                            return result;
+                        }
+                        
+                        // Funzione di normalizzazione per Rischio Errore Laterale (usa valore assoluto)
+                        function normalizeRischioErroreLaterale(value, min, max) {
+                            // Il rischio è simmetrico: ±117 hanno lo stesso rischio (massimo), 0 ha rischio minimo
+                            // Usa normalizzazione lineare invece di sigmoidea
+                            const absValue = Math.abs(value);
+                            return normalizeLinear(absValue, 0, 117);
+                        }
+                        
                         // Funzione speciale per normalizzare il Campo da Coprire
                         // Crescita molto rapida all'inizio, quasi massimo già a 300-310
                         function normalizeCampoDaCoprire(value, min, max) {
@@ -1309,14 +1362,14 @@
                         }
                         
                         // Funzione per aggiornare un campo con valore, min, max e normalizzato
-                        function updateField(id, value, min, max) {
+                        function updateField(id, value, min, max, normalizeFn = normalizeValue) {
                             const valueSpan = document.getElementById(id);
                             const minSpan = document.getElementById(id + 'Min');
                             const maxSpan = document.getElementById(id + 'Max');
                             const normSpan = document.getElementById(id + 'Norm');
                             const fillDiv = document.getElementById(id + 'Fill');
                             
-                            const normalized = normalizeValue(value, min, max);
+                            const normalized = normalizeFn(value, min, max);
                             
                             if (valueSpan) valueSpan.textContent = value.toFixed(2);
                             if (minSpan) minSpan.textContent = min.toFixed(0);
@@ -1351,13 +1404,13 @@
                         
                         // Aggiorna tutti i campi
                         updateFieldWithOverflow('posizioneColpitore', posizioneColpitore, 
-                            ranges.posizioneColpitore.min, ranges.posizioneColpitore.max, normalizeLinear);
+                            ranges.posizioneColpitore.min, ranges.posizioneColpitore.max, normalizePosizioneColpitore);
                         
                         updateField('spazioColpo2', spazioColpo2, 
-                            ranges.spazioColpo2.min, ranges.spazioColpo2.max);
+                            ranges.spazioColpo2.min, ranges.spazioColpo2.max, normalizeSpazioColpo);
                         
-                        updateField('rischioErroreLaterale', rischioErroreLaterale, 
-                            ranges.rischioErroreLaterale.min, ranges.rischioErroreLaterale.max);
+                        updateField('rischioErroreLaterale', Math.abs(rischioErroreLaterale), 
+                            0, 117, normalizeRischioErroreLaterale);
                         
                         updateField('spostamentoAvversario', spostamentoAvversario, 
                             ranges.spostamentoAvversario.min, ranges.spostamentoAvversario.max);
@@ -1371,11 +1424,14 @@
                         
                         // Calcola i valori normalizzati per i rischi totali
                         const posizioneColpitoreNorm = posizioneColpitore > ranges.posizioneColpitore.max ? 1 : 
-                            normalizeLinear(posizioneColpitore, ranges.posizioneColpitore.min, ranges.posizioneColpitore.max);
-                        const spazioColpo2Norm = normalizeValue(spazioColpo2, 
+                            normalizePosizioneColpitore(posizioneColpitore, ranges.posizioneColpitore.min, ranges.posizioneColpitore.max);
+                        const spazioColpo2Norm = normalizeSpazioColpo(spazioColpo2, 
                             ranges.spazioColpo2.min, ranges.spazioColpo2.max);
-                        const rischioErroreLateraleNorm = normalizeValue(rischioErroreLaterale, 
-                            ranges.rischioErroreLaterale.min, ranges.rischioErroreLaterale.max);
+                        // Per il rischio errore laterale, normalizziamo il valore assoluto
+                        // |X| = 0 (centro) -> rischio minimo = 0
+                        // |X| = 115 (bordo) -> rischio massimo = 1
+                        const rischioErroreLateraleNorm = normalizeLinear(Math.abs(rischioErroreLaterale), 
+                            0, 117);
                         const spostamentoAvversarioNorm = normalizeValue(spostamentoAvversario, 
                             ranges.spostamentoAvversario.min, ranges.spostamentoAvversario.max);
                         const distanzaMidPointNorm = distanzaMidPoint > ranges.distanzaMidPoint.max ? 1 : 
