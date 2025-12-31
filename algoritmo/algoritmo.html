@@ -146,6 +146,27 @@
             font-size: 12px;
         }
 
+        .field-label-inverted {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .inverted-indicator {
+            color: #f44336;
+            font-weight: 900;
+            font-size: 16px;
+            background: rgba(244, 67, 54, 0.1);
+            border-radius: 3px;
+            padding: 2px 4px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+        }
+
         .field-value {
             font-weight: 700;
             font-size: 16px;
@@ -366,7 +387,7 @@
                     <div class="algoritmo-section-content collapsible-content" style="display: none;">
                         <div class="algoritmo-field">
                             <div class="field-header">
-                            <span class="field-label">Posizione Colpitore:</span>
+                            <span class="field-label field-label-inverted">Posizione Colpitore:<span class="inverted-indicator">−</span></span>
                             <span class="field-value" id="posizioneColpitore">-</span>
                             </div>
                             <div class="field-details">
@@ -382,7 +403,7 @@
                         </div>
                         <div class="algoritmo-field">
                             <div class="field-header">
-                            <span class="field-label">Spazio Colpo:</span>
+                            <span class="field-label field-label-inverted">Spazio Colpo:<span class="inverted-indicator">−</span></span>
                             <span class="field-value" id="spazioColpo2">-</span>
                         </div>
                             <div class="field-details">
@@ -412,6 +433,22 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="algoritmo-field">
+                            <div class="field-header">
+                            <span class="field-label">Altezza Rete:</span>
+                            <span class="field-value" id="altezzaRete">-</span>
+                        </div>
+                            <div class="field-details">
+                                <div class="field-range">
+                                    <span class="field-min"><span class="field-min-label">Min:</span> <span id="altezzaReteMin">-</span></span>
+                                    <span class="field-max"><span class="field-max-label">Max:</span> <span id="altezzaReteMax">-</span></span>
+                                </div>
+                                <div class="field-normalized">
+                                    <div class="normalized-bar"><div class="normalized-fill" id="altezzaReteFill" style="width: 0%"></div></div>
+                                    <span class="normalized-value" id="altezzaReteNorm">-</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -427,7 +464,7 @@
                     <div class="algoritmo-section-content collapsible-content" style="display: none;">
                         <div class="algoritmo-field">
                             <div class="field-header">
-                            <span class="field-label">Spostamento Avversario:</span>
+                            <span class="field-label field-label-inverted">Spostamento Avversario:<span class="inverted-indicator">−</span></span>
                             <span class="field-value" id="spostamentoAvversario">-</span>
                             </div>
                             <div class="field-details">
@@ -917,6 +954,38 @@
                             }
                         }
                         
+                        // Calcola Altezza Rete
+                        // Valore assoluto della X in cui la linea gialla si interseca con la rete (NET_Y = 486)
+                        let altezzaRete = 0;
+                        
+                        console.log('=== Calcolo Altezza Rete ===');
+                        
+                        if (yellowLine) {
+                            const x1_svg = parseFloat(yellowLine.getAttribute('x1'));
+                            const y1_svg = parseFloat(yellowLine.getAttribute('y1'));
+                            const x2_svg = parseFloat(yellowLine.getAttribute('x2'));
+                            const y2_svg = parseFloat(yellowLine.getAttribute('y2'));
+                            
+                            // Calcola X della linea gialla alla Y della rete (NET_Y = 486)
+                            if (Math.abs(y2_svg - y1_svg) > 0.001) {
+                                const t = (NET_Y - y1_svg) / (y2_svg - y1_svg);
+                                const yellowX_atNet = x1_svg + t * (x2_svg - x1_svg);
+                                
+                                // Converti in coordinate Campo B e prendi valore assoluto
+                                const yellowX_fieldB_atNet = yellowX_atNet - FIELD_B_ORIGIN_X;
+                                altezzaRete = Math.abs(yellowX_fieldB_atNet);
+                                
+                                console.log('X linea gialla alla rete (SVG):', yellowX_atNet);
+                                console.log('X linea gialla alla rete (Campo B):', yellowX_fieldB_atNet);
+                                console.log('Altezza Rete (|X|):', altezzaRete);
+                            } else {
+                                console.log('Altezza Rete: linea verticale, X costante');
+                                // Se la linea è verticale, usa la X direttamente
+                                const yellowX_fieldB_atNet = x1_svg - FIELD_B_ORIGIN_X;
+                                altezzaRete = Math.abs(yellowX_fieldB_atNet);
+                            }
+                        }
+                        
                         // Calcola Spostamento Avversario
                         // Distanza orizzontale nel Campo B del campo principale
                         // tra il ricevitore (intersectionDot) e la linea tratteggiata (bisectorLine)
@@ -1267,9 +1336,10 @@
                             posizioneColpitore: { min: -180, max: 180 },
                             spazioColpo2: { min: spazioColpo2Min, max: spazioColpo2Max },
                             rischioErroreLaterale: { min: -117, max: 117 },
+                            altezzaRete: { min: 0, max: 100 },           // Fisso: min=0, max=100
                             spostamentoAvversario: { min: spostamentoAvversarioMin, max: spostamentoAvversarioMax },
                             distanzaMidPoint: { min: 0, max: 200 },      // Fisso: min=0, max=200
-                            campoDaCoprire: { min: 250, max: 500 }       // Fisso: min=250, max=500
+                            campoDaCoprire: { min: 250, max: 400 }       // Fisso: min=250, max=400
                         };
                         
                         // Funzione per calcolare il valore normalizzato (0-1)
@@ -1355,10 +1425,16 @@
                             const linear = (value - min) / (max - min);
                             
                             // Applica funzione potenza con esponente < 1 per crescita rapida iniziale
-                            // Esponente 0.2 dà: 260→0.53, 300→0.73, 310→0.75, 350→0.83
-                            const result = Math.pow(linear, 0.2);
+                            // Esponente 0.5 (radice quadrata) dà crescita moderata all'inizio
+                            // 260→0.26, 300→0.58, 310→0.63, 350→0.76
+                            const result = Math.pow(linear, 0.5);
                             
                             return result;
+                        }
+                        
+                        // Funzione di normalizzazione lineare per Altezza Rete
+                        function normalizeAltezzaRete(value, min, max) {
+                            return normalizeLinear(value, min, max);
                         }
                         
                         // Funzione per aggiornare un campo con valore, min, max e normalizzato
@@ -1412,8 +1488,11 @@
                         updateField('rischioErroreLaterale', Math.abs(rischioErroreLaterale), 
                             0, 117, normalizeRischioErroreLaterale);
                         
+                        updateFieldWithOverflow('altezzaRete', altezzaRete, 
+                            ranges.altezzaRete.min, ranges.altezzaRete.max, normalizeAltezzaRete);
+                        
                         updateField('spostamentoAvversario', spostamentoAvversario, 
-                            ranges.spostamentoAvversario.min, ranges.spostamentoAvversario.max);
+                            ranges.spostamentoAvversario.min, ranges.spostamentoAvversario.max, normalizeLinear);
                         
                         // Usa la funzione con overflow per distanzaMidPoint e campoDaCoprire
                         updateFieldWithOverflow('distanzaMidPoint', distanzaMidPoint, 
@@ -1432,7 +1511,9 @@
                         // |X| = 115 (bordo) -> rischio massimo = 1
                         const rischioErroreLateraleNorm = normalizeLinear(Math.abs(rischioErroreLaterale), 
                             0, 117);
-                        const spostamentoAvversarioNorm = normalizeValue(spostamentoAvversario, 
+                        const altezzaReteNorm = altezzaRete > ranges.altezzaRete.max ? 1 : 
+                            normalizeAltezzaRete(altezzaRete, ranges.altezzaRete.min, ranges.altezzaRete.max);
+                        const spostamentoAvversarioNorm = normalizeLinear(spostamentoAvversario, 
                             ranges.spostamentoAvversario.min, ranges.spostamentoAvversario.max);
                         const distanzaMidPointNorm = distanzaMidPoint > ranges.distanzaMidPoint.max ? 1 : 
                             normalizeValue(distanzaMidPoint, ranges.distanzaMidPoint.min, ranges.distanzaMidPoint.max);
@@ -1440,12 +1521,13 @@
                             normalizeCampoDaCoprire(campoDaCoprire, ranges.campoDaCoprire.min, ranges.campoDaCoprire.max);
                         
                         // Calcola Rischio Tecnico Totale
-                        // Media di: (1 - posizioneColpitore_norm), (1 - spazioColpo_norm), rischioErroreLaterale_norm
+                        // Media pesata: tutte e 4 le variabili hanno peso 0.25 (25% ciascuna)
                         const rischioTecnicoTotale = (
-                            (1 - posizioneColpitoreNorm) + 
-                            (1 - spazioColpo2Norm) + 
-                            rischioErroreLateraleNorm
-                        ) / 3;
+                            0.25 * (1 - posizioneColpitoreNorm) + 
+                            0.25 * (1 - spazioColpo2Norm) + 
+                            0.25 * rischioErroreLateraleNorm +
+                            0.25 * altezzaReteNorm
+                        );
                         
                         // Calcola Rischio Tattico Totale
                         // Media di: (1 - spostamentoAvversario_norm), distanzaMidPoint_norm, campoDaCoprire_norm
@@ -1464,9 +1546,9 @@
                         const rischioTecnicoTotaleNormSpan = document.getElementById('rischioTecnicoTotaleNorm');
                         const rischioTecnicoTotaleFill = document.getElementById('rischioTecnicoTotaleFill');
                         
-                        // Aggiorna i valori mostrando solo il numero 0-1 (senza percentuale, 2 decimali)
+                        // Aggiorna i valori moltiplicando per 10 e mostrando 1 decimale
                         if (rischioTecnicoTotaleSpan) {
-                            rischioTecnicoTotaleSpan.textContent = rischioTecnicoTotale.toFixed(2);
+                            rischioTecnicoTotaleSpan.textContent = (rischioTecnicoTotale * 10).toFixed(1);
                         }
                         if (rischioTecnicoTotaleFill) {
                             rischioTecnicoTotaleFill.style.width = (rischioTecnicoTotale * 100) + '%';
@@ -1476,7 +1558,7 @@
                         const rischioTatticoTotaleFill = document.getElementById('rischioTatticoTotaleFill');
                         
                         if (rischioTatticoTotaleSpan) {
-                            rischioTatticoTotaleSpan.textContent = rischioTatticoTotale.toFixed(2);
+                            rischioTatticoTotaleSpan.textContent = (rischioTatticoTotale * 10).toFixed(1);
                         }
                         if (rischioTatticoTotaleFill) {
                             rischioTatticoTotaleFill.style.width = (rischioTatticoTotale * 100) + '%';
@@ -1492,7 +1574,7 @@
                         const rischioColpoTotaleFill = document.getElementById('rischioColpoTotaleFill');
                         
                         if (rischioColpoTotaleSpan) {
-                            rischioColpoTotaleSpan.textContent = rischioColpoTotale.toFixed(2);
+                            rischioColpoTotaleSpan.textContent = (rischioColpoTotale * 10).toFixed(1);
                         }
                         if (rischioColpoTotaleFill) {
                             rischioColpoTotaleFill.style.width = (rischioColpoTotale * 100) + '%';

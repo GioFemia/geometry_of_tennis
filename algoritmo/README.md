@@ -114,9 +114,40 @@ rischioErroreLateraleNorm = normalizeValue(abs(rischioErroreLaterale), 0, 115)
 ```
 Questo riflette il fatto che il rischio è simmetrico: sia X = -117 che X = +117 rappresentano lo stesso livello di rischio (massimo), mentre X = 0 rappresenta il rischio minimo.
 
+### 4. Altezza Rete
+
+**Descrizione**: Valore assoluto della coordinata X in cui la linea gialla del colpo si interseca con la rete (linea orizzontale spessa a Y = 486 in coordinate SVG).
+
+**Calcolo**:
+1. Si identifica la linea gialla (yellowLine) nel campo principale
+2. Si calcola il punto di intersezione con la rete (NET_Y = 486)
+3. Si converte la coordinata X in coordinate Campo B
+4. Si prende il valore assoluto
+
+```javascript
+// Trova X della linea gialla alla Y della rete
+const t = (NET_Y - y1_svg) / (y2_svg - y1_svg);
+const yellowX_atNet = x1_svg + t * (x2_svg - x1_svg);
+
+// Converti in coordinate Campo B e prendi valore assoluto
+const yellowX_fieldB_atNet = yellowX_atNet - FIELD_B_ORIGIN_X;
+altezzaRete = Math.abs(yellowX_fieldB_atNet);
+```
+
+**Range**:
+- Min: **0** (colpo al centro della rete)
+- Max: **100** (colpo molto laterale alla rete)
+- Se > 100: mostra "100+" e normalizzazione = 1
+
+**Interpretazione**: 
+- Valore vicino a 0 = colpo passa al centro della rete (minore rischio)
+- Valore elevato = colpo passa lateralmente alla rete (maggiore rischio di errore)
+
+**Nota**: Questa variabile utilizza una **normalizzazione lineare** invece della sigmoidea, per una relazione diretta e proporzionale tra distanza laterale dalla rete e rischio.
+
 ## Variabili Tattiche
 
-### 4. Spostamento Avversario
+### 5. Spostamento Avversario
 
 **Descrizione**: Distanza orizzontale che l'avversario deve percorrere per raggiungere il colpo, rispetto alla posizione centrale (bisetrice).
 
@@ -136,7 +167,9 @@ spostamentoAvversario = abs(ricevitoreX_fieldB - bisX_fieldB)
 **Interpretazione**: 
 - Spostamento maggiore = avversario più lontano = vantaggio tattico
 
-### 5. Distanza Mid Point
+**Nota**: Questa variabile utilizza una **normalizzazione lineare** invece della sigmoidea, per una relazione diretta e proporzionale tra spostamento e vantaggio tattico.
+
+### 6. Distanza Mid Point
 
 **Descrizione**: Nel campo secondario, distanza orizzontale tra il colpitore (dopo il colpo) e la posizione centrale ideale (bisetrice).
 
@@ -158,7 +191,7 @@ distanzaMidPoint = abs(dotX_fieldA - bisX_fieldA)
 **Interpretazione**: 
 - Distanza maggiore = posizione peggiore dopo il colpo = maggiore rischio tattico
 
-### 6. Campo da Coprire
+### 7. Campo da Coprire
 
 **Descrizione**: Ampiezza orizzontale tra le due direzioni estreme che il colpitore deve coprire dopo aver effettuato il colpo.
 
@@ -175,13 +208,13 @@ campoDaCoprire = abs(rightX_fieldA - leftX_fieldA)
 
 **Range**:
 - Min: **250**
-- Max: **500**
-- Se > 500: mostra "500+" e normalizzazione = 1
+- Max: **400**
+- Se > 400: mostra "400+" e normalizzazione = 1
 
 **Interpretazione**: 
 - Campo maggiore da coprire = posizione più vulnerabile = maggiore rischio tattico
 
-**Nota**: Questa variabile utilizza una **funzione di normalizzazione speciale** (potenza con esponente 0.2) invece della sigmoidea standard, per riflettere la crescita estremamente rapida del rischio anche per piccoli incrementi del campo da coprire (vedi sezione "Normalizzazione Speciale per Campo da Coprire").
+**Nota**: Questa variabile utilizza una **funzione di normalizzazione speciale** (potenza con esponente 0.5) invece della sigmoidea standard, per riflettere la crescita rapida del rischio anche per piccoli incrementi del campo da coprire (vedi sezione "Normalizzazione Concava con Funzione Potenza (Campo da Coprire)").
 
 ## Calcolo Min/Max Dinamici
 
@@ -218,13 +251,14 @@ Le variabili vengono normalizzate tra 0 e 1 usando **tre diverse funzioni** a se
 | **Posizione Colpitore**  | Potenza Concava (exp 0.5)  | Crescita rapida all'inizio |
 | **Spazio Colpo**         | **Potenza Convessa (exp 3)** | Variazioni massime → effetto molto maggiore |
 | **Rischio Errore Laterale** | **Lineare su \|X\|**  | Rischio simmetrico proporzionale |
-| Spostamento Avversario   | Sigmoidea                  | Transizione graduale agli estremi |
+| **Altezza Rete**         | **Lineare**                  | Relazione diretta e proporzionale |
+| **Spostamento Avversario** | **Lineare**                  | Relazione diretta e proporzionale |
 | Distanza Mid Point       | Sigmoidea                  | Percezione non-lineare del rischio |
-| **Campo da Coprire**     | Potenza Concava (exp 0.2)  | Crescita estremamente rapida |
+| **Campo da Coprire**     | Potenza Concava (exp 0.5)  | Crescita rapida all'inizio |
 
 ### 1. Normalizzazione Lineare
 
-Utilizzata per **Rischio Errore Laterale**, fornisce una relazione diretta e proporzionale tra valore e rischio.
+Utilizzata per **Rischio Errore Laterale** e **Spostamento Avversario**, fornisce una relazione diretta e proporzionale tra valore e rischio/vantaggio.
 
 #### Formula
 
@@ -417,8 +451,9 @@ function normalizeRischioErroreLaterale(value, min, max) {
 ### 5. Normalizzazione Concava con Funzione Potenza (Campo da Coprire)
 
 La variabile **Campo da Coprire** richiede una funzione di normalizzazione diversa dalla sigmoidea standard, poiché deve:
-- **Crescere molto rapidamente** per valori bassi (appena sopra il minimo di 250)
-- **Essere già quasi al massimo** per valori sopra 300-310
+- **Crescere rapidamente** per valori bassi (appena sopra il minimo di 250)
+- **Essere moderatamente alto** per valori sopra 300-310 (circa 58-63% di rischio)
+- **Essere molto alto** per valori sopra 350 (circa 82% di rischio)
 - Riflettere il fatto che anche un piccolo aumento nel campo da coprire aumenta significativamente il rischio tattico
 
 #### Formula
@@ -432,8 +467,8 @@ function normalizeCampoDaCoprire(value, min, max) {
     const linear = (value - min) / (max - min);
     
     // Applica funzione potenza con esponente < 1
-    // Esponente 0.2 produce crescita molto rapida all'inizio
-    const result = Math.pow(linear, 0.2);
+    // Esponente 0.5 (radice quadrata) produce crescita rapida all'inizio
+    const result = Math.pow(linear, 0.5);
     
     return result;
 }
@@ -441,48 +476,56 @@ function normalizeCampoDaCoprire(value, min, max) {
 
 #### Caratteristiche della Funzione Potenza Concava
 
-- **Esponente 0.2** (< 1): Crea una curva concava che cresce rapidamente all'inizio
-- **Non-lineare**: La crescita è molto più veloce della normalizzazione lineare
-- **Rapido raggiungimento del massimo**: A 300-310 il valore è già al 72-75%
+- **Esponente 0.5** (< 1): Crea una curva concava (radice quadrata) che cresce rapidamente all'inizio
+- **Non-lineare**: La crescita è più veloce della normalizzazione lineare ma meno estrema di exp 0.2
+- **Crescita moderata**: A 300-310 il valore è già al 58-63%, più graduale rispetto a exp 0.2
 
 #### Comportamento Dettagliato
 
-Con range min=250, max=500:
+Con range min=250, max=400:
 
-| Campo da Coprire | Lineare | Potenza (exp 0.2) | Differenza |
+| Campo da Coprire | Lineare | Potenza (exp 0.5) | Differenza |
 |------------------|---------|-------------------|------------|
 | 250              | 0.00    | 0.00              | -          |
-| 260              | 0.04    | **0.53**          | +0.49      |
-| 280              | 0.12    | **0.66**          | +0.54      |
-| 300              | 0.20    | **0.73**          | +0.53      |
-| 310              | 0.24    | **0.75**          | +0.51      |
-| 350              | 0.40    | **0.83**          | +0.43      |
-| 400              | 0.60    | **0.90**          | +0.30      |
-| 450              | 0.80    | **0.96**          | +0.16      |
-| 500              | 1.00    | 1.00              | -          |
+| 260              | 0.07    | **0.26**          | +0.19      |
+| 280              | 0.20    | **0.45**          | +0.25      |
+| 300              | 0.33    | **0.58**          | +0.25      |
+| 310              | 0.40    | **0.63**          | +0.23      |
+| 350              | 0.67    | **0.82**          | +0.15      |
+| 400              | 1.00    | 1.00              | -          |
 
 #### Interpretazione
 
-- **260 cm** (appena 10 cm sopra il minimo): già **53%** di rischio
-- **300 cm**: **73%** di rischio - quasi massimo
-- **350 cm**: **83%** di rischio - molto alto
-- Questo riflette la realtà tattica: coprire anche 260 cm è già molto difficile, e oltre 300 cm diventa quasi impossibile gestire efficacemente
+- **260 cm** (appena 10 cm sopra il minimo): già **26%** di rischio
+- **300 cm**: **58%** di rischio - moderato-alto
+- **310 cm**: **63%** di rischio - alto
+- **350 cm**: **82%** di rischio - molto alto
+- Questo riflette la realtà tattica: coprire anche 260 cm è già difficile, e oltre 300 cm diventa molto difficile gestire efficacemente. Con esponente 0.5 la crescita è più graduale rispetto a 0.2, ma comunque più rapida della lineare.
 
 ## Rischi Aggregati
 
 ### Rischio Tecnico Totale
 
-Media delle componenti tecniche normalizzate:
+Media pesata delle componenti tecniche normalizzate:
 
 ```javascript
 rischioTecnico = (
-    (1 - posizione_colpitore_norm) + 
-    (1 - spazio_colpo_norm) + 
-    rischio_errore_laterale_norm
-) / 3
+    0.3 * (1 - posizione_colpitore_norm) + 
+    0.3 * (1 - spazio_colpo_norm) + 
+    0.3 * rischio_errore_laterale_norm +
+    0.1 * altezza_rete_norm
+)
 ```
 
-**Nota**: Per Posizione Colpitore e Spazio Colpo si usa `(1 - valore)` perché valori alti indicano situazioni migliori.
+**Pesi**:
+- **Posizione Colpitore**: 0.25 (25%)
+- **Spazio Colpo**: 0.25 (25%)
+- **Rischio Errore Laterale**: 0.25 (25%)
+- **Altezza Rete**: 0.25 (25%)
+
+**Nota**: 
+- Per Posizione Colpitore e Spazio Colpo si usa `(1 - valore)` perché valori alti indicano situazioni migliori.
+- Tutte e 4 le variabili tecniche hanno lo stesso peso (0.25 ciascuna) per un contributo equo al rischio tecnico totale.
 
 ### Rischio Tattico Totale
 
