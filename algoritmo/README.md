@@ -40,6 +40,10 @@ posizioneColpitore = dotX_svg - FIELD_A_ORIGIN_X
 - Valori vicini a 0 indicano posizione centrale (migliore)
 - Valori estremi indicano posizione laterale (peggiore)
 
+**Limitazione Verticale**: 
+- Nel file `algoritmo.html`, il colpitore non può essere posizionato oltre Y_campo_A = 165
+- Questa limitazione garantisce che l'analisi si concentri su posizioni realistiche del campo da tennis
+
 **Nota**: Questa variabile utilizza una **normalizzazione concava** (potenza con esponente 0.5) invece della sigmoidea. Questo significa che le variazioni vicino ai valori minimi (posizioni estreme) hanno un effetto maggiore sul rischio rispetto alle variazioni vicino ai massimi (posizione centrale). In pratica: essere molto fuori posizione è già molto rischioso, e piccoli miglioramenti verso il centro hanno grande effetto (vedi sezione "Normalizzazione Concava per Posizione Colpitore").
 
 ### 2. Spazio Colpo
@@ -162,7 +166,8 @@ spostamentoAvversario = abs(ricevitoreX_fieldB - bisX_fieldB)
 ```
 
 **Range**:
-- Min/Max: **Calcolati dinamicamente** campionando 100 direzioni possibili
+- Min: **0**
+- Max: **170**
 
 **Interpretazione**: 
 - Spostamento maggiore = avversario più lontano = vantaggio tattico
@@ -171,16 +176,44 @@ spostamentoAvversario = abs(ricevitoreX_fieldB - bisX_fieldB)
 
 ### 6. Distanza Mid Point
 
-**Descrizione**: Nel campo secondario, distanza orizzontale tra il colpitore (dopo il colpo) e la posizione centrale ideale (bisetrice).
+**Descrizione**: Nel campo secondario, distanza tra il colpitore (dopo il colpo) e la posizione centrale ideale (bisetrice). La distanza può essere orizzontale o euclidea a seconda della posizione Y del colpitore.
 
-**Calcolo**:
-1. Nel SVG secondario, si trova il pallino rosso (cursorDotReplica2) nel Campo A
-2. Si calcola la X della bisetrice (bisectorLine2) alla stessa Y del pallino
-3. Si calcola la distanza orizzontale
+**Calcolo con Logica Condizionale**:
+La logica di calcolo dipende dalla posizione Y del colpitore nel Campo A:
+
+1. **Se Y_campo_A > -30**: 
+   - Calcola la **distanza euclidea** tra il pallino e la bisetrice alla Y_campo_A = -30
+   - Usa distanza euclidea (2D): `sqrt(dx² + dy²)`
+
+2. **Se -100 < Y_campo_A ≤ -30**: 
+   - Calcola la **distanza orizzontale** tra il pallino e la bisetrice alla stessa Y del colpitore
+   - Usa distanza orizzontale (solo X): `abs(dotX_fieldA - bisX_fieldA)`
+
+3. **Se Y_campo_A ≤ -100**: 
+   - Calcola la **distanza euclidea** tra il pallino e la bisetrice alla Y_campo_A = -100
+   - Usa distanza euclidea (2D): `sqrt(dx² + dy²)`
 
 ```javascript
-bisX_fieldA = bisX1 + t * (bisX2 - bisX1)
-distanzaMidPoint = abs(dotX_fieldA - bisX_fieldA)
+// Determina la Y target e il tipo di distanza
+if (dotY_fieldA > -30) {
+    targetY_campoA = -30;
+    useHorizontalDistance = false; // Distanza euclidea
+} else if (dotY_fieldA > -100 && dotY_fieldA <= -30) {
+    targetY_campoA = dotY_fieldA; // Stessa Y del colpitore
+    useHorizontalDistance = true; // Distanza orizzontale
+} else {
+    targetY_campoA = -100;
+    useHorizontalDistance = false; // Distanza euclidea
+}
+
+// Calcola la distanza in base alla logica selezionata
+if (useHorizontalDistance) {
+    distanzaMidPoint = abs(dotX_fieldA - bisX_fieldA);
+} else {
+    dx = dotX_fieldA - bisX_fieldA;
+    dy = dotY_fieldA - bisY_fieldA;
+    distanzaMidPoint = sqrt(dx * dx + dy * dy);
+}
 ```
 
 **Range**:
@@ -191,18 +224,41 @@ distanzaMidPoint = abs(dotX_fieldA - bisX_fieldA)
 **Interpretazione**: 
 - Distanza maggiore = posizione peggiore dopo il colpo = maggiore rischio tattico
 
+**Motivazione della Logica Condizionale**:
+- Per posizioni vicine al centro (Y > -30), la distanza euclidea a Y = -30 fornisce una misura più accurata della posizione relativa
+- Per posizioni intermedie (-100 < Y ≤ -30), la distanza orizzontale alla stessa Y riflette meglio la situazione tattica
+- Per posizioni molto avanzate (Y ≤ -100), la distanza euclidea a Y = -100 fornisce un riferimento standardizzato
+
 ### 7. Campo da Coprire
 
-**Descrizione**: Ampiezza orizzontale tra le due direzioni estreme che il colpitore deve coprire dopo aver effettuato il colpo.
+**Descrizione**: Ampiezza orizzontale tra le due direzioni estreme che il colpitore deve coprire dopo aver effettuato il colpo. La Y di misurazione varia in base alla posizione del colpitore.
 
-**Calcolo**:
-1. Nel SVG secondario, si identificano le due linee blu (leftLine2 e rightLine2)
-2. Si calcola la posizione X di ciascuna linea alla Y del colpitore
-3. Si calcola la distanza orizzontale tra le due posizioni
+**Calcolo con Logica Condizionale**:
+La Y di misurazione dipende dalla posizione Y del colpitore nel Campo A:
+
+1. **Se Y_campo_A > -30**: 
+   - Calcola la distanza orizzontale tra le linee alla Y_campo_A = -30
+
+2. **Se -100 < Y_campo_A ≤ -30**: 
+   - Calcola la distanza orizzontale tra le linee alla stessa Y del colpitore
+
+3. **Se Y_campo_A ≤ -100**: 
+   - Calcola la distanza orizzontale tra le linee alla Y_campo_A = -100
 
 ```javascript
-leftX_atDotY = leftX1 + t * (leftX2 - leftX1)
-rightX_atDotY = rightX1 + t * (rightX2 - rightX1)
+// Determina la Y target in base alla posizione del colpitore
+if (dotY_fieldA > -30) {
+    targetY_campoA = -30;
+} else if (dotY_fieldA > -100 && dotY_fieldA <= -30) {
+    targetY_campoA = dotY_fieldA; // Stessa Y del colpitore
+} else {
+    targetY_campoA = -100;
+}
+
+// Converti in Y_svg e calcola le intersezioni
+targetY_svg = FIELD_A_ORIGIN_Y - targetY_campoA;
+leftX_atTargetY = leftX1 + t * (leftX2 - leftX1)  // alla Y target
+rightX_atTargetY = rightX1 + t * (rightX2 - rightX1)  // alla Y target
 campoDaCoprire = abs(rightX_fieldA - leftX_fieldA)
 ```
 
@@ -214,11 +270,18 @@ campoDaCoprire = abs(rightX_fieldA - leftX_fieldA)
 **Interpretazione**: 
 - Campo maggiore da coprire = posizione più vulnerabile = maggiore rischio tattico
 
+**Motivazione della Logica Condizionale**:
+- Per posizioni vicine al centro (Y > -30), la misurazione a Y = -30 fornisce un riferimento standardizzato
+- Per posizioni intermedie (-100 < Y ≤ -30), la misurazione alla stessa Y riflette meglio la situazione tattica specifica
+- Per posizioni molto avanzate (Y ≤ -100), la misurazione a Y = -100 fornisce un riferimento standardizzato per posizioni estreme
+
 **Nota**: Questa variabile utilizza una **funzione di normalizzazione speciale** (potenza con esponente 0.5) invece della sigmoidea standard, per riflettere la crescita rapida del rischio anche per piccoli incrementi del campo da coprire (vedi sezione "Normalizzazione Concava con Funzione Potenza (Campo da Coprire)").
 
 ## Calcolo Min/Max Dinamici
 
-Per le variabili **Spazio Colpo**, **Spostamento Avversario**, **Distanza Mid Point** e **Campo da Coprire**, i valori min/max vengono calcolati dinamicamente:
+Per le variabili **Spazio Colpo**, **Distanza Mid Point** e **Campo da Coprire**, i valori min/max vengono calcolati dinamicamente:
+
+**Nota**: La variabile **Spostamento Avversario** utilizza valori fissi (min=0, max=170) invece del calcolo dinamico.
 
 1. Si identificano le linee estreme sinistra (leftLine) e destra (rightLine)
 2. Si campionano **100 direzioni** interpolando tra queste due linee
@@ -529,15 +592,20 @@ rischioTecnico = (
 
 ### Rischio Tattico Totale
 
-Media delle componenti tattiche normalizzate:
+Media pesata delle componenti tattiche normalizzate:
 
 ```javascript
 rischioTattico = (
-    (1 - spostamento_avversario_norm) + 
-    distanza_mid_point_norm + 
-    campo_da_coprire_norm
-) / 3
+    0.3 * (1 - spostamento_avversario_norm) + 
+    0.4 * distanza_mid_point_norm + 
+    0.3 * campo_da_coprire_norm
+)
 ```
+
+**Pesi**:
+- **Distanza Mid Point**: 0.4 (40%)
+- **Spostamento Avversario**: 0.3 (30%)
+- **Campo da Coprire**: 0.3 (30%)
 
 **Nota**: Per Spostamento Avversario si usa `(1 - valore)` perché un alto spostamento dell'avversario è vantaggioso.
 

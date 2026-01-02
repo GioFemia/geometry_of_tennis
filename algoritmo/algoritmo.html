@@ -712,6 +712,90 @@
                     console.log('Yellow line extension enabled');
                 }
                 
+                // Limitazione Y del colpitore in algoritmo.html: Y_campo_A <= 165
+                // Nel sistema di coordinate Campo A: Y_campo_A = FIELD_A_ORIGIN_Y - Y_svg
+                // Quindi: Y_svg >= FIELD_A_ORIGIN_Y - 165 = 822 - 165 = 657
+                const cursorDot = document.getElementById('cursorDot');
+                const svg = document.getElementById('tennisCourt');
+                if (cursorDot && svg) {
+                    const FIELD_A_ORIGIN_Y = 822;
+                    const MAX_Y_CAMPO_A = 165;
+                    const MIN_Y_SVG = FIELD_A_ORIGIN_Y - MAX_Y_CAMPO_A; // 657
+                    let isEnforcingLimit = false;
+                    let lastY = null;
+                    
+                    function enforceYLimitAndUpdateLines() {
+                        if (isEnforcingLimit) return;
+                        const currentY = parseFloat(cursorDot.getAttribute('cy'));
+                        
+                        // Se la Y è sotto il minimo, limitala
+                        if (currentY < MIN_Y_SVG) {
+                            isEnforcingLimit = true;
+                            cursorDot.setAttribute('cy', String(MIN_Y_SVG));
+                            lastY = MIN_Y_SVG;
+                            
+                            // Forza l'aggiornamento delle linee creando un evento pointermove sintetico
+                            // che app.js processerà normalmente, aggiornando così le linee
+                            setTimeout(function() {
+                                const dotX = parseFloat(cursorDot.getAttribute('cx'));
+                                
+                                // Converti coordinate SVG a coordinate client
+                                const pt = svg.createSVGPoint();
+                                pt.x = dotX;
+                                pt.y = MIN_Y_SVG;
+                                const clientPoint = pt.matrixTransform(svg.getScreenCTM());
+                                
+                                // Crea un evento pointermove sintetico nella posizione corretta
+                                const syntheticEvent = new PointerEvent('pointermove', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    view: window,
+                                    clientX: clientPoint.x,
+                                    clientY: clientPoint.y,
+                                    pointerId: 1,
+                                    pointerType: 'mouse',
+                                    buttons: 1 // Simula mouse button pressed (dragging)
+                                });
+                                
+                                // Dispatcha l'evento sul window (dove app.js lo ascolta)
+                                window.dispatchEvent(syntheticEvent);
+                                
+                                isEnforcingLimit = false;
+                            }, 0);
+                        } else {
+                            lastY = currentY;
+                        }
+                    }
+                    
+                    // Usa MutationObserver per monitorare le modifiche all'attributo cy
+                    const dotObserver = new MutationObserver(function(mutations) {
+                        if (!isEnforcingLimit) {
+                            mutations.forEach(function(mutation) {
+                                if (mutation.type === 'attributes' && mutation.attributeName === 'cy') {
+                                    const newY = parseFloat(cursorDot.getAttribute('cy'));
+                                    // Solo se la Y è cambiata e sotto il minimo
+                                    if (newY !== lastY && newY < MIN_Y_SVG) {
+                                        requestAnimationFrame(enforceYLimitAndUpdateLines);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    
+                    dotObserver.observe(cursorDot, { 
+                        attributes: true, 
+                        attributeFilter: ['cy'] 
+                    });
+                    
+                    // Inizializza lastY
+                    lastY = parseFloat(cursorDot.getAttribute('cy'));
+                    
+                    // Applica il limite anche inizialmente
+                    enforceYLimitAndUpdateLines();
+                    
+                    console.log('Limitazione Y colpitore attiva: Y_campo_A <=', MAX_Y_CAMPO_A, '(Y_svg >=', MIN_Y_SVG + ')');
+                }
+                
                 // Additional timeout to ensure everything is loaded
                 setTimeout(function() {
                     // Trigger a click event to ensure all handlers are initialized
@@ -1036,7 +1120,7 @@
                         // Nel campo secondario, campo in basso (Campo A):
                         // - cursorDotReplica2 = pallino rosso nel Campo A (dove stava il colpitore originale)
                         // - bisectorLine2 = linea tratteggiata (centro)
-                        // Calcola la distanza orizzontale tra il pallino e la bisetrice alla stessa Y
+                        // Calcola la distanza orizzontale tra il pallino e la bisetrice alla Y_campo_A = -30
                         
                         const svg2 = document.querySelector('.svg-wrap.secondary svg');
                         let distanzaMidPoint = 0;
@@ -1066,35 +1150,67 @@
                                 console.log('Pallino rosso (SVG): x=' + dotX_svg + ', y=' + dotY_svg);
                                 console.log('Linea tratteggiata (SVG): (' + bisX1 + ',' + bisY1 + ') -> (' + bisX2 + ',' + bisY2 + ')');
                                 
-                                // Calcola X della bisetrice alla stessa Y del pallino
-                                let bisectorX_svg = bisX1;
-                                if (Math.abs(bisY2 - bisY1) > 0.001) {
-                                    // Interpolazione lineare: trova X quando Y = dotY_svg
-                                    const t = (dotY_svg - bisY1) / (bisY2 - bisY1);
-                                    bisectorX_svg = bisX1 + t * (bisX2 - bisX1);
-                                }
-                                
-                                console.log('X della bisetrice alla Y=' + dotY_svg + ': ' + bisectorX_svg);
-                                
                                 // Converti in coordinate Campo A
                                 const dotX_fieldA = dotX_svg - FIELD_A_ORIGIN_X;
                                 const dotY_fieldA = FIELD_A_ORIGIN_Y - dotY_svg;
-                                const bisX_fieldA = bisectorX_svg - FIELD_A_ORIGIN_X;
                                 
                                 console.log('Pallino (Campo A): X=' + dotX_fieldA + ', Y=' + dotY_fieldA);
-                                console.log('Bisetrice (Campo A): X=' + bisX_fieldA + ' (alla stessa Y)');
                                 
-                                // Distanza orizzontale: differenza assoluta tra le X
-                                distanzaMidPoint = Math.abs(dotX_fieldA - bisX_fieldA);
+                                // Logica condizionale basata sulla Y del colpitore nel Campo A
+                                let targetY_campoA;
+                                let useHorizontalDistance = false;
                                 
-                                console.log('Distanza Mid Point = |' + dotX_fieldA + ' - (' + bisX_fieldA + ')| = ' + distanzaMidPoint);
+                                if (dotY_fieldA > -30) {
+                                    // Y > -30: usa distanza euclidea alla Y = -30 (logica attuale)
+                                    targetY_campoA = -30;
+                                    useHorizontalDistance = false;
+                                    console.log('Y_campo_A > -30: usando distanza euclidea alla Y = -30');
+                                } else if (dotY_fieldA > -100 && dotY_fieldA <= -30) {
+                                    // -100 < Y <= -30: usa distanza orizzontale alla stessa Y del colpitore (logica vecchia)
+                                    targetY_campoA = dotY_fieldA;
+                                    useHorizontalDistance = true;
+                                    console.log('-100 < Y_campo_A <= -30: usando distanza orizzontale alla stessa Y del colpitore');
+                                } else {
+                                    // Y <= -100: usa distanza euclidea alla Y = -100
+                                    targetY_campoA = -100;
+                                    useHorizontalDistance = false;
+                                    console.log('Y_campo_A <= -100: usando distanza euclidea alla Y = -100');
+                                }
+                                
+                                // Converti targetY_campoA in Y_svg per il calcolo
+                                const targetY_svg_calc = FIELD_A_ORIGIN_Y - targetY_campoA;
+                                
+                                // Calcola X della bisetrice alla Y target
+                                let bisectorX_svg_calc = bisX1;
+                                if (Math.abs(bisY2 - bisY1) > 0.001) {
+                                    const t = (targetY_svg_calc - bisY1) / (bisY2 - bisY1);
+                                    bisectorX_svg_calc = bisX1 + t * (bisX2 - bisX1);
+                                }
+                                
+                                const bisX_fieldA = bisectorX_svg_calc - FIELD_A_ORIGIN_X;
+                                const bisY_fieldA = targetY_campoA;
+                                
+                                console.log('Punto bisetrice (Campo A): X=' + bisX_fieldA + ', Y=' + bisY_fieldA);
+                                
+                                // Calcola distanza in base alla logica selezionata
+                                if (useHorizontalDistance) {
+                                    // Distanza orizzontale (logica vecchia)
+                                    distanzaMidPoint = Math.abs(dotX_fieldA - bisX_fieldA);
+                                    console.log('Distanza Mid Point (orizzontale) = |' + dotX_fieldA + ' - (' + bisX_fieldA + ')| = ' + distanzaMidPoint);
+                                } else {
+                                    // Distanza euclidea (logica attuale)
+                                    const dx = dotX_fieldA - bisX_fieldA;
+                                    const dy = dotY_fieldA - bisY_fieldA;
+                                    distanzaMidPoint = Math.sqrt(dx * dx + dy * dy);
+                                    console.log('Distanza Mid Point (euclidea) = sqrt((' + dx + ')^2 + (' + dy + ')^2) = ' + distanzaMidPoint);
+                                }
                             }
                         }
                         
                         // Calcola Campo da Coprire
                         // Nel campo secondario, campo in basso (Campo A):
                         // Distanza orizzontale tra le due linee blu (leftLine2 e rightLine2)
-                        // nel punto in cui hanno la stessa Y del colpitore (cursorDotReplica2)
+                        // alla Y_campo_A = -30 (invece della Y del colpitore)
                         let campoDaCoprire = 0;
                         
                         console.log('=== Calcolo Campo da Coprire ===');
@@ -1111,8 +1227,12 @@
                             console.log('rightLine2 trovato:', !!rightLine2);
                             
                             if (dotReplica && leftLine2 && rightLine2) {
-                                // Y del colpitore nel campo in basso
+                                // Coordinate SVG del pallino rosso nel Campo A
+                                const dotX_svg = parseFloat(dotReplica.getAttribute('cx'));
                                 const dotY_svg = parseFloat(dotReplica.getAttribute('cy'));
+                                
+                                // Converti in coordinate Campo A per determinare la logica da usare
+                                const dotY_fieldA = FIELD_A_ORIGIN_Y - dotY_svg;
                                 
                                 // Coordinate della linea sinistra
                                 const leftX1 = parseFloat(leftLine2.getAttribute('x1'));
@@ -1126,30 +1246,52 @@
                                 const rightX2 = parseFloat(rightLine2.getAttribute('x2'));
                                 const rightY2 = parseFloat(rightLine2.getAttribute('y2'));
                                 
-                                console.log('Y del colpitore (SVG):', dotY_svg);
+                                console.log('Y del colpitore (Campo A):', dotY_fieldA);
                                 console.log('Linea sinistra (SVG): (' + leftX1 + ',' + leftY1 + ') -> (' + leftX2 + ',' + leftY2 + ')');
                                 console.log('Linea destra (SVG): (' + rightX1 + ',' + rightY1 + ') -> (' + rightX2 + ',' + rightY2 + ')');
                                 
-                                // Calcola X della linea sinistra alla Y del colpitore
-                                let leftX_atDotY = leftX1;
+                                // Logica condizionale basata sulla Y del colpitore nel Campo A
+                                let targetY_campoA;
+                                
+                                if (dotY_fieldA > -30) {
+                                    // Y > -30: usa Y = -30
+                                    targetY_campoA = -30;
+                                    console.log('Y_campo_A > -30: usando Y = -30');
+                                } else if (dotY_fieldA > -100 && dotY_fieldA <= -30) {
+                                    // -100 < Y <= -30: usa la stessa Y del colpitore
+                                    targetY_campoA = dotY_fieldA;
+                                    console.log('-100 < Y_campo_A <= -30: usando la stessa Y del colpitore = ' + targetY_campoA);
+                                } else {
+                                    // Y <= -100: usa Y = -100
+                                    targetY_campoA = -100;
+                                    console.log('Y_campo_A <= -100: usando Y = -100');
+                                }
+                                
+                                // Converti targetY_campoA in Y_svg per il calcolo
+                                const targetY_svg = FIELD_A_ORIGIN_Y - targetY_campoA;
+                                
+                                console.log('Target Y_campo_A = ' + targetY_campoA + ' (Y_svg=' + targetY_svg + ')');
+                                
+                                // Calcola X della linea sinistra alla Y target
+                                let leftX_atTargetY = leftX1;
                                 if (Math.abs(leftY2 - leftY1) > 0.001) {
-                                    const t = (dotY_svg - leftY1) / (leftY2 - leftY1);
-                                    leftX_atDotY = leftX1 + t * (leftX2 - leftX1);
+                                    const t = (targetY_svg - leftY1) / (leftY2 - leftY1);
+                                    leftX_atTargetY = leftX1 + t * (leftX2 - leftX1);
                                 }
                                 
-                                // Calcola X della linea destra alla Y del colpitore
-                                let rightX_atDotY = rightX1;
+                                // Calcola X della linea destra alla Y target
+                                let rightX_atTargetY = rightX1;
                                 if (Math.abs(rightY2 - rightY1) > 0.001) {
-                                    const t = (dotY_svg - rightY1) / (rightY2 - rightY1);
-                                    rightX_atDotY = rightX1 + t * (rightX2 - rightX1);
+                                    const t = (targetY_svg - rightY1) / (rightY2 - rightY1);
+                                    rightX_atTargetY = rightX1 + t * (rightX2 - rightX1);
                                 }
                                 
-                                console.log('X linea sinistra alla Y=' + dotY_svg + ': ' + leftX_atDotY);
-                                console.log('X linea destra alla Y=' + dotY_svg + ': ' + rightX_atDotY);
+                                console.log('X linea sinistra alla Y_campo_A=' + targetY_campoA + ' (Y_svg=' + targetY_svg + '): ' + leftX_atTargetY);
+                                console.log('X linea destra alla Y_campo_A=' + targetY_campoA + ' (Y_svg=' + targetY_svg + '): ' + rightX_atTargetY);
                                 
-                                // Converti in coordinate Campo A (solo X, la differenza è la stessa)
-                                const leftX_fieldA = leftX_atDotY - FIELD_A_ORIGIN_X;
-                                const rightX_fieldA = rightX_atDotY - FIELD_A_ORIGIN_X;
+                                // Converti in coordinate Campo A
+                                const leftX_fieldA = leftX_atTargetY - FIELD_A_ORIGIN_X;
+                                const rightX_fieldA = rightX_atTargetY - FIELD_A_ORIGIN_X;
                                 
                                 console.log('X linea sinistra (Campo A):', leftX_fieldA);
                                 console.log('X linea destra (Campo A):', rightX_fieldA);
@@ -1165,8 +1307,9 @@
                         // Analizzando tutti i possibili colpi tra le direzioni sinistra e destra
                         let spazioColpo2Min = 0;
                         let spazioColpo2Max = 0;
-                        let spostamentoAvversarioMin = 0;
-                        let spostamentoAvversarioMax = 0;
+                        // Spostamento Avversario usa valori fissi: min=0, max=170
+                        const spostamentoAvversarioMin = 0;
+                        const spostamentoAvversarioMax = 170;
                         let distanzaMidPointMin = 0;
                         let distanzaMidPointMax = 0;
                         let campoDaCoprireMin = 0;
@@ -1225,16 +1368,6 @@
                                 return x1 + t * (x2 - x1);
                             }
                             
-                            // Funzione per calcolare spostamentoAvversario per una data direzione
-                            function calcSpostamentoAvversarioForDirection(targetX, targetY) {
-                                // Calcola dove la linea gialla interseca la Y del ricevitore
-                                const ricevitoreX = getLineXAtY(dotX, dotY, targetX, targetY, ricevitoreY_svg);
-                                // Calcola dove la bisetrice interseca la stessa Y
-                                const bisX = getLineXAtY(bisX1, bisY1, bisX2, bisY2, ricevitoreY_svg);
-                                // Distanza orizzontale
-                                return Math.abs((ricevitoreX - FIELD_B_ORIGIN_X) - (bisX - FIELD_B_ORIGIN_X));
-                            }
-                            
                             // Funzione per calcolare le metriche del secondo campo per una data direzione
                             // Il ricevitore diventa il nuovo colpitore nel campo secondario
                             function calcSecondaryMetricsForDirection(targetX, targetY) {
@@ -1261,15 +1394,70 @@
                                 const newBisectorTargetX = (targetLeftX_secondary + targetRightX_secondary) / 2;
                                 
                                 // Distanza Mid Point: distanza tra il colpitore originale e la bisetrice del nuovo colpitore
-                                // alla Y del colpitore originale
-                                const newBisX_atOriginalY = getLineXAtY(shotLandingX, shotLandingY, newBisectorTargetX, targetY_secondary, originalHitterY_inSecondary);
-                                const distMidPoint = Math.abs((dotX - FIELD_A_ORIGIN_X) - (newBisX_atOriginalY - FIELD_A_ORIGIN_X));
+                                // Logica condizionale basata sulla Y del colpitore originale nel Campo A
+                                
+                                // Converti in coordinate Campo A per determinare la logica da usare
+                                const originalX_fieldA = dotX - FIELD_A_ORIGIN_X;
+                                const originalY_fieldA = FIELD_A_ORIGIN_Y - dotY;
+                                
+                                // Determina la Y target e il tipo di distanza in base alla Y del colpitore
+                                let targetY_campoA;
+                                let useHorizontalDistance = false;
+                                
+                                if (originalY_fieldA > -30) {
+                                    // Y > -30: usa distanza euclidea alla Y = -30
+                                    targetY_campoA = -30;
+                                    useHorizontalDistance = false;
+                                } else if (originalY_fieldA > -100 && originalY_fieldA <= -30) {
+                                    // -100 < Y <= -30: usa distanza orizzontale alla stessa Y del colpitore
+                                    targetY_campoA = originalY_fieldA;
+                                    useHorizontalDistance = true;
+                                } else {
+                                    // Y <= -100: usa distanza euclidea alla Y = -100
+                                    targetY_campoA = -100;
+                                    useHorizontalDistance = false;
+                                }
+                                
+                                // Converti targetY_campoA in Y_svg per il calcolo
+                                const targetY_svg_forDMP = FIELD_A_ORIGIN_Y - targetY_campoA;
+                                const newBisX_atTargetY = getLineXAtY(shotLandingX, shotLandingY, newBisectorTargetX, targetY_secondary, targetY_svg_forDMP);
+                                
+                                const bisX_fieldA = newBisX_atTargetY - FIELD_A_ORIGIN_X;
+                                const bisY_fieldA = targetY_campoA;
+                                
+                                // Calcola distanza in base alla logica selezionata
+                                let distMidPoint;
+                                if (useHorizontalDistance) {
+                                    // Distanza orizzontale (logica vecchia)
+                                    distMidPoint = Math.abs(originalX_fieldA - bisX_fieldA);
+                                } else {
+                                    // Distanza euclidea (logica attuale)
+                                    const dx = originalX_fieldA - bisX_fieldA;
+                                    const dy = originalY_fieldA - bisY_fieldA;
+                                    distMidPoint = Math.sqrt(dx * dx + dy * dy);
+                                }
                                 
                                 // Campo da Coprire: larghezza tra le linee sinistra e destra del nuovo colpitore
-                                // alla Y del colpitore originale
-                                const leftX_atOriginalY = getLineXAtY(shotLandingX, shotLandingY, targetLeftX_secondary, targetY_secondary, originalHitterY_inSecondary);
-                                const rightX_atOriginalY = getLineXAtY(shotLandingX, shotLandingY, targetRightX_secondary, targetY_secondary, originalHitterY_inSecondary);
-                                const campoCoprire = Math.abs(rightX_atOriginalY - leftX_atOriginalY);
+                                // Logica condizionale basata sulla Y del colpitore originale nel Campo A
+                                // (usa la stessa logica condizionale di distanzaMidPoint)
+                                let targetY_campoA_CDC;
+                                
+                                if (originalY_fieldA > -30) {
+                                    // Y > -30: usa Y = -30
+                                    targetY_campoA_CDC = -30;
+                                } else if (originalY_fieldA > -100 && originalY_fieldA <= -30) {
+                                    // -100 < Y <= -30: usa la stessa Y del colpitore
+                                    targetY_campoA_CDC = originalY_fieldA;
+                                } else {
+                                    // Y <= -100: usa Y = -100
+                                    targetY_campoA_CDC = -100;
+                                }
+                                
+                                // Converti targetY_campoA_CDC in Y_svg per il calcolo
+                                const targetY_svg_forCDC = FIELD_A_ORIGIN_Y - targetY_campoA_CDC;
+                                const leftX_atTargetY = getLineXAtY(shotLandingX, shotLandingY, targetLeftX_secondary, targetY_secondary, targetY_svg_forCDC);
+                                const rightX_atTargetY = getLineXAtY(shotLandingX, shotLandingY, targetRightX_secondary, targetY_secondary, targetY_svg_forCDC);
+                                const campoCoprire = Math.abs(rightX_atTargetY - leftX_atTargetY);
                                 
                                 return { distanzaMidPoint: distMidPoint, campoDaCoprire: campoCoprire };
                             }
@@ -1277,7 +1465,6 @@
                             // Campiona molte direzioni tra sinistra e destra per trovare min/max
                             const NUM_SAMPLES = 100;
                             let spazioMin = Infinity, spazioMax = -Infinity;
-                            let spostMin = Infinity, spostMax = -Infinity;
                             let distMPMin = Infinity, distMPMax = -Infinity;
                             let campoMin = Infinity, campoMax = -Infinity;
                             
@@ -1294,11 +1481,6 @@
                                     if (spazio > spazioMax) spazioMax = spazio;
                                 }
                                 
-                                // Calcola spostamentoAvversario per questa direzione
-                                const spost = calcSpostamentoAvversarioForDirection(targetX, targetY);
-                                if (spost < spostMin) spostMin = spost;
-                                if (spost > spostMax) spostMax = spost;
-                                
                                 // Calcola metriche del campo secondario
                                 const secondary = calcSecondaryMetricsForDirection(targetX, targetY);
                                 if (secondary.distanzaMidPoint < distMPMin) distMPMin = secondary.distanzaMidPoint;
@@ -1312,10 +1494,6 @@
                                 spazioColpo2Min = spazioMin;
                                 spazioColpo2Max = spazioMax;
                             }
-                            if (spostMin !== Infinity && spostMax !== -Infinity) {
-                                spostamentoAvversarioMin = spostMin;
-                                spostamentoAvversarioMax = spostMax;
-                            }
                             if (distMPMin !== Infinity && distMPMax !== -Infinity) {
                                 distanzaMidPointMin = distMPMin;
                                 distanzaMidPointMax = distMPMax;
@@ -1326,7 +1504,7 @@
                             }
                             
                             console.log('Spazio Colpo Min/Max:', spazioColpo2Min, spazioColpo2Max);
-                            console.log('Spostamento Avversario Min/Max:', spostamentoAvversarioMin, spostamentoAvversarioMax);
+                            console.log('Spostamento Avversario Min/Max:', spostamentoAvversarioMin, spostamentoAvversarioMax, '(fissi)');
                             console.log('Distanza Mid Point Min/Max:', distanzaMidPointMin, distanzaMidPointMax);
                             console.log('Campo da Coprire Min/Max:', campoDaCoprireMin, campoDaCoprireMax);
                         }
@@ -1337,7 +1515,7 @@
                             spazioColpo2: { min: spazioColpo2Min, max: spazioColpo2Max },
                             rischioErroreLaterale: { min: -117, max: 117 },
                             altezzaRete: { min: 0, max: 100 },           // Fisso: min=0, max=100
-                            spostamentoAvversario: { min: spostamentoAvversarioMin, max: spostamentoAvversarioMax },
+                            spostamentoAvversario: { min: 0, max: 170 }, // Fisso: min=0, max=170
                             distanzaMidPoint: { min: 0, max: 200 },      // Fisso: min=0, max=200
                             campoDaCoprire: { min: 250, max: 400 }       // Fisso: min=250, max=400
                         };
@@ -1530,12 +1708,12 @@
                         );
                         
                         // Calcola Rischio Tattico Totale
-                        // Media di: (1 - spostamentoAvversario_norm), distanzaMidPoint_norm, campoDaCoprire_norm
+                        // Media pesata: Distanza Mid Point 0.4 (40%), Spostamento Avversario 0.3 (30%), Campo da Coprire 0.3 (30%)
                         const rischioTatticoTotale = (
-                            (1 - spostamentoAvversarioNorm) + 
-                            distanzaMidPointNorm + 
-                            campoDaCoprireNorm
-                        ) / 3;
+                            0.3 * (1 - spostamentoAvversarioNorm) + 
+                            0.4 * distanzaMidPointNorm + 
+                            0.3 * campoDaCoprireNorm
+                        );
                         
                         console.log('=== Rischi Totali ===');
                         console.log('Rischio Tecnico Totale:', rischioTecnicoTotale);
