@@ -569,11 +569,67 @@
                     <span class="panel-section-title">DOWNLOAD</span>
                 </div>
                 <div class="panel-section-content">
+                    <div id="downloadOptions" style="display: none;">
+                        <!-- Opzioni per modalità 2 colpi -->
+                        <div id="downloadOptions2Colpi" style="display: none;">
+                            <div class="control-section collapsed" style="margin-bottom: 12px;">
+                                <h3 class="control-section-title" style="cursor: default; pointer-events: none;">Cosa vuoi scaricare?</h3>
+                                <div class="control-options" style="max-height: none; opacity: 1;">
+                                    <label class="control-option" for="download_both">
+                                        <input id="download_both" type="radio" name="downloadType" value="both" />
+                                        <span>Entrambi i Campi</span>
+                                    </label>
+                                    <label class="control-option" for="download_single">
+                                        <input id="download_single" type="radio" name="downloadType" value="single" />
+                                        <span>Solo un Campo</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="singleCourtOptions" class="control-section collapsed" style="margin-bottom: 12px; display: none;">
+                                <h3 class="control-section-title" style="cursor: default; pointer-events: none;">Quale campo?</h3>
+                                <div class="control-options" style="max-height: none; opacity: 1;">
+                                    <label class="control-option" for="download_primary">
+                                        <input id="download_primary" type="radio" name="downloadCourt" value="primary" checked />
+                                        <span>Primo Colpo</span>
+                                    </label>
+                                    <label class="control-option" for="download_secondary">
+                                        <input id="download_secondary" type="radio" name="downloadCourt" value="secondary" />
+                                        <span>Secondo Colpo</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Opzioni per modalità dinamico -->
+                        <div id="downloadOptionsDinamico" style="display: none;">
+                            <div class="control-section collapsed" style="margin-bottom: 12px;">
+                                <h3 class="control-section-title" style="cursor: default; pointer-events: none;">Cosa vuoi scaricare?</h3>
+                                <div class="control-options" style="max-height: none; opacity: 1;">
+                                    <label class="control-option" for="download_video">
+                                        <input id="download_video" type="radio" name="downloadTypeDinamico" value="video" />
+                                        <span>Video del Punto</span>
+                                    </label>
+                                    <label class="control-option" for="download_single_shot">
+                                        <input id="download_single_shot" type="radio" name="downloadTypeDinamico" value="single" />
+                                        <span>Immagine di un Colpo</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="singleShotOptions" class="control-section collapsed" style="margin-bottom: 12px; display: none;">
+                                <h3 class="control-section-title" style="cursor: default; pointer-events: none;">Numero Colpo</h3>
+                                <div class="control-options" style="max-height: none; opacity: 1;">
+                                    <label class="control-option" style="flex-direction: column; align-items: flex-start; gap: 8px;">
+                                        <span style="font-size: 11px; font-weight: 600; color: #607d8b;">Seleziona il numero del colpo da scaricare:</span>
+                                        <input type="number" id="download_shot_number" min="1" value="1" style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 6px; font-size: 14px;" />
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <button id="downloadCourtImage" class="download-court-button" style="display: none;">
                         <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 6px;">
                             <path fill="currentColor" d="M19,12V19H5V12H3V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19M13,12.67L15.59,10.08L17,11.5L12,16.5L7,11.5L8.41,10.08L11,12.67V3H13V12.67Z" />
                         </svg>
-                        Scarica Immagine Campo
+                        Scarica Immagine
                     </button>
                 </div>
             </div>

@@ -1948,148 +1948,445 @@
             // Update download button visibility based on mode
             function updateDownloadButtonVisibility(mode) {
                 const downloadButton = document.getElementById('downloadCourtImage');
+                const downloadOptions = document.getElementById('downloadOptions');
+                const downloadOptions2Colpi = document.getElementById('downloadOptions2Colpi');
+                const downloadOptionsDinamico = document.getElementById('downloadOptionsDinamico');
+                const singleCourtOptions = document.getElementById('singleCourtOptions');
+                const singleShotOptions = document.getElementById('singleShotOptions');
+                const secondaryLabel = document.getElementById('download_secondary_label');
+                
                 if (downloadButton) {
-                    if (mode === '1colpo') {
+                    if (mode === '1colpo' || mode === '2colpi' || mode === 'dinamico') {
                         downloadButton.style.display = 'flex';
+                        
+                        if (mode === '1colpo') {
+                            // In modalità 1 colpo, nascondi tutte le opzioni e mostra solo il pulsante
+                            if (downloadOptions) downloadOptions.style.display = 'none';
+                            if (downloadOptions2Colpi) downloadOptions2Colpi.style.display = 'none';
+                            if (downloadOptionsDinamico) downloadOptionsDinamico.style.display = 'none';
+                            if (singleCourtOptions) singleCourtOptions.style.display = 'none';
+                            if (singleShotOptions) singleShotOptions.style.display = 'none';
+                            // Seleziona automaticamente "Solo un campo" e "Campo Principale" per uso interno
+                            const singleRadio = document.getElementById('download_single');
+                            const primaryRadio = document.getElementById('download_primary');
+                            if (singleRadio) singleRadio.checked = true;
+                            if (primaryRadio) primaryRadio.checked = true;
+                        } else if (mode === '2colpi') {
+                            // In modalità 2 colpi, mostra le opzioni per 2 colpi
+                            if (downloadOptions) downloadOptions.style.display = 'block';
+                            if (downloadOptions2Colpi) downloadOptions2Colpi.style.display = 'block';
+                            if (downloadOptionsDinamico) downloadOptionsDinamico.style.display = 'none';
+                            if (secondaryLabel) secondaryLabel.style.display = 'flex';
+                            // Reset to default: no selection
+                            const bothRadio = document.getElementById('download_both');
+                            const singleRadio = document.getElementById('download_single');
+                            if (bothRadio) bothRadio.checked = false;
+                            if (singleRadio) singleRadio.checked = false;
+                            if (singleCourtOptions) singleCourtOptions.style.display = 'none';
+                        } else if (mode === 'dinamico') {
+                            // In modalità dinamico, mostra le opzioni per dinamico
+                            if (downloadOptions) downloadOptions.style.display = 'block';
+                            if (downloadOptions2Colpi) downloadOptions2Colpi.style.display = 'none';
+                            if (downloadOptionsDinamico) downloadOptionsDinamico.style.display = 'block';
+                            // Reset to default: no selection
+                            const videoRadio = document.getElementById('download_video');
+                            const singleShotRadio = document.getElementById('download_single_shot');
+                            if (videoRadio) videoRadio.checked = false;
+                            if (singleShotRadio) singleShotRadio.checked = false;
+                            if (singleShotOptions) singleShotOptions.style.display = 'none';
+                        }
                     } else {
                         downloadButton.style.display = 'none';
+                        if (downloadOptions) downloadOptions.style.display = 'none';
+                        if (downloadOptions2Colpi) downloadOptions2Colpi.style.display = 'none';
+                        if (downloadOptionsDinamico) downloadOptionsDinamico.style.display = 'none';
+                        if (singleCourtOptions) singleCourtOptions.style.display = 'none';
+                        if (singleShotOptions) singleShotOptions.style.display = 'none';
                     }
                 }
             }
             
+            // Update single shot options visibility for dinamico mode
+            function updateSingleShotOptions() {
+                const downloadType = document.querySelector('input[name="downloadTypeDinamico"]:checked');
+                const singleShotOptions = document.getElementById('singleShotOptions');
+                
+                if (downloadType && singleShotOptions) {
+                    if (downloadType.value === 'single') {
+                        singleShotOptions.style.display = 'block';
+                        // Update max value based on shotHistory
+                        const shotNumberInput = document.getElementById('download_shot_number');
+                        if (shotNumberInput && typeof window.shotHistory !== 'undefined') {
+                            const maxShots = window.shotHistory ? window.shotHistory.length : 1;
+                            shotNumberInput.max = maxShots;
+                            shotNumberInput.value = Math.min(parseInt(shotNumberInput.value) || 1, maxShots);
+                        }
+                    } else {
+                        singleShotOptions.style.display = 'none';
+                    }
+                }
+            }
+            
+            // Update single court options visibility
+            function updateSingleCourtOptions() {
+                const downloadType = document.querySelector('input[name="downloadType"]:checked');
+                const singleCourtOptions = document.getElementById('singleCourtOptions');
+                
+                if (downloadType && singleCourtOptions) {
+                    if (downloadType.value === 'single') {
+                        singleCourtOptions.style.display = 'block';
+                    } else {
+                        singleCourtOptions.style.display = 'none';
+                    }
+                }
+            }
+            
+            // Helper function to convert SVG to canvas
+            function svgToCanvas(svgElement, scale = 2) {
+                return new Promise(function(resolve, reject) {
+                    try {
+                        // Get viewBox or dimensions
+                        const viewBox = svgElement.viewBox.baseVal;
+                        const svgWidth = viewBox.width || parseFloat(svgElement.getAttribute('width')) || 600;
+                        const svgHeight = viewBox.height || parseFloat(svgElement.getAttribute('height')) || 1006;
+                        
+                        // Clone the SVG to avoid modifying the original
+                        const clonedSvg = svgElement.cloneNode(true);
+                        
+                        // Set explicit pixel dimensions on the clone
+                        clonedSvg.setAttribute('width', svgWidth);
+                        clonedSvg.setAttribute('height', svgHeight);
+                        clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                        clonedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+                        
+                        // Get computed background color
+                        const computedStyle = window.getComputedStyle(svgElement);
+                        const bgColor = computedStyle.backgroundColor || '#1565c0';
+                        
+                        // Serialize SVG to string
+                        const serializer = new XMLSerializer();
+                        let svgString = serializer.serializeToString(clonedSvg);
+                        
+                        // Encode SVG string for data URL
+                        const encodedSvg = encodeURIComponent(svgString);
+                        const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodedSvg;
+                        
+                        // Create an image to convert SVG to canvas
+                        const img = new Image();
+                        
+                        img.onload = function() {
+                            try {
+                                // Create a canvas with the same dimensions
+                                const canvas = document.createElement('canvas');
+                                const ctx = canvas.getContext('2d');
+                                const width = img.width * scale;
+                                const height = img.height * scale;
+                                
+                                canvas.width = width;
+                                canvas.height = height;
+                                
+                                // Fill background
+                                ctx.fillStyle = bgColor;
+                                ctx.fillRect(0, 0, width, height);
+                                
+                                // Draw the SVG image on the canvas
+                                ctx.drawImage(img, 0, 0, width, height);
+                                
+                                resolve(canvas);
+                            } catch (error) {
+                                reject(error);
+                            }
+                        };
+                        
+                        img.onerror = function(error) {
+                            reject(new Error('Errore nel caricamento dell\'immagine SVG'));
+                        };
+                        
+                        // Set timeout for image loading
+                        const timeout = setTimeout(function() {
+                            reject(new Error('Timeout nel caricamento dell\'immagine'));
+                        }, 10000);
+                        
+                        const originalOnload = img.onload;
+                        img.onload = function() {
+                            clearTimeout(timeout);
+                            if (originalOnload) originalOnload.call(this);
+                        };
+                        
+                        // Load the SVG as data URL
+                        img.src = dataUrl;
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            }
+            
             // Download court image function
             function downloadCourtImage() {
-                const svgElement = document.getElementById('tennisCourt');
-                if (!svgElement) {
-                    console.error('SVG element not found');
-                    alert('Errore: elemento SVG non trovato');
+                console.log('Inizio download immagine campo...');
+                
+                const currentMode = window.__modalita__;
+                
+                // Handle dinamico mode separately
+                if (currentMode === 'dinamico') {
+                    const downloadTypeOption = document.querySelector('input[name="downloadTypeDinamico"]:checked');
+                    if (!downloadTypeOption) {
+                        alert('Seleziona prima cosa vuoi scaricare');
+                        return;
+                    }
+                    
+                    const downloadType = downloadTypeOption.value;
+                    if (downloadType === 'video') {
+                        downloadDinamicoVideo();
+                    } else {
+                        downloadDinamicoSingleShot();
+                    }
                     return;
                 }
                 
-                console.log('Inizio download immagine campo...');
+                // Handle 1colpo and 2colpi modes
+                if (currentMode === '1colpo') {
+                    // In modalità 1 colpo, scarica direttamente il campo principale
+                    const svgElement = document.getElementById('tennisCourt');
+                    if (!svgElement) {
+                        alert('Errore: elemento SVG non trovato');
+                        return;
+                    }
+                    svgToCanvas(svgElement, 2).then(function(canvas) {
+                        downloadCanvas(canvas, 'campo-tennis-' + new Date().getTime() + '.png');
+                    }).catch(function(error) {
+                        console.error('Errore durante il download:', error);
+                        alert('Errore: ' + error.message);
+                    });
+                    return;
+                }
+                
+                // Handle 2colpi mode
+                const downloadTypeOption = document.querySelector('input[name="downloadType"]:checked');
+                if (!downloadTypeOption) {
+                    alert('Seleziona prima cosa vuoi scaricare');
+                    return;
+                }
+                
+                const downloadType = downloadTypeOption.value;
+                console.log('Tipo di download selezionato:', downloadType);
                 
                 try {
-                    // Get the SVG container to capture its actual rendered size
-                    const svgContainer = svgElement.parentElement;
-                    const svgRect = svgElement.getBoundingClientRect();
-                    
-                    // Get viewBox or dimensions
-                    const viewBox = svgElement.viewBox.baseVal;
-                    const svgWidth = viewBox.width || parseFloat(svgElement.getAttribute('width')) || 600;
-                    const svgHeight = viewBox.height || parseFloat(svgElement.getAttribute('height')) || 1006;
-                    
-                    console.log('Dimensioni SVG:', svgWidth, 'x', svgHeight);
-                    console.log('Dimensioni renderizzate:', svgRect.width, 'x', svgRect.height);
-                    
-                    // Clone the SVG to avoid modifying the original
-                    const clonedSvg = svgElement.cloneNode(true);
-                    
-                    // Set explicit pixel dimensions on the clone (not percentage)
-                    clonedSvg.setAttribute('width', svgWidth);
-                    clonedSvg.setAttribute('height', svgHeight);
-                    clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-                    clonedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
-                    
-                    // Get computed background color
-                    const computedStyle = window.getComputedStyle(svgElement);
-                    const bgColor = computedStyle.backgroundColor || '#1565c0';
-                    
-                    // Serialize SVG to string
-                    const serializer = new XMLSerializer();
-                    let svgString = serializer.serializeToString(clonedSvg);
-                    
-                    // Encode SVG string for data URL
-                    const encodedSvg = encodeURIComponent(svgString);
-                    const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodedSvg;
-                    
-                    console.log('SVG serializzato, creazione immagine...');
-                    
-                    // Create an image to convert SVG to canvas
-                    const img = new Image();
-                    
-                    img.onload = function() {
-                        console.log('Immagine caricata, dimensioni:', img.width, 'x', img.height);
+                    if (downloadType === 'both') {
+                        // Download both courts side by side
+                        downloadBothCourts();
+                    } else {
+                        // Download single court - get which court
+                        const selectedCourt = document.querySelector('input[name="downloadCourt"]:checked');
+                        const courtType = selectedCourt ? selectedCourt.value : 'primary';
                         
-                        try {
-                            // Create a canvas with the same dimensions
-                            const canvas = document.createElement('canvas');
-                            const ctx = canvas.getContext('2d');
-                            const scale = 2; // For better quality
-                            const width = img.width * scale;
-                            const height = img.height * scale;
-                            
-                            canvas.width = width;
-                            canvas.height = height;
-                            
-                            // Fill background
-                            ctx.fillStyle = bgColor;
-                            ctx.fillRect(0, 0, width, height);
-                            
-                            // Draw the SVG image on the canvas
-                            ctx.drawImage(img, 0, 0, width, height);
-                            
-                            console.log('Canvas creato, conversione in blob...');
-                            
-                            // Convert canvas to blob and download
-                            canvas.toBlob(function(blob) {
-                                if (blob) {
-                                    console.log('Blob creato, dimensione:', blob.size, 'bytes');
-                                    const downloadUrl = URL.createObjectURL(blob);
-                                    const link = document.createElement('a');
-                                    link.href = downloadUrl;
-                                    link.download = 'campo-tennis-' + new Date().getTime() + '.png';
-                                    link.style.display = 'none';
-                                    document.body.appendChild(link);
-                                    
-                                    // Trigger download
-                                    setTimeout(function() {
-                                        link.click();
-                                        console.log('Click sul link di download eseguito');
-                                        
-                                        // Clean up after a delay
-                                        setTimeout(function() {
-                                            document.body.removeChild(link);
-                                            URL.revokeObjectURL(downloadUrl);
-                                            console.log('Download completato!');
-                                        }, 200);
-                                    }, 50);
-                                } else {
-                                    console.error('Errore: blob non creato');
-                                    alert('Errore durante la creazione dell\'immagine. Il blob non è stato generato.');
-                                }
-                            }, 'image/png', 1.0);
-                        } catch (canvasError) {
-                            console.error('Errore nella creazione del canvas:', canvasError);
-                            alert('Errore durante la creazione del canvas: ' + canvasError.message);
+                        console.log('Campo selezionato:', courtType);
+                        
+                        const svgSelector = courtType === 'secondary' 
+                            ? '.svg-wrap.secondary svg' 
+                            : '#tennisCourt';
+                        
+                        const svgElement = document.querySelector(svgSelector);
+                        if (!svgElement) {
+                            console.error('SVG element not found:', svgSelector);
+                            alert('Errore: elemento SVG non trovato');
+                            return;
                         }
-                    };
-                    
-                    img.onerror = function(error) {
-                        console.error('Errore nel caricamento dell\'immagine SVG:', error);
-                        console.error('Data URL length:', dataUrl.length);
-                        alert('Errore nel caricamento dell\'immagine SVG. Controlla la console per i dettagli.');
-                    };
-                    
-                    // Set timeout for image loading
-                    const timeout = setTimeout(function() {
-                        console.error('Timeout nel caricamento dell\'immagine');
-                        alert('Timeout: l\'immagine impiega troppo tempo a caricarsi. Prova a ricaricare la pagina.');
-                        img.onerror = null; // Prevent double error
-                    }, 10000);
-                    
-                    const originalOnload = img.onload;
-                    img.onload = function() {
-                        clearTimeout(timeout);
-                        if (originalOnload) originalOnload.call(this);
-                    };
-                    
-                    // Load the SVG as data URL
-                    img.src = dataUrl;
-                    
+                        
+                        svgToCanvas(svgElement, 2).then(function(canvas) {
+                            downloadCanvas(canvas, 'campo-tennis-' + courtType + '-' + new Date().getTime() + '.png');
+                        }).catch(function(error) {
+                            console.error('Errore durante il download:', error);
+                            alert('Errore: ' + error.message);
+                        });
+                    }
                 } catch (error) {
                     console.error('Errore durante il download dell\'immagine:', error);
                     alert('Errore: ' + error.message);
                 }
+            }
+            
+            // Download video of dinamico point animation
+            function downloadDinamicoVideo() {
+                if (!shotSequence || shotSequence.length === 0) {
+                    alert('Non ci sono colpi da visualizzare. Esegui almeno un colpo prima di scaricare il video.');
+                    return;
+                }
+                
+                console.log('Inizio download video del punto...');
+                alert('Il download del video sarà disponibile a breve. Per ora puoi usare strumenti di screen recording per catturare l\'animazione quando premi "Visualizza Punto".');
+                // TODO: Implementare la registrazione video usando MediaRecorder API
+            }
+            
+            // Download single shot image in dinamico mode
+            function downloadDinamicoSingleShot() {
+                const shotNumberInput = document.getElementById('download_shot_number');
+                if (!shotNumberInput) {
+                    alert('Errore: campo numero colpo non trovato');
+                    return;
+                }
+                
+                const shotNumber = parseInt(shotNumberInput.value);
+                if (isNaN(shotNumber) || shotNumber < 1) {
+                    alert('Inserisci un numero di colpo valido');
+                    return;
+                }
+                
+                if (!shotHistory || shotHistory.length === 0) {
+                    alert('Non ci sono colpi salvati. Esegui almeno un colpo prima di scaricare.');
+                    return;
+                }
+                
+                if (shotNumber > shotHistory.length) {
+                    alert('Il numero di colpo selezionato non esiste. Massimo: ' + shotHistory.length);
+                    return;
+                }
+                
+                console.log('Download immagine colpo numero:', shotNumber);
+                
+                // Save current state to restore later
+                const currentState = {
+                    numeroColpo: window.__numeroColpo__,
+                    dotX: parseFloat(dot.getAttribute('cx')),
+                    dotY: parseFloat(dot.getAttribute('cy')),
+                    intersectionX: parseFloat(intersectionDot.getAttribute('cx')),
+                    intersectionY: parseFloat(intersectionDot.getAttribute('cy')),
+                    isPlayer: isPlayer
+                };
+                
+                // Restore the state of the selected shot
+                const shotState = shotHistory[shotNumber - 1];
+                if (shotState) {
+                    restoreState(shotState);
+                    
+                    // Wait a bit for the state to be applied, then capture
+                    setTimeout(function() {
+                        const svgElement = document.getElementById('tennisCourt');
+                        if (!svgElement) {
+                            alert('Errore: elemento SVG non trovato');
+                            restoreCurrentState(currentState);
+                            return;
+                        }
+                        
+                        svgToCanvas(svgElement, 2).then(function(canvas) {
+                            downloadCanvas(canvas, 'campo-tennis-colpo-' + shotNumber + '-' + new Date().getTime() + '.png');
+                            // Restore original state
+                            restoreCurrentState(currentState);
+                        }).catch(function(error) {
+                            console.error('Errore durante il download:', error);
+                            alert('Errore: ' + error.message);
+                            restoreCurrentState(currentState);
+                        });
+                    }, 100);
+                } else {
+                    alert('Errore: stato del colpo non trovato');
+                }
+            }
+            
+            // Helper function to restore current state
+            function restoreCurrentState(state) {
+                if (state) {
+                    if (dot) {
+                        dot.setAttribute('cx', String(state.dotX));
+                        dot.setAttribute('cy', String(state.dotY));
+                    }
+                    if (intersectionDot) {
+                        intersectionDot.setAttribute('cx', String(state.intersectionX));
+                        intersectionDot.setAttribute('cy', String(state.intersectionY));
+                    }
+                    if (typeof state.isPlayer !== 'undefined') {
+                        isPlayer = state.isPlayer;
+                    }
+                    if (typeof state.numeroColpo !== 'undefined') {
+                        window.__numeroColpo__ = state.numeroColpo;
+                        updateNumeroColpoDisplay();
+                    }
+                    // Update lines and other elements
+                    const dotX = state.dotX || ORIGIN_X;
+                    const dotY = state.dotY || (state.isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                    updateLinesAndWedge(dotX, dotY);
+                    updateIntersectionDot();
+                }
+            }
+            
+            // Download both courts side by side
+            function downloadBothCourts() {
+                const primarySvg = document.getElementById('tennisCourt');
+                const secondarySvg = document.querySelector('.svg-wrap.secondary svg');
+                
+                if (!primarySvg) {
+                    alert('Errore: campo principale non trovato');
+                    return;
+                }
+                
+                if (!secondarySvg) {
+                    alert('Errore: campo secondario non trovato');
+                    return;
+                }
+                
+                Promise.all([
+                    svgToCanvas(primarySvg, 2),
+                    svgToCanvas(secondarySvg, 2)
+                ]).then(function(canvases) {
+                    const primaryCanvas = canvases[0];
+                    const secondaryCanvas = canvases[1];
+                    
+                    // Create a combined canvas
+                    const combinedCanvas = document.createElement('canvas');
+                    const ctx = combinedCanvas.getContext('2d');
+                    const gap = 40; // Gap between courts
+                    const width = primaryCanvas.width + secondaryCanvas.width + gap;
+                    const height = Math.max(primaryCanvas.height, secondaryCanvas.height);
+                    
+                    combinedCanvas.width = width;
+                    combinedCanvas.height = height;
+                    
+                    // Fill background
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, width, height);
+                    
+                    // Draw primary court
+                    ctx.drawImage(primaryCanvas, 0, 0);
+                    
+                    // Draw secondary court
+                    ctx.drawImage(secondaryCanvas, primaryCanvas.width + gap, 0);
+                    
+                    downloadCanvas(combinedCanvas, 'campo-tennis-entrambi-' + new Date().getTime() + '.png');
+                }).catch(function(error) {
+                    console.error('Errore durante il download di entrambi i campi:', error);
+                    alert('Errore: ' + error.message);
+                });
+            }
+            
+            // Helper function to download canvas as PNG
+            function downloadCanvas(canvas, filename) {
+                canvas.toBlob(function(blob) {
+                    if (blob) {
+                        console.log('Blob creato, dimensione:', blob.size, 'bytes');
+                        const downloadUrl = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = downloadUrl;
+                        link.download = filename;
+                        link.style.display = 'none';
+                        document.body.appendChild(link);
+                        
+                        // Trigger download
+                        setTimeout(function() {
+                            link.click();
+                            console.log('Click sul link di download eseguito');
+                            
+                            // Clean up after a delay
+                            setTimeout(function() {
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(downloadUrl);
+                                console.log('Download completato!');
+                            }, 200);
+                        }, 50);
+                    } else {
+                        console.error('Errore: blob non creato');
+                        alert('Errore durante la creazione dell\'immagine. Il blob non è stato generato.');
+                    }
+                }, 'image/png', 1.0);
             }
 
             // View toggles
@@ -2131,6 +2428,28 @@
             } else {
                 console.warn('Pulsante download non trovato!');
             }
+            
+            // Event listeners for download type selection (2 colpi mode)
+            const downloadTypeInputs = document.querySelectorAll('input[name="downloadType"]');
+            downloadTypeInputs.forEach(function(input) {
+                input.addEventListener('change', function() {
+                    updateSingleCourtOptions();
+                });
+            });
+            
+            // Event listeners for download type selection (dinamico mode)
+            const downloadTypeDinamicoInputs = document.querySelectorAll('input[name="downloadTypeDinamico"]');
+            downloadTypeDinamicoInputs.forEach(function(input) {
+                input.addEventListener('change', function() {
+                    updateSingleShotOptions();
+                });
+            });
+            
+            // Make shotHistory accessible globally for download function
+            Object.defineProperty(window, 'shotHistory', {
+                get: function() { return shotHistory; },
+                configurable: true
+            });
             
             // Initialize download button visibility
             if (window.__modalita__) {
