@@ -147,9 +147,47 @@ body {
     border-color: #1976d2;
     box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
 }
+
+.default-subsection input[type="number"] {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 10px;
+    color: #263238;
+    cursor: pointer;
+    min-width: 80px;
+    text-align: center;
+}
+
+.default-subsection input[type="number"]:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 0 2px rgba(25, 118, 210, 0.2);
+}
         
 .default-subsection .control-option {
-    justify-content: space-between;
+    justify-content: space-between !important;
+    display: flex !important;
+    align-items: center;
+    flex-direction: row !important;
+}
+
+.default-subsection .control-option > span:first-of-type {
+    flex: 0 0 auto;
+    order: 1 !important;
+}
+
+.default-subsection .control-option > input[type="number"],
+.default-subsection .control-option > select {
+    flex: 0 0 auto;
+    order: 2 !important;
+}
+
+/* Allinea l'input number a sinistra per il campo Numero Colpo nel download */
+.default-subsection .download-shot-number-label {
+    flex-direction: row !important;
+    justify-content: flex-start !important;
 }
         
 .default-subsection:last-child .control-option {

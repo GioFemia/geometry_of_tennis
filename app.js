@@ -1966,7 +1966,7 @@
                             if (downloadOptionsDinamico) downloadOptionsDinamico.style.display = 'none';
                             if (singleCourtOptions) singleCourtOptions.style.display = 'none';
                             if (singleShotOptions) singleShotOptions.style.display = 'none';
-                            // Seleziona automaticamente "Solo un campo" e "Campo Principale" per uso interno
+                            // Seleziona automaticamente "Solo un campo" e "Primo Colpo" per uso interno
                             const singleRadio = document.getElementById('download_single');
                             const primaryRadio = document.getElementById('download_primary');
                             if (singleRadio) singleRadio.checked = true;
@@ -1984,16 +1984,21 @@
                             if (singleRadio) singleRadio.checked = false;
                             if (singleCourtOptions) singleCourtOptions.style.display = 'none';
                         } else if (mode === 'dinamico') {
-                            // In modalità dinamico, mostra le opzioni per dinamico
+                            // In modalità dinamico, mostra solo le opzioni per selezionare il numero del colpo
                             if (downloadOptions) downloadOptions.style.display = 'block';
                             if (downloadOptions2Colpi) downloadOptions2Colpi.style.display = 'none';
                             if (downloadOptionsDinamico) downloadOptionsDinamico.style.display = 'block';
-                            // Reset to default: no selection
-                            const videoRadio = document.getElementById('download_video');
-                            const singleShotRadio = document.getElementById('download_single_shot');
-                            if (videoRadio) videoRadio.checked = false;
-                            if (singleShotRadio) singleShotRadio.checked = false;
-                            if (singleShotOptions) singleShotOptions.style.display = 'none';
+                            if (singleShotOptions) singleShotOptions.style.display = 'block';
+                            
+                            // Aggiorna il massimo numero di colpi disponibile (colpi eseguiti + colpo corrente)
+                            const shotNumberInput = document.getElementById('download_shot_number');
+                            if (shotNumberInput) {
+                                const executedShots = Array.isArray(shotHistory) ? shotHistory.length : 0;
+                                const maxShots = Math.max(executedShots + 1, 1);
+                                shotNumberInput.max = maxShots;
+                                const currentValue = parseInt(shotNumberInput.value) || 1;
+                                shotNumberInput.value = Math.min(Math.max(currentValue, 1), maxShots);
+                            }
                         }
                     } else {
                         downloadButton.style.display = 'none';
@@ -2002,27 +2007,6 @@
                         if (downloadOptionsDinamico) downloadOptionsDinamico.style.display = 'none';
                         if (singleCourtOptions) singleCourtOptions.style.display = 'none';
                         if (singleShotOptions) singleShotOptions.style.display = 'none';
-                    }
-                }
-            }
-            
-            // Update single shot options visibility for dinamico mode
-            function updateSingleShotOptions() {
-                const downloadType = document.querySelector('input[name="downloadTypeDinamico"]:checked');
-                const singleShotOptions = document.getElementById('singleShotOptions');
-                
-                if (downloadType && singleShotOptions) {
-                    if (downloadType.value === 'single') {
-                        singleShotOptions.style.display = 'block';
-                        // Update max value based on shotHistory
-                        const shotNumberInput = document.getElementById('download_shot_number');
-                        if (shotNumberInput && typeof window.shotHistory !== 'undefined') {
-                            const maxShots = window.shotHistory ? window.shotHistory.length : 1;
-                            shotNumberInput.max = maxShots;
-                            shotNumberInput.value = Math.min(parseInt(shotNumberInput.value) || 1, maxShots);
-                        }
-                    } else {
-                        singleShotOptions.style.display = 'none';
                     }
                 }
             }
@@ -2038,6 +2022,18 @@
                     } else {
                         singleCourtOptions.style.display = 'none';
                     }
+                }
+            }
+            
+            // Update single shot options visibility and max value for dinamico mode
+            function updateSingleShotOptions() {
+                const shotNumberInput = document.getElementById('download_shot_number');
+                if (shotNumberInput) {
+                    const executedShots = Array.isArray(shotHistory) ? shotHistory.length : 0;
+                    const maxShots = Math.max(executedShots + 1, 1);
+                    shotNumberInput.max = maxShots;
+                    const currentValue = parseInt(shotNumberInput.value) || 1;
+                    shotNumberInput.value = Math.min(Math.max(currentValue, 1), maxShots);
                 }
             }
             
@@ -2127,26 +2123,14 @@
                 
                 const currentMode = window.__modalita__;
                 
-                // Handle dinamico mode separately
+                // Modalità dinamico: scarica sempre immagine di un singolo colpo
                 if (currentMode === 'dinamico') {
-                    const downloadTypeOption = document.querySelector('input[name="downloadTypeDinamico"]:checked');
-                    if (!downloadTypeOption) {
-                        alert('Seleziona prima cosa vuoi scaricare');
-                        return;
-                    }
-                    
-                    const downloadType = downloadTypeOption.value;
-                    if (downloadType === 'video') {
-                        downloadDinamicoVideo();
-                    } else {
-                        downloadDinamicoSingleShot();
-                    }
+                    downloadDinamicoSingleShot();
                     return;
                 }
                 
-                // Handle 1colpo and 2colpi modes
+                // Modalità 1 colpo: scarica direttamente il campo principale
                 if (currentMode === '1colpo') {
-                    // In modalità 1 colpo, scarica direttamente il campo principale
                     const svgElement = document.getElementById('tennisCourt');
                     if (!svgElement) {
                         alert('Errore: elemento SVG non trovato');
@@ -2161,7 +2145,7 @@
                     return;
                 }
                 
-                // Handle 2colpi mode
+                // Modalità 2 colpi
                 const downloadTypeOption = document.querySelector('input[name="downloadType"]:checked');
                 if (!downloadTypeOption) {
                     alert('Seleziona prima cosa vuoi scaricare');
@@ -2206,18 +2190,6 @@
                 }
             }
             
-            // Download video of dinamico point animation
-            function downloadDinamicoVideo() {
-                if (!shotSequence || shotSequence.length === 0) {
-                    alert('Non ci sono colpi da visualizzare. Esegui almeno un colpo prima di scaricare il video.');
-                    return;
-                }
-                
-                console.log('Inizio download video del punto...');
-                alert('Il download del video sarà disponibile a breve. Per ora puoi usare strumenti di screen recording per catturare l\'animazione quando premi "Visualizza Punto".');
-                // TODO: Implementare la registrazione video usando MediaRecorder API
-            }
-            
             // Download single shot image in dinamico mode
             function downloadDinamicoSingleShot() {
                 const shotNumberInput = document.getElementById('download_shot_number');
@@ -2226,87 +2198,69 @@
                     return;
                 }
                 
-                const shotNumber = parseInt(shotNumberInput.value);
+                const shotNumber = parseInt(shotNumberInput.value, 10);
                 if (isNaN(shotNumber) || shotNumber < 1) {
                     alert('Inserisci un numero di colpo valido');
                     return;
                 }
                 
-                if (!shotHistory || shotHistory.length === 0) {
-                    alert('Non ci sono colpi salvati. Esegui almeno un colpo prima di scaricare.');
-                    return;
-                }
-                
-                if (shotNumber > shotHistory.length) {
-                    alert('Il numero di colpo selezionato non esiste. Massimo: ' + shotHistory.length);
+                const executedShots = Array.isArray(shotHistory) ? shotHistory.length : 0;
+                const maxShots = Math.max(executedShots + 1, 1);
+                if (shotNumber > maxShots) {
+                    alert('Il numero di colpo selezionato non è valido. Puoi scegliere da 1 a ' + maxShots + '.');
                     return;
                 }
                 
                 console.log('Download immagine colpo numero:', shotNumber);
                 
-                // Save current state to restore later
-                const currentState = {
-                    numeroColpo: window.__numeroColpo__,
-                    dotX: parseFloat(dot.getAttribute('cx')),
-                    dotY: parseFloat(dot.getAttribute('cy')),
-                    intersectionX: parseFloat(intersectionDot.getAttribute('cx')),
-                    intersectionY: parseFloat(intersectionDot.getAttribute('cy')),
-                    isPlayer: isPlayer
-                };
+                // Salva lo stato corrente completo
+                const currentState = saveCurrentState();
                 
-                // Restore the state of the selected shot
-                const shotState = shotHistory[shotNumber - 1];
-                if (shotState) {
-                    restoreState(shotState);
-                    
-                    // Wait a bit for the state to be applied, then capture
-                    setTimeout(function() {
-                        const svgElement = document.getElementById('tennisCourt');
-                        if (!svgElement) {
-                            alert('Errore: elemento SVG non trovato');
-                            restoreCurrentState(currentState);
-                            return;
-                        }
-                        
-                        svgToCanvas(svgElement, 2).then(function(canvas) {
-                            downloadCanvas(canvas, 'campo-tennis-colpo-' + shotNumber + '-' + new Date().getTime() + '.png');
-                            // Restore original state
-                            restoreCurrentState(currentState);
-                        }).catch(function(error) {
-                            console.error('Errore durante il download:', error);
-                            alert('Errore: ' + error.message);
-                            restoreCurrentState(currentState);
-                        });
-                    }, 100);
+                // Determina lo stato del colpo richiesto
+                let targetState = null;
+                if (shotNumber <= executedShots) {
+                    targetState = shotHistory[shotNumber - 1];
                 } else {
+                    // Colpo non ancora eseguito ma attualmente configurato (es. colpo successivo)
+                    targetState = currentState;
+                }
+                
+                if (!targetState) {
                     alert('Errore: stato del colpo non trovato');
+                    return;
                 }
-            }
-            
-            // Helper function to restore current state
-            function restoreCurrentState(state) {
-                if (state) {
-                    if (dot) {
-                        dot.setAttribute('cx', String(state.dotX));
-                        dot.setAttribute('cy', String(state.dotY));
-                    }
-                    if (intersectionDot) {
-                        intersectionDot.setAttribute('cx', String(state.intersectionX));
-                        intersectionDot.setAttribute('cy', String(state.intersectionY));
-                    }
-                    if (typeof state.isPlayer !== 'undefined') {
-                        isPlayer = state.isPlayer;
-                    }
-                    if (typeof state.numeroColpo !== 'undefined') {
-                        window.__numeroColpo__ = state.numeroColpo;
-                        updateNumeroColpoDisplay();
-                    }
-                    // Update lines and other elements
-                    const dotX = state.dotX || ORIGIN_X;
-                    const dotY = state.dotY || (state.isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
-                    updateLinesAndWedge(dotX, dotY);
-                    updateIntersectionDot();
+                
+                // Se il colpo richiesto è diverso dallo stato corrente, ripristina quello stato
+                const needRestore = targetState !== currentState;
+                if (needRestore) {
+                    restoreState(targetState);
                 }
+                
+                // Attendi un attimo che lo stato venga applicato, poi cattura l'immagine
+                setTimeout(function() {
+                    const svgElement = document.getElementById('tennisCourt');
+                    if (!svgElement) {
+                        alert('Errore: elemento SVG non trovato');
+                        if (needRestore) {
+                            restoreState(currentState);
+                        }
+                        return;
+                    }
+                    
+                    svgToCanvas(svgElement, 2).then(function(canvas) {
+                        downloadCanvas(canvas, 'campo-tennis-colpo-' + shotNumber + '-' + new Date().getTime() + '.png');
+                        // Ripristina lo stato originale
+                        if (needRestore) {
+                            restoreState(currentState);
+                        }
+                    }).catch(function(error) {
+                        console.error('Errore durante il download:', error);
+                        alert('Errore: ' + error.message);
+                        if (needRestore) {
+                            restoreState(currentState);
+                        }
+                    });
+                }, 100);
             }
             
             // Download both courts side by side
@@ -3187,6 +3141,9 @@
                         ultimoColpoCheckbox.checked = false;
                     }
                     
+                    // 8c. Aggiorna il valore massimo dell'input per il download
+                    updateSingleShotOptions();
+                    
                     // 9. Riabilita le opzioni di tipologia (se in modalità dinamico)
                     updateTipologiaAvailability();
                     
@@ -3419,6 +3376,9 @@
                     
                     // Salva lo stato corrente nella storia
                     shotHistory.push(currentState);
+                    
+                    // Aggiorna il valore massimo dell'input per il download
+                    updateSingleShotOptions();
                     
                     // BUG FIX 3: Reset del checkbox SOLO se NON è l'ultimo colpo
                     // Se è l'ultimo colpo, il numero non avanza e rimaniamo sullo stesso colpo,
@@ -4595,6 +4555,38 @@
                     } else {
                         setMobileSettingsState(true, 'impostazioni');
                     }
+                });
+            }
+            
+            // Mobile download button
+            const mobileNavDownload = document.getElementById('mobileNavDownload');
+            if (mobileNavDownload) {
+                mobileNavDownload.addEventListener('click', () => {
+                    // Set default values for download options if needed
+                    const currentMode = window.__modalita__;
+                    
+                    // For 2 colpi mode, set default to single primary court if no option is selected
+                    if (currentMode === '2colpi') {
+                        const downloadTypeOption = document.querySelector('input[name="downloadType"]:checked');
+                        if (!downloadTypeOption) {
+                            // Set default to single primary court
+                            const singleRadio = document.getElementById('download_single');
+                            const primaryRadio = document.getElementById('download_primary');
+                            if (singleRadio) singleRadio.checked = true;
+                            if (primaryRadio) primaryRadio.checked = true;
+                        }
+                    }
+                    
+                    // For dinamico mode, set default to shot 1 if no option is set
+                    if (currentMode === 'dinamico') {
+                        const shotNumberInput = document.getElementById('download_shot_number');
+                        if (shotNumberInput && (!shotNumberInput.value || shotNumberInput.value < 1)) {
+                            shotNumberInput.value = 1;
+                        }
+                    }
+                    
+                    // Call download function
+                    downloadCourtImage();
                 });
             }
             
