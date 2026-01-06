@@ -866,19 +866,6 @@
                 }
                 if (panelDownload) {
                     panelDownload.classList.toggle('mobile-visible', currentMobileSection === 'download');
-                    // Expand download section content when opened on mobile
-                    if (currentMobileSection === 'download' && open) {
-                        const downloadContent = panelDownload.querySelector('.panel-section-content');
-                        if (downloadContent) {
-                            downloadContent.classList.add('expanded');
-                            const downloadHeader = panelDownload.querySelector('.panel-section-header');
-                            if (downloadHeader) {
-                                downloadHeader.setAttribute('aria-expanded', 'true');
-                            }
-                        }
-                        // Update download options visibility based on current mode
-                        updateDownloadButtonVisibility(window.__modalita__);
-                    }
                 }
             }
 
@@ -2193,9 +2180,6 @@
                         reject(error);
                     }
                 });
-                    // Update mode indicator and download button visibility
-                    updateModeIndicator(initialVal);
-                }
             }
             
             // Update mode indicator (icon and text)
@@ -2720,27 +2704,6 @@
             bindViewCheckbox(chkZones, '__viewZones__');
             bindViewCheckbox(chkCenter, '__viewCenter__');
             bindViewCheckbox(chkCoordinates, '__viewCoordinates__');
-            
-            // Download button event listener
-            const downloadCourtButton = document.getElementById('downloadCourtImage');
-            if (downloadCourtButton) {
-                downloadCourtButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    console.log('Pulsante download cliccato!');
-                    downloadCourtImage();
-                });
-                console.log('Event listener per download button aggiunto');
-            } else {
-                console.warn('Pulsante download non trovato!');
-            }
-            
-            // Event listeners for download type selection (2 colpi mode)
-            const downloadTypeInputs = document.querySelectorAll('input[name="downloadType"]');
-            downloadTypeInputs.forEach(function(input) {
-                input.addEventListener('change', function() {
-                    updateSingleCourtOptions();
-                });
-            });
             
             // Event listeners for download type selection (dinamico mode)
             const downloadTypeDinamicoInputs = document.querySelectorAll('input[name="downloadTypeDinamico"]');
@@ -4913,44 +4876,25 @@
             const mobileNavDownload = document.getElementById('mobileNavDownload');
             if (mobileNavDownload) {
                 mobileNavDownload.addEventListener('click', () => {
-                    // Open download section instead of downloading directly
-                    if (currentMobileSection === 'download' && mobileSettingsOpen) {
-                        setMobileSettingsState(false, 'download');
-                    } else {
-                        setMobileSettingsState(true, 'download');
-                    }
-                });
-            }
-            
-            // Mobile download button
-            const mobileNavDownload = document.getElementById('mobileNavDownload');
-            if (mobileNavDownload) {
-                mobileNavDownload.addEventListener('click', () => {
-                    // Set default values for download options if needed
                     const currentMode = window.__modalita__;
                     
-                    // For 2 colpi mode, set default to single primary court if no option is selected
-                    if (currentMode === '2colpi') {
-                        const downloadTypeOption = document.querySelector('input[name="downloadType"]:checked');
-                        if (!downloadTypeOption) {
-                            // Set default to single primary court
-                            const singleRadio = document.getElementById('download_single');
-                            const primaryRadio = document.getElementById('download_primary');
-                            if (singleRadio) singleRadio.checked = true;
-                            if (primaryRadio) primaryRadio.checked = true;
-                        }
+                    // Modalità 1 colpo: scarica direttamente
+                    if (currentMode === '1colpo') {
+                        downloadCourtImage();
+                        return;
                     }
                     
-                    // For dinamico mode, set default to shot 1 if no option is set
-                    if (currentMode === 'dinamico') {
-                        const shotNumberInput = document.getElementById('download_shot_number');
-                        if (shotNumberInput && (!shotNumberInput.value || shotNumberInput.value < 1)) {
-                            shotNumberInput.value = 1;
+                    // Modalità 2 colpi o dinamico: apri il pannello download
+                    if (currentMode === '2colpi' || currentMode === 'dinamico') {
+                        if (currentMobileSection === 'download' && mobileSettingsOpen) {
+                            setMobileSettingsState(false, 'download');
+                        } else {
+                            // Assicura che le opzioni di download siano aggiornate per la modalità corrente
+                            updateDownloadButtonVisibility(currentMode);
+                            setMobileSettingsState(true, 'download');
                         }
+                        return;
                     }
-                    
-                    // Call download function
-                    downloadCourtImage();
                 });
             }
             
