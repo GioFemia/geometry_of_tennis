@@ -1,0 +1,1896 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Geometry of Tennis - Algoritmo</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        /* Override layout for 3-column design */
+        .page-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.8em;
+            height: 100vh;
+            padding: 0.8em;
+            box-sizing: border-box;
+            margin: 0;
+            min-width: 1500px;
+        }
+
+        /* Hide the controls sidebar */
+        .controls-sidebar {
+            display: none;
+        }
+
+        /* Hide mobile navigation and toggle buttons */
+        .mobile-nav-bar,
+        .mobile-panel-toggle,
+        .page-footer-mobile {
+            display: none !important;
+        }
+
+        /* Primary court (left) */
+        .primary-court {
+            grid-column: 1;
+        }
+
+        /* Secondary court (center) */
+        .secondary-court {
+            grid-column: 2;
+            display: flex !important;
+        }
+
+        /* Algoritmo panel (right) */
+        .algoritmo-panel {
+            grid-column: 3;
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(44, 62, 80, 0.13);
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .algoritmo-title {
+            font-family: 'Poppins', 'Montserrat', sans-serif;
+            font-size: 32px;
+            font-weight: 900;
+            color: #1976d2;
+            margin: 0;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding-bottom: 16px;
+            border-bottom: 3px solid #1976d2;
+        }
+
+        .algoritmo-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .algoritmo-section {
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .algoritmo-section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #263238;
+            margin: 0 0 8px 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .algoritmo-section-content {
+            font-size: 13px;
+            color: #546e7a;
+            line-height: 1.5;
+        }
+
+        .calcola-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(25, 118, 210, 0.35);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .calcola-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(25, 118, 210, 0.4);
+        }
+
+        .calcola-button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 10px rgba(25, 118, 210, 0.3);
+        }
+
+        .algoritmo-field {
+            display: flex;
+            flex-direction: column;
+            padding: 6px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .algoritmo-field:last-child {
+            border-bottom: none;
+        }
+
+        .field-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .field-label {
+            font-weight: 600;
+            color: #263238;
+            font-size: 12px;
+        }
+
+        .field-label-inverted {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .inverted-indicator {
+            color: #f44336;
+            font-weight: 900;
+            font-size: 16px;
+            background: rgba(244, 67, 54, 0.1);
+            border-radius: 3px;
+            padding: 2px 4px;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+        }
+
+        .field-value {
+            font-weight: 700;
+            font-size: 16px;
+            color: #1976d2;
+            font-family: 'Courier New', monospace;
+        }
+
+        .field-details {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .field-range {
+            display: flex;
+            gap: 6px;
+            font-size: 10px;
+            color: #78909c;
+            font-family: 'Courier New', monospace;
+        }
+
+        .field-min, .field-max {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .field-min-label, .field-max-label {
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 9px;
+        }
+
+        .field-normalized {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .normalized-bar {
+            width: 55px;
+            height: 6px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .normalized-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4caf50 0%, #8bc34a 50%, #ffc107 75%, #f44336 100%);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+
+        .normalized-value {
+            font-weight: 700;
+            font-size: 11px;
+            color: #455a64;
+            font-family: 'Courier New', monospace;
+            min-width: 32px;
+            text-align: right;
+        }
+
+        /* Hide the arrow between courts */
+        .courts-arrow {
+            display: none !important;
+        }
+
+        /* Ensure court lock overlay is not shown */
+        #courtLockOverlay {
+            display: none !important;
+        }
+
+        /* Hide dinamico panel */
+        #dinamicoPanel {
+            display: none !important;
+        }
+
+        /* Ensure courts are properly sized */
+        .court-container {
+            min-width: 0;
+        }
+
+        .svg-wrap {
+            min-width: 0;
+        }
+
+        .svg-wrap svg {
+            min-width: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="page-container">
+        <!-- Primary Court (Left) -->
+        <div class="court-container primary-court">
+            <div class="svg-wrap primary">
+                <svg id="tennisCourt" width="100%" height="auto" viewBox="0 0 600 1006" style="background:#1565c0; border-radius:20px; display:block;">
+                    <rect x="184" y="150" width="232" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
+                    <rect x="146" y="150" width="38" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
+                    <rect x="416" y="150" width="38" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
+                    <rect x="146" y="150" width="308" height="672" fill="none" stroke="#fff" stroke-width="5"/>
+                    <line x1="300" y1="318" x2="300" y2="654" stroke="#fff" stroke-width="5"/>
+                    <line x1="184" y1="318" x2="416" y2="318" stroke="#fff" stroke-width="5"/>
+                    <line x1="184" y1="654" x2="416" y2="654" stroke="#fff" stroke-width="5"/>
+                    <line x1="146" y1="150" x2="454" y2="150" stroke="#fff" stroke-width="5"/>
+                    <line x1="146" y1="822" x2="454" y2="822" stroke="#fff" stroke-width="5"/>
+                    <line x1="106" y1="486" x2="494" y2="486" stroke="#fff" stroke-width="10"/>
+                    <!-- Coordinate system indicators -->
+                    <line x1="300" y1="150" x2="300" y2="160" stroke="#fff" stroke-width="5"/>
+                    <line x1="300" y1="822" x2="300" y2="812" stroke="#fff" stroke-width="5"/>
+                    <polygon id="wedgeFill" points="300,822 185,0 415,0" fill="#000" fill-opacity="0.15" />
+                    <line id="leftLine" x1="300" y1="822" x2="185" y2="0" stroke="#1976d2" stroke-width="3" stroke-linecap="round" />
+                    <line id="rightLine" x1="300" y1="822" x2="415" y2="0" stroke="#1976d2" stroke-width="3" stroke-linecap="round" />
+                    <line id="bisectorLine" x1="300" y1="822" x2="300" y2="0" stroke="#1976d2" stroke-width="2" stroke-dasharray="6 6" stroke-linecap="round" />
+                    <line id="yellowLine" x1="300" y1="822" x2="300" y2="0" stroke="#ffd600" stroke-width="4" stroke-linecap="round" opacity="0.9" style="cursor: ew-resize;" />
+                    <line id="h-measure" x1="300" y1="100" x2="300" y2="100" stroke="#ff6f00" stroke-width="4" opacity="0.9" />
+                    <rect id="h-measure-badge" x="280" y="89" width="40" height="22" fill="white" stroke="#ff6f00" stroke-width="1" rx="4" />
+                    <text id="h-measure-label" x="300" y="100" fill="#ff6f00" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle">0.0m</text>
+                    <!-- Zone del Campo -->
+                    <line id="zone-line-1" x1="242" y1="150" x2="242" y2="486" stroke="#9c27b0" stroke-width="2" opacity="0.7" style="display: none;" />
+                    <line id="zone-line-2" x1="300" y1="150" x2="300" y2="486" stroke="#9c27b0" stroke-width="2" opacity="0.7" style="display: none;" />
+                    <line id="zone-line-3" x1="358" y1="150" x2="358" y2="486" stroke="#9c27b0" stroke-width="2" opacity="0.7" style="display: none;" />
+                    <circle id="zone-circle-a" cx="213" cy="320" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-a" x="213" y="320" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">A</text>
+                    <circle id="zone-circle-b" cx="271" cy="320" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-b" x="271" y="320" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">B</text>
+                    <circle id="zone-circle-c" cx="329" cy="320" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-c" x="329" y="320" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">C</text>
+                    <circle id="zone-circle-d" cx="387" cy="320" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-d" x="387" y="320" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">D</text>
+                    <!-- Zone del Campo per Campo A -->
+                    <line id="zone-line-a-1" x1="242" y1="486" x2="242" y2="822" stroke="#9c27b0" stroke-width="2" opacity="0.7" style="display: none;" />
+                    <line id="zone-line-a-2" x1="300" y1="486" x2="300" y2="822" stroke="#9c27b0" stroke-width="2" opacity="0.7" style="display: none;" />
+                    <line id="zone-line-a-3" x1="358" y1="486" x2="358" y2="822" stroke="#9c27b0" stroke-width="2" opacity="0.7" style="display: none;" />
+                    <circle id="zone-circle-a-field-a" cx="213" cy="654" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-a-field-a" x="213" y="654" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">A</text>
+                    <circle id="zone-circle-b-field-a" cx="271" cy="654" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-b-field-a" x="271" y="654" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">B</text>
+                    <circle id="zone-circle-c-field-a" cx="329" cy="654" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-c-field-a" x="329" y="654" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">C</text>
+                    <circle id="zone-circle-d-field-a" cx="387" cy="654" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
+                    <text id="zone-label-d-field-a" x="387" y="654" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">D</text>
+                    <circle id="cursorDot" cx="300" cy="822" r="12" fill="#ff5252" stroke="#fff" stroke-width="2" />
+                    <circle id="intersectionDot" cx="300" cy="100" r="8" fill="#ff5252" stroke="#fff" stroke-width="2" style="display: none; cursor: move;" />
+                </svg>
+                <div id="measureArrowHtml" class="arrow-container"><div class="arrow"></div></div>
+                <div id="coordinateTooltip" class="coordinate-tooltip">
+                    <div class="tooltip-content">
+                        <div id="tooltip-field-b" class="tooltip-field">
+                            <span class="field-label">Campo B:</span>
+                            <span id="fieldB-coords" class="field-coords">X: 0, Y: 0</span>
+                        </div>
+                        <div id="tooltip-field-a" class="tooltip-field">
+                            <span class="field-label">Campo A:</span>
+                            <span id="fieldA-coords" class="field-coords">X: 0, Y: 0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+         <!-- Secondary Court (Center) -->
+        <div class="court-container secondary-court">
+            <div class="svg-wrap secondary">
+                <!-- Campo secondario generato in JS -->
+            </div>
+            <div id="coordinateTooltip2" class="coordinate-tooltip">
+                <div class="tooltip-content">
+                    <div id="tooltip-field-b-2" class="tooltip-field">
+                        <span class="field-label">Campo B:</span>
+                        <span id="fieldB-coords-2" class="field-coords">X: 0, Y: 0</span>
+                    </div>
+                    <div id="tooltip-field-a-2" class="tooltip-field">
+                        <span class="field-label">Campo A:</span>
+                        <span id="fieldA-coords-2" class="field-coords">X: 0, Y: 0</span>
+                    </div>
+                </div>
+            </div>
+            <div id="courtLockOverlay" class="court-lock-overlay" style="display: none !important;">
+            </div>
+            <div id="dinamicoPanel" class="dinamico-panel" style="display: none !important;">
+            </div>
+        </div>
+
+        <!-- Algoritmo Panel (Right) -->
+        <div class="algoritmo-panel">
+            <h1 class="algoritmo-title">Algoritmo</h1>
+            
+            <button id="calcolaButton" class="calcola-button">Calcola</button>
+            
+            <div class="algoritmo-content" id="risultatiAlgoritmo" style="display: none;">
+                <!-- Rischio Colpo Totale -->
+                <div class="algoritmo-section" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); border: 2px solid #4caf50; margin-bottom: 16px;">
+                    <div class="algoritmo-section-content" style="padding: 12px;">
+                        <div class="field-header" style="justify-content: center; margin-bottom: 6px;">
+                            <span class="field-label" style="font-size: 14px; color: #2e7d32; text-transform: uppercase; font-weight: 900;">Rischio Colpo</span>
+                        </div>
+                        <div class="field-header" style="justify-content: center;">
+                            <span class="field-value" id="rischioColpoTotale" style="font-size: 32px; color: #2e7d32; font-weight: 900;">-</span>
+                        </div>
+                        <div class="field-details" style="justify-content: center; margin-top: 6px;">
+                            <div class="normalized-bar" style="width: 120px; height: 10px;"><div class="normalized-fill" id="rischioColpoTotaleFill" style="width: 0%"></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rischio Tecnico -->
+                <div class="algoritmo-section collapsible-section" style="margin-bottom: 12px;">
+                    <div class="section-header-clickable" style="cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f5f5f5; border-radius: 12px; margin-bottom: 6px;">
+                        <span style="font-size: 14px; font-weight: 700; color: #1976d2; text-transform: uppercase;">Rischio Tecnico</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="field-value" id="rischioTecnicoTotale" style="font-size: 20px; color: #1976d2; font-weight: 700;">-</span>
+                            <span class="collapse-icon" style="font-size: 16px; color: #1976d2;">▼</span>
+                        </div>
+                    </div>
+                    <div class="algoritmo-section-content collapsible-content" style="display: none;">
+                        <div class="algoritmo-field">
+                            <div class="field-header">
+                            <span class="field-label field-label-inverted">Posizione Colpitore:<span class="inverted-indicator">−</span></span>
+                            <span class="field-value" id="posizioneColpitore">-</span>
+                            </div>
+                            <div class="field-details">
+                                <div class="field-range">
+                                    <span class="field-min"><span class="field-min-label">Min:</span> <span id="posizioneColpitoreMin">-</span></span>
+                                    <span class="field-max"><span class="field-max-label">Max:</span> <span id="posizioneColpitoreMax">-</span></span>
+                                </div>
+                                <div class="field-normalized">
+                                    <div class="normalized-bar"><div class="normalized-fill" id="posizioneColpitoreFill" style="width: 0%"></div></div>
+                                    <span class="normalized-value" id="posizioneColpitoreNorm">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="algoritmo-field">
+                            <div class="field-header">
+                            <span class="field-label field-label-inverted">Spazio Colpo:<span class="inverted-indicator">−</span></span>
+                            <span class="field-value" id="spazioColpo2">-</span>
+                        </div>
+                            <div class="field-details">
+                                <div class="field-range">
+                                    <span class="field-min"><span class="field-min-label">Min:</span> <span id="spazioColpo2Min">-</span></span>
+                                    <span class="field-max"><span class="field-max-label">Max:</span> <span id="spazioColpo2Max">-</span></span>
+                                </div>
+                                <div class="field-normalized">
+                                    <div class="normalized-bar"><div class="normalized-fill" id="spazioColpo2Fill" style="width: 0%"></div></div>
+                                    <span class="normalized-value" id="spazioColpo2Norm">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="algoritmo-field">
+                            <div class="field-header">
+                            <span class="field-label">Rischio Errore Laterale:</span>
+                            <span class="field-value" id="rischioErroreLaterale">-</span>
+                        </div>
+                            <div class="field-details">
+                                <div class="field-range">
+                                    <span class="field-min"><span class="field-min-label">Min:</span> <span id="rischioErroreLateraleMin">-</span></span>
+                                    <span class="field-max"><span class="field-max-label">Max:</span> <span id="rischioErroreLateraleMax">-</span></span>
+                                </div>
+                                <div class="field-normalized">
+                                    <div class="normalized-bar"><div class="normalized-fill" id="rischioErroreLateraleFill" style="width: 0%"></div></div>
+                                    <span class="normalized-value" id="rischioErroreLateraleNorm">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="algoritmo-field">
+                            <div class="field-header">
+                            <span class="field-label">Altezza Rete:</span>
+                            <span class="field-value" id="altezzaRete">-</span>
+                        </div>
+                            <div class="field-details">
+                                <div class="field-range">
+                                    <span class="field-min"><span class="field-min-label">Min:</span> <span id="altezzaReteMin">-</span></span>
+                                    <span class="field-max"><span class="field-max-label">Max:</span> <span id="altezzaReteMax">-</span></span>
+                                </div>
+                                <div class="field-normalized">
+                                    <div class="normalized-bar"><div class="normalized-fill" id="altezzaReteFill" style="width: 0%"></div></div>
+                                    <span class="normalized-value" id="altezzaReteNorm">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Rischio Tattico -->
+                <div class="algoritmo-section collapsible-section" style="margin-bottom: 12px;">
+                    <div class="section-header-clickable" style="cursor: pointer; user-select: none; display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #f5f5f5; border-radius: 12px; margin-bottom: 6px;">
+                        <span style="font-size: 14px; font-weight: 700; color: #1976d2; text-transform: uppercase;">Rischio Tattico</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="field-value" id="rischioTatticoTotale" style="font-size: 20px; color: #1976d2; font-weight: 700;">-</span>
+                            <span class="collapse-icon" style="font-size: 16px; color: #1976d2;">▼</span>
+                        </div>
+                    </div>
+                    <div class="algoritmo-section-content collapsible-content" style="display: none;">
+                        <div class="algoritmo-field">
+                            <div class="field-header">
+                            <span class="field-label field-label-inverted">Spostamento Avversario:<span class="inverted-indicator">−</span></span>
+                            <span class="field-value" id="spostamentoAvversario">-</span>
+                            </div>
+                            <div class="field-details">
+                                <div class="field-range">
+                                    <span class="field-min"><span class="field-min-label">Min:</span> <span id="spostamentoAvversarioMin">-</span></span>
+                                    <span class="field-max"><span class="field-max-label">Max:</span> <span id="spostamentoAvversarioMax">-</span></span>
+                                </div>
+                                <div class="field-normalized">
+                                    <div class="normalized-bar"><div class="normalized-fill" id="spostamentoAvversarioFill" style="width: 0%"></div></div>
+                                    <span class="normalized-value" id="spostamentoAvversarioNorm">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="algoritmo-field">
+                            <div class="field-header">
+                            <span class="field-label">Distanza Mid Point:</span>
+                            <span class="field-value" id="distanzaMidPoint">-</span>
+                            </div>
+                            <div class="field-details">
+                                <div class="field-range">
+                                    <span class="field-min"><span class="field-min-label">Min:</span> <span id="distanzaMidPointMin">-</span></span>
+                                    <span class="field-max"><span class="field-max-label">Max:</span> <span id="distanzaMidPointMax">-</span></span>
+                                </div>
+                                <div class="field-normalized">
+                                    <div class="normalized-bar"><div class="normalized-fill" id="distanzaMidPointFill" style="width: 0%"></div></div>
+                                    <span class="normalized-value" id="distanzaMidPointNorm">-</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="algoritmo-field">
+                            <div class="field-header">
+                            <span class="field-label">Campo da Coprire:</span>
+                            <span class="field-value" id="campoDaCoprire">-</span>
+                        </div>
+                            <div class="field-details">
+                                <div class="field-range">
+                                    <span class="field-min"><span class="field-min-label">Min:</span> <span id="campoDaCoprireMin">-</span></span>
+                                    <span class="field-max"><span class="field-max-label">Max:</span> <span id="campoDaCoprireMax">-</span></span>
+                                </div>
+                                <div class="field-normalized">
+                                    <div class="normalized-bar"><div class="normalized-fill" id="campoDaCoprireFill" style="width: 0%"></div></div>
+                                    <span class="normalized-value" id="campoDaCoprireNorm">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden controls for configuration -->
+    <div style="display: none;">
+        <div class="controls-sidebar">
+            <div class="control-section">
+                <div class="control-options">
+                    <label class="control-option" for="colpitore_tuo">
+                        <input id="colpitore_tuo" type="radio" name="colpitore" value="tuo" checked />
+                        <span>Tu</span>
+                    </label>
+                    <label class="control-option" for="colpitore_avv">
+                        <input id="colpitore_avv" type="radio" name="colpitore" value="avversario" />
+                        <span>Avversario</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <div class="control-options">
+                    <label class="control-option" for="tipo_pal">
+                        <input id="tipo_pal" type="radio" name="tipologia" value="palleggio" checked />
+                        <span>Palleggio</span>
+                    </label>
+                    <label class="control-option" for="tipo_pas">
+                        <input id="tipo_pas" type="radio" name="tipologia" value="passante" />
+                        <span>Passante / Vincente</span>
+                    </label>
+                    <label class="control-option" for="tipo_att">
+                        <input id="tipo_att" type="radio" name="tipologia" value="attacco" />
+                        <span>Attacco</span>
+                    </label>
+                    <label class="control-option" for="tipo_ser">
+                        <input id="tipo_ser" type="radio" name="tipologia" value="servizio" />
+                        <span>Servizio</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="control-section">
+                <div class="control-options">
+                    <label class="control-option" for="view_player">
+                        <input id="view_player" type="checkbox" checked />
+                        <span>Colpitore</span>
+                    </label>
+                    <label class="control-option" for="view_responder">
+                        <input id="view_responder" type="checkbox" checked />
+                        <span>Ricevitore</span>
+                    </label>
+                    <label class="control-option" for="view_directions">
+                        <input id="view_directions" type="checkbox" checked />
+                        <span>Direzioni</span>
+                    </label>
+                    <label class="control-option" for="view_shot">
+                        <input id="view_shot" type="checkbox" checked />
+                        <span>Colpo</span>
+                    </label>
+                    <label class="control-option" for="view_center">
+                        <input id="view_center" type="checkbox" checked />
+                        <span>Centro</span>
+                    </label>
+                    <label class="control-option" for="view_cover">
+                        <input id="view_cover" type="checkbox" />
+                        <span>Campo da Coprire</span>
+                    </label>
+                    <label class="control-option" for="view_zones">
+                        <input id="view_zones" type="checkbox" />
+                        <span>Zone del Campo</span>
+                    </label>
+                    <label class="control-option" for="view_coordinates">
+                        <input id="view_coordinates" type="checkbox" checked />
+                        <span>Coordinate</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="control-section">
+                <div class="control-options">
+                    <label class="control-option" for="campo_cemento">
+                        <input id="campo_cemento" type="radio" name="campoType" value="cemento" checked />
+                        <span>Cemento</span>
+                    </label>
+                    <label class="control-option" for="campo_terra">
+                        <input id="campo_terra" type="radio" name="campoType" value="terra" />
+                        <span>Terra</span>
+                    </label>
+                    <label class="control-option" for="campo_erba">
+                        <input id="campo_erba" type="radio" name="campoType" value="erba" />
+                        <span>Erba</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="mode-options">
+                <label class="mode-option" for="modo_1colpo">
+                    <input id="modo_1colpo" type="radio" name="modalita" value="1colpo" />
+                </label>
+                <label class="mode-option" for="modo_2colpi">
+                    <input id="modo_2colpi" type="radio" name="modalita" value="2colpi" checked />
+                </label>
+                <label class="mode-option" for="modo_dinamico">
+                    <input id="modo_dinamico" type="radio" name="modalita" value="dinamico" />
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Set initial configuration
+        window.__modalita__ = '2colpi';
+        window.__viewCoordinates__ = true;
+        window.__viewDirections__ = true;
+        window.__viewPlayer__ = true;
+        window.__viewShot__ = true;
+        window.__viewResponder__ = true;
+        window.__viewCenter__ = true;
+        window.__viewCover__ = false;
+        window.__viewZones__ = false;
+    </script>
+    <script src="../app.js"></script>
+    <script>
+        // Force update after app.js has loaded
+        window.addEventListener('load', function() {
+            // Give app.js time to initialize
+            setTimeout(function() {
+                console.log('Forcing visualization update...');
+                
+                // Trigger change events to force visualization update
+                const centerCheckbox = document.getElementById('view_center');
+                const coordCheckbox = document.getElementById('view_coordinates');
+                const bisectorLine = document.getElementById('bisectorLine');
+                const tooltip = document.getElementById('coordinateTooltip');
+                
+                if (centerCheckbox) {
+                    centerCheckbox.checked = true;
+                    console.log('Centro checkbox checked:', centerCheckbox.checked);
+                    centerCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                
+                if (coordCheckbox) {
+                    coordCheckbox.checked = true;
+                    console.log('Coordinate checkbox checked:', coordCheckbox.checked);
+                    coordCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                
+                // Force bisector line to be visible
+                if (bisectorLine) {
+                    bisectorLine.style.display = '';
+                    console.log('Bisector line display:', bisectorLine.style.display);
+                }
+                
+                // Estendi la linea gialla fino al bordo del campo
+                const yellowLine = document.getElementById('yellowLine');
+                if (yellowLine) {
+                    let isExtending = false;
+                    
+                    function extendYellowLine() {
+                        if (isExtending) return;
+                        
+                        const x1 = parseFloat(yellowLine.getAttribute('x1'));
+                        const y1 = parseFloat(yellowLine.getAttribute('y1'));
+                        const x2 = parseFloat(yellowLine.getAttribute('x2'));
+                        const y2 = parseFloat(yellowLine.getAttribute('y2'));
+                        
+                        // Determina la direzione (verso l'alto o verso il basso)
+                        const END_Y = (y1 > 486) ? 0 : 1006; // Se colpitore sotto la rete, vai in alto
+                        
+                        // Verifica se la linea è già estesa
+                        if (Math.abs(y2 - END_Y) < 1) return;
+                        
+                        // Calcola dove la linea estesa interseca il bordo
+                        if (Math.abs(y2 - y1) > 0.001) {
+                            const t = (END_Y - y1) / (y2 - y1);
+                            const extendedX = x1 + t * (x2 - x1);
+                            
+                            // Aggiorna x2 e y2 per estendere fino al bordo
+                            isExtending = true;
+                            yellowLine.setAttribute('x2', String(extendedX));
+                            yellowLine.setAttribute('y2', String(END_Y));
+                            isExtending = false;
+                        }
+                    }
+                    
+                    // Osserva le modifiche alla linea gialla e estendila
+                    const observer = new MutationObserver(function(mutations) {
+                        if (!isExtending) {
+                            setTimeout(extendYellowLine, 10);
+                        }
+                    });
+                    
+                    observer.observe(yellowLine, { attributes: true, attributeFilter: ['x1', 'y1', 'x2', 'y2'] });
+                    
+                    // Estendi inizialmente
+                    setTimeout(extendYellowLine, 100);
+                    
+                    console.log('Yellow line extension enabled');
+                }
+                
+                // Limitazione Y del colpitore in algoritmo.html: Y_campo_A <= 165
+                // Nel sistema di coordinate Campo A: Y_campo_A = FIELD_A_ORIGIN_Y - Y_svg
+                // Quindi: Y_svg >= FIELD_A_ORIGIN_Y - 165 = 822 - 165 = 657
+                const cursorDot = document.getElementById('cursorDot');
+                const svg = document.getElementById('tennisCourt');
+                if (cursorDot && svg) {
+                    const FIELD_A_ORIGIN_Y = 822;
+                    const MAX_Y_CAMPO_A = 165;
+                    const MIN_Y_SVG = FIELD_A_ORIGIN_Y - MAX_Y_CAMPO_A; // 657
+                    let isEnforcingLimit = false;
+                    let lastY = null;
+                    
+                    function enforceYLimitAndUpdateLines() {
+                        if (isEnforcingLimit) return;
+                        const currentY = parseFloat(cursorDot.getAttribute('cy'));
+                        
+                        // Se la Y è sotto il minimo, limitala
+                        if (currentY < MIN_Y_SVG) {
+                            isEnforcingLimit = true;
+                            cursorDot.setAttribute('cy', String(MIN_Y_SVG));
+                            lastY = MIN_Y_SVG;
+                            
+                            // Forza l'aggiornamento delle linee creando un evento pointermove sintetico
+                            // che app.js processerà normalmente, aggiornando così le linee
+                            setTimeout(function() {
+                                const dotX = parseFloat(cursorDot.getAttribute('cx'));
+                                
+                                // Converti coordinate SVG a coordinate client
+                                const pt = svg.createSVGPoint();
+                                pt.x = dotX;
+                                pt.y = MIN_Y_SVG;
+                                const clientPoint = pt.matrixTransform(svg.getScreenCTM());
+                                
+                                // Crea un evento pointermove sintetico nella posizione corretta
+                                const syntheticEvent = new PointerEvent('pointermove', {
+                                    bubbles: true,
+                                    cancelable: true,
+                                    view: window,
+                                    clientX: clientPoint.x,
+                                    clientY: clientPoint.y,
+                                    pointerId: 1,
+                                    pointerType: 'mouse',
+                                    buttons: 1 // Simula mouse button pressed (dragging)
+                                });
+                                
+                                // Dispatcha l'evento sul window (dove app.js lo ascolta)
+                                window.dispatchEvent(syntheticEvent);
+                                
+                                isEnforcingLimit = false;
+                            }, 0);
+                        } else {
+                            lastY = currentY;
+                        }
+                    }
+                    
+                    // Usa MutationObserver per monitorare le modifiche all'attributo cy
+                    const dotObserver = new MutationObserver(function(mutations) {
+                        if (!isEnforcingLimit) {
+                            mutations.forEach(function(mutation) {
+                                if (mutation.type === 'attributes' && mutation.attributeName === 'cy') {
+                                    const newY = parseFloat(cursorDot.getAttribute('cy'));
+                                    // Solo se la Y è cambiata e sotto il minimo
+                                    if (newY !== lastY && newY < MIN_Y_SVG) {
+                                        requestAnimationFrame(enforceYLimitAndUpdateLines);
+                                    }
+                                }
+                            });
+                        }
+                    });
+                    
+                    dotObserver.observe(cursorDot, { 
+                        attributes: true, 
+                        attributeFilter: ['cy'] 
+                    });
+                    
+                    // Inizializza lastY
+                    lastY = parseFloat(cursorDot.getAttribute('cy'));
+                    
+                    // Applica il limite anche inizialmente
+                    enforceYLimitAndUpdateLines();
+                    
+                    console.log('Limitazione Y colpitore attiva: Y_campo_A <=', MAX_Y_CAMPO_A, '(Y_svg >=', MIN_Y_SVG + ')');
+                }
+                
+                // Additional timeout to ensure everything is loaded
+                setTimeout(function() {
+                    // Trigger a click event to ensure all handlers are initialized
+                    const svg = document.getElementById('tennisCourt');
+                    if (svg) {
+                        // Get svg bounding rect for proper coordinate calculation
+                        const rect = svg.getBoundingClientRect();
+                        const event = new MouseEvent('mousemove', {
+                            bubbles: true,
+                            cancelable: true,
+                            view: window,
+                            clientX: rect.left + rect.width / 2,
+                            clientY: rect.top + rect.height / 2
+                        });
+                        svg.dispatchEvent(event);
+                    }
+                    console.log('Visualization update complete');
+                }, 200);
+            }, 150);
+            
+            // Setup Calcola button
+            setTimeout(function() {
+                const calcolaButton = document.getElementById('calcolaButton');
+                const risultatiDiv = document.getElementById('risultatiAlgoritmo');
+                
+                if (calcolaButton) {
+                    calcolaButton.addEventListener('click', function() {
+                        console.log('Calcola button clicked');
+                        
+                        // Costanti del sistema di coordinate
+                        const FIELD_B_ORIGIN_X = 300;
+                        const FIELD_B_ORIGIN_Y = 150;
+                        const FIELD_A_ORIGIN_X = 300;
+                        const FIELD_A_ORIGIN_Y = 822;
+                        const NET_Y = 486;
+                        
+                        // Funzioni di conversione coordinate
+                        function svgToFieldB(svgX, svgY) {
+                            return {
+                                x: svgX - FIELD_B_ORIGIN_X,
+                                y: svgY - FIELD_B_ORIGIN_Y
+                            };
+                        }
+                        
+                        function svgToFieldA(svgX, svgY) {
+                            return {
+                                x: svgX - FIELD_A_ORIGIN_X,
+                                y: FIELD_A_ORIGIN_Y - svgY
+                            };
+                        }
+                        
+                        // Calcola Posizione Colpitore
+                        // La Y del colpitore nel campo principale (in coordinate Campo A)
+                        const cursorDot = document.getElementById('cursorDot');
+                        let posizioneColpitore = 0;
+                        
+                        if (cursorDot) {
+                            const dotY_svg = parseFloat(cursorDot.getAttribute('cy'));
+                            // Converti in coordinate Campo A (Y positivo verso l'alto)
+                            posizioneColpitore = FIELD_A_ORIGIN_Y - dotY_svg;
+                            
+                            console.log('=== Posizione Colpitore ===');
+                            console.log('Colpitore Y (SVG):', dotY_svg);
+                            console.log('Posizione Colpitore (Campo A):', posizioneColpitore);
+                        }
+                        
+                        // Calcola Spazio Colpo e Spazio Colpo (Da Rete)
+                        // Condizioni comuni: Campo B con Y > 0 e X compreso tra -115 e 115
+                        // Spazio Colpo: Y da 0 a 250 (in Campo B)
+                        // Spazio Colpo (Da Rete): Y da 0 a 336 (in Campo B, fino alla rete)
+                        const yellowLine = document.getElementById('yellowLine');
+                        let spazioColpo = 0;      // Da Rete (Y fino a 336)
+                        let spazioColpo2 = 0;     // Standard (Y fino a 250)
+                        
+                        // Limiti X in coordinate Campo B
+                        const X_MIN_FIELD_B = -117;
+                        const X_MAX_FIELD_B = 117;
+                        // Limiti X in coordinate SVG
+                        const X_MIN_SVG = FIELD_B_ORIGIN_X + X_MIN_FIELD_B; // 300 - 117 = 183
+                        const X_MAX_SVG = FIELD_B_ORIGIN_X + X_MAX_FIELD_B; // 300 + 117 = 417
+                        
+                        // Limiti Y in coordinate SVG
+                        const Y_MIN_SVG = FIELD_B_ORIGIN_Y; // 150 (Y = 0 in Campo B)
+                        const Y_MAX_SVG_RETE = NET_Y; // 486 (Y = 336 in Campo B, alla rete)
+                        const Y_MAX_SVG_250 = FIELD_B_ORIGIN_Y + 250; // 400 (Y = 250 in Campo B)
+                        
+                        // Algoritmo di Cohen-Sutherland per clipping della linea (definito globalmente)
+                            function clipLine(x1, y1, x2, y2, xMin, xMax, yMin, yMax) {
+                                const INSIDE = 0, LEFT = 1, RIGHT = 2, BOTTOM = 4, TOP = 8;
+                                
+                                function computeCode(x, y) {
+                                    let code = INSIDE;
+                                    if (x < xMin) code |= LEFT;
+                                    else if (x > xMax) code |= RIGHT;
+                                    if (y < yMin) code |= TOP;
+                                    else if (y > yMax) code |= BOTTOM;
+                                    return code;
+                                }
+                                
+                                let code1 = computeCode(x1, y1);
+                                let code2 = computeCode(x2, y2);
+                                
+                                while (true) {
+                                    if (!(code1 | code2)) {
+                                        return { x1, y1, x2, y2, valid: true };
+                                    } else if (code1 & code2) {
+                                        return { valid: false };
+                                    } else {
+                                        let x, y;
+                                        const codeOut = code1 ? code1 : code2;
+                                        
+                                        if (codeOut & BOTTOM) {
+                                            x = x1 + (x2 - x1) * (yMax - y1) / (y2 - y1);
+                                            y = yMax;
+                                        } else if (codeOut & TOP) {
+                                            x = x1 + (x2 - x1) * (yMin - y1) / (y2 - y1);
+                                            y = yMin;
+                                        } else if (codeOut & RIGHT) {
+                                            y = y1 + (y2 - y1) * (xMax - x1) / (x2 - x1);
+                                            x = xMax;
+                                        } else if (codeOut & LEFT) {
+                                            y = y1 + (y2 - y1) * (xMin - x1) / (x2 - x1);
+                                            x = xMin;
+                                        }
+                                        
+                                        if (codeOut === code1) {
+                                            x1 = x; y1 = y;
+                                            code1 = computeCode(x1, y1);
+                                        } else {
+                                            x2 = x; y2 = y;
+                                            code2 = computeCode(x2, y2);
+                                        }
+                                    }
+                                }
+                            }
+                        
+                        if (yellowLine) {
+                            const x1_svg = parseFloat(yellowLine.getAttribute('x1'));
+                            const y1_svg = parseFloat(yellowLine.getAttribute('y1'));
+                            const x2_svg = parseFloat(yellowLine.getAttribute('x2'));
+                            const y2_svg = parseFloat(yellowLine.getAttribute('y2'));
+                            
+                            console.log('=== Calcolo Spazio Colpo ===');
+                            console.log('Yellow line SVG:', {x1: x1_svg, y1: y1_svg, x2: x2_svg, y2: y2_svg});
+                            
+                            // Calcola Spazio Colpo (Da Rete) - Y da 0 a 336
+                            const clippedRete = clipLine(x1_svg, y1_svg, x2_svg, y2_svg, X_MIN_SVG, X_MAX_SVG, Y_MIN_SVG, Y_MAX_SVG_RETE);
+                            
+                            if (clippedRete.valid) {
+                                const start_fieldB = svgToFieldB(clippedRete.x1, clippedRete.y1);
+                                const end_fieldB = svgToFieldB(clippedRete.x2, clippedRete.y2);
+                                
+                                console.log('--- Spazio Colpo (Da Rete) ---');
+                                console.log('Linea clippata (SVG):', {x1: clippedRete.x1, y1: clippedRete.y1, x2: clippedRete.x2, y2: clippedRete.y2});
+                                console.log('Start Campo B:', start_fieldB);
+                                console.log('End Campo B:', end_fieldB);
+                                
+                                const dx = end_fieldB.x - start_fieldB.x;
+                                const dy = end_fieldB.y - start_fieldB.y;
+                                spazioColpo = Math.sqrt(dx * dx + dy * dy);
+                                
+                                console.log('Spazio Colpo (Da Rete):', spazioColpo);
+                            } else {
+                                console.log('Spazio Colpo (Da Rete): linea fuori dal rettangolo valido');
+                            }
+                            
+                            // Calcola Spazio Colpo - Y da 0 a 250
+                            const clipped250 = clipLine(x1_svg, y1_svg, x2_svg, y2_svg, X_MIN_SVG, X_MAX_SVG, Y_MIN_SVG, Y_MAX_SVG_250);
+                            
+                            if (clipped250.valid) {
+                                const start_fieldB = svgToFieldB(clipped250.x1, clipped250.y1);
+                                const end_fieldB = svgToFieldB(clipped250.x2, clipped250.y2);
+                                
+                                console.log('--- Spazio Colpo ---');
+                                console.log('Linea clippata (SVG):', {x1: clipped250.x1, y1: clipped250.y1, x2: clipped250.x2, y2: clipped250.y2});
+                                console.log('Start Campo B:', start_fieldB);
+                                console.log('End Campo B:', end_fieldB);
+                                
+                                const dx = end_fieldB.x - start_fieldB.x;
+                                const dy = end_fieldB.y - start_fieldB.y;
+                                spazioColpo2 = Math.sqrt(dx * dx + dy * dy);
+                                
+                                console.log('Spazio Colpo:', spazioColpo2);
+                            } else {
+                                console.log('Spazio Colpo: linea fuori dal rettangolo valido');
+                            }
+                        }
+                        
+                        // Calcola Rischio Errore Laterale
+                        // Usa la porzione clippata della linea gialla (già calcolata per Spazio Colpo)
+                        // 1. Trova Y_min e Y_max della porzione clippata
+                        // 2. Calcola Y_media = (Y_min + Y_max) / 2
+                        // 3. Trova X corrispondente a questa Y_media
+                        // 4. Usa questa X come valore di rischio errore laterale
+                        let rischioErroreLaterale = 0;
+                        
+                        console.log('=== Calcolo Rischio Errore Laterale ===');
+                        
+                        if (yellowLine) {
+                            const x1_svg = parseFloat(yellowLine.getAttribute('x1'));
+                            const y1_svg = parseFloat(yellowLine.getAttribute('y1'));
+                            const x2_svg = parseFloat(yellowLine.getAttribute('x2'));
+                            const y2_svg = parseFloat(yellowLine.getAttribute('y2'));
+                            
+                            // Clippa la linea nel rettangolo di Spazio Colpo (Y da 0 a 250)
+                            const clipped250 = clipLine(x1_svg, y1_svg, x2_svg, y2_svg, X_MIN_SVG, X_MAX_SVG, Y_MIN_SVG, Y_MAX_SVG_250);
+                            
+                            if (clipped250.valid) {
+                                // Trova Y_min e Y_max della porzione clippata (in coordinate SVG)
+                                const y_min_svg = Math.min(clipped250.y1, clipped250.y2);
+                                const y_max_svg = Math.max(clipped250.y1, clipped250.y2);
+                                
+                                // Calcola Y media
+                                const y_media_svg = (y_min_svg + y_max_svg) / 2;
+                                
+                                console.log('Y min (SVG):', y_min_svg);
+                                console.log('Y max (SVG):', y_max_svg);
+                                console.log('Y media (SVG):', y_media_svg);
+                                
+                                // Trova X della linea gialla a Y_media
+                                let yellowX_atYMedia = clipped250.x1;
+                                if (Math.abs(clipped250.y2 - clipped250.y1) > 0.001) {
+                                    const t = (y_media_svg - clipped250.y1) / (clipped250.y2 - clipped250.y1);
+                                    yellowX_atYMedia = clipped250.x1 + t * (clipped250.x2 - clipped250.x1);
+                            }
+                            
+                            console.log('X linea gialla a Y media (SVG):', yellowX_atYMedia);
+                            
+                            // Converti in coordinate Campo B
+                            const yellowX_fieldB = yellowX_atYMedia - FIELD_B_ORIGIN_X;
+                            
+                            console.log('X linea gialla (Campo B):', yellowX_fieldB);
+                            
+                                // Rischio Errore Laterale = X (direttamente)
+                                rischioErroreLaterale = yellowX_fieldB;
+                            
+                                console.log('Rischio Errore Laterale:', rischioErroreLaterale);
+                            } else {
+                                console.log('Rischio Errore Laterale: linea fuori dal rettangolo valido');
+                            }
+                        }
+                        
+                        // Calcola Altezza Rete
+                        // Valore assoluto della X in cui la linea gialla si interseca con la rete (NET_Y = 486)
+                        let altezzaRete = 0;
+                        
+                        console.log('=== Calcolo Altezza Rete ===');
+                        
+                        if (yellowLine) {
+                            const x1_svg = parseFloat(yellowLine.getAttribute('x1'));
+                            const y1_svg = parseFloat(yellowLine.getAttribute('y1'));
+                            const x2_svg = parseFloat(yellowLine.getAttribute('x2'));
+                            const y2_svg = parseFloat(yellowLine.getAttribute('y2'));
+                            
+                            // Calcola X della linea gialla alla Y della rete (NET_Y = 486)
+                            if (Math.abs(y2_svg - y1_svg) > 0.001) {
+                                const t = (NET_Y - y1_svg) / (y2_svg - y1_svg);
+                                const yellowX_atNet = x1_svg + t * (x2_svg - x1_svg);
+                                
+                                // Converti in coordinate Campo B e prendi valore assoluto
+                                const yellowX_fieldB_atNet = yellowX_atNet - FIELD_B_ORIGIN_X;
+                                altezzaRete = Math.abs(yellowX_fieldB_atNet);
+                                
+                                console.log('X linea gialla alla rete (SVG):', yellowX_atNet);
+                                console.log('X linea gialla alla rete (Campo B):', yellowX_fieldB_atNet);
+                                console.log('Altezza Rete (|X|):', altezzaRete);
+                            } else {
+                                console.log('Altezza Rete: linea verticale, X costante');
+                                // Se la linea è verticale, usa la X direttamente
+                                const yellowX_fieldB_atNet = x1_svg - FIELD_B_ORIGIN_X;
+                                altezzaRete = Math.abs(yellowX_fieldB_atNet);
+                            }
+                        }
+                        
+                        // Calcola Spostamento Avversario
+                        // Distanza orizzontale nel Campo B del campo principale
+                        // tra il ricevitore (intersectionDot) e la linea tratteggiata (bisectorLine)
+                        // nel punto in cui la bisetrice ha la stessa Y del ricevitore
+                        const intersectionDot = document.getElementById('intersectionDot');
+                        const bisectorLine = document.getElementById('bisectorLine');
+                        let spostamentoAvversario = 0;
+                        
+                        console.log('=== Calcolo Spostamento Avversario ===');
+                        
+                        if (intersectionDot && bisectorLine) {
+                            // Coordinate SVG del ricevitore
+                            const ricevitoreX_svg = parseFloat(intersectionDot.getAttribute('cx'));
+                            const ricevitoreY_svg = parseFloat(intersectionDot.getAttribute('cy'));
+                            
+                            // Coordinate SVG della linea tratteggiata
+                            const bisX1 = parseFloat(bisectorLine.getAttribute('x1'));
+                            const bisY1 = parseFloat(bisectorLine.getAttribute('y1'));
+                            const bisX2 = parseFloat(bisectorLine.getAttribute('x2'));
+                            const bisY2 = parseFloat(bisectorLine.getAttribute('y2'));
+                            
+                            console.log('Ricevitore (SVG): x=' + ricevitoreX_svg + ', y=' + ricevitoreY_svg);
+                            console.log('Linea tratteggiata (SVG): (' + bisX1 + ',' + bisY1 + ') -> (' + bisX2 + ',' + bisY2 + ')');
+                            
+                            // Calcola X della bisetrice alla stessa Y del ricevitore
+                            let bisectorX_svg = bisX1;
+                            if (Math.abs(bisY2 - bisY1) > 0.001) {
+                                const t = (ricevitoreY_svg - bisY1) / (bisY2 - bisY1);
+                                bisectorX_svg = bisX1 + t * (bisX2 - bisX1);
+                            }
+                            
+                            console.log('X della bisetrice alla Y=' + ricevitoreY_svg + ': ' + bisectorX_svg);
+                            
+                            // Converti in coordinate Campo B
+                            const ricevitoreX_fieldB = ricevitoreX_svg - FIELD_B_ORIGIN_X;
+                            const bisX_fieldB = bisectorX_svg - FIELD_B_ORIGIN_X;
+                            
+                            console.log('Ricevitore (Campo B): X=' + ricevitoreX_fieldB);
+                            console.log('Bisetrice (Campo B): X=' + bisX_fieldB);
+                            
+                            // Distanza orizzontale: differenza assoluta tra le X
+                            spostamentoAvversario = Math.abs(ricevitoreX_fieldB - bisX_fieldB);
+                            
+                            console.log('Spostamento Avversario = |' + ricevitoreX_fieldB + ' - (' + bisX_fieldB + ')| = ' + spostamentoAvversario);
+                        }
+                        
+                         // Calcola Distanza Mid Point
+                        // Nel campo secondario, campo in basso (Campo A):
+                        // - cursorDotReplica2 = pallino rosso nel Campo A (dove stava il colpitore originale)
+                        // - bisectorLine2 = linea tratteggiata (centro)
+                        // Calcola la distanza orizzontale tra il pallino e la bisetrice alla Y_campo_A = -30
+                        
+                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                        let distanzaMidPoint = 0;
+                        
+                        console.log('=== Calcolo Distanza Mid Point ===');
+                        
+                        if (svg2) {
+                            // Pallino rosso nel Campo A (in basso) del campo secondario
+                            const dotReplica = svg2.querySelector('#cursorDotReplica2');
+                            // Linea tratteggiata (bisetrice/centro)
+                            const bisectorLine2 = svg2.querySelector('#bisectorLine2');
+                            
+                            console.log('cursorDotReplica2 trovato:', !!dotReplica);
+                            console.log('bisectorLine2 trovato:', !!bisectorLine2);
+                            
+                            if (dotReplica && bisectorLine2) {
+                                // Coordinate SVG del pallino rosso nel Campo A
+                                const dotX_svg = parseFloat(dotReplica.getAttribute('cx'));
+                                const dotY_svg = parseFloat(dotReplica.getAttribute('cy'));
+                                
+                                // Coordinate SVG della linea tratteggiata
+                                const bisX1 = parseFloat(bisectorLine2.getAttribute('x1'));
+                                const bisY1 = parseFloat(bisectorLine2.getAttribute('y1'));
+                                const bisX2 = parseFloat(bisectorLine2.getAttribute('x2'));
+                                const bisY2 = parseFloat(bisectorLine2.getAttribute('y2'));
+                                
+                                console.log('Pallino rosso (SVG): x=' + dotX_svg + ', y=' + dotY_svg);
+                                console.log('Linea tratteggiata (SVG): (' + bisX1 + ',' + bisY1 + ') -> (' + bisX2 + ',' + bisY2 + ')');
+                                
+                                // Converti in coordinate Campo A
+                                const dotX_fieldA = dotX_svg - FIELD_A_ORIGIN_X;
+                                const dotY_fieldA = FIELD_A_ORIGIN_Y - dotY_svg;
+                                
+                                console.log('Pallino (Campo A): X=' + dotX_fieldA + ', Y=' + dotY_fieldA);
+                                
+                                // Logica condizionale basata sulla Y del colpitore nel Campo A
+                                let targetY_campoA;
+                                let useHorizontalDistance = false;
+                                
+                                if (dotY_fieldA > -30) {
+                                    // Y > -30: usa distanza euclidea alla Y = -30 (logica attuale)
+                                    targetY_campoA = -30;
+                                    useHorizontalDistance = false;
+                                    console.log('Y_campo_A > -30: usando distanza euclidea alla Y = -30');
+                                } else if (dotY_fieldA > -100 && dotY_fieldA <= -30) {
+                                    // -100 < Y <= -30: usa distanza orizzontale alla stessa Y del colpitore (logica vecchia)
+                                    targetY_campoA = dotY_fieldA;
+                                    useHorizontalDistance = true;
+                                    console.log('-100 < Y_campo_A <= -30: usando distanza orizzontale alla stessa Y del colpitore');
+                                } else {
+                                    // Y <= -100: usa distanza euclidea alla Y = -100
+                                    targetY_campoA = -100;
+                                    useHorizontalDistance = false;
+                                    console.log('Y_campo_A <= -100: usando distanza euclidea alla Y = -100');
+                                }
+                                
+                                // Converti targetY_campoA in Y_svg per il calcolo
+                                const targetY_svg_calc = FIELD_A_ORIGIN_Y - targetY_campoA;
+                                
+                                // Calcola X della bisetrice alla Y target
+                                let bisectorX_svg_calc = bisX1;
+                                if (Math.abs(bisY2 - bisY1) > 0.001) {
+                                    const t = (targetY_svg_calc - bisY1) / (bisY2 - bisY1);
+                                    bisectorX_svg_calc = bisX1 + t * (bisX2 - bisX1);
+                                }
+                                
+                                const bisX_fieldA = bisectorX_svg_calc - FIELD_A_ORIGIN_X;
+                                const bisY_fieldA = targetY_campoA;
+                                
+                                console.log('Punto bisetrice (Campo A): X=' + bisX_fieldA + ', Y=' + bisY_fieldA);
+                                
+                                // Calcola distanza in base alla logica selezionata
+                                if (useHorizontalDistance) {
+                                    // Distanza orizzontale (logica vecchia)
+                                    distanzaMidPoint = Math.abs(dotX_fieldA - bisX_fieldA);
+                                    console.log('Distanza Mid Point (orizzontale) = |' + dotX_fieldA + ' - (' + bisX_fieldA + ')| = ' + distanzaMidPoint);
+                                } else {
+                                    // Distanza euclidea (logica attuale)
+                                    const dx = dotX_fieldA - bisX_fieldA;
+                                    const dy = dotY_fieldA - bisY_fieldA;
+                                    distanzaMidPoint = Math.sqrt(dx * dx + dy * dy);
+                                    console.log('Distanza Mid Point (euclidea) = sqrt((' + dx + ')^2 + (' + dy + ')^2) = ' + distanzaMidPoint);
+                                }
+                            }
+                        }
+                        
+                        // Calcola Campo da Coprire
+                        // Nel campo secondario, campo in basso (Campo A):
+                        // Distanza orizzontale tra le due linee blu (leftLine2 e rightLine2)
+                        // alla Y_campo_A = -30 (invece della Y del colpitore)
+                        let campoDaCoprire = 0;
+                        
+                        console.log('=== Calcolo Campo da Coprire ===');
+                        
+                        if (svg2) {
+                            // Pallino rosso nel Campo A (colpitore nel campo in basso)
+                            const dotReplica = svg2.querySelector('#cursorDotReplica2');
+                            // Linee blu delle direzioni
+                            const leftLine2 = svg2.querySelector('#leftLine2');
+                            const rightLine2 = svg2.querySelector('#rightLine2');
+                            
+                            console.log('cursorDotReplica2 trovato:', !!dotReplica);
+                            console.log('leftLine2 trovato:', !!leftLine2);
+                            console.log('rightLine2 trovato:', !!rightLine2);
+                            
+                            if (dotReplica && leftLine2 && rightLine2) {
+                                // Coordinate SVG del pallino rosso nel Campo A
+                                const dotX_svg = parseFloat(dotReplica.getAttribute('cx'));
+                                const dotY_svg = parseFloat(dotReplica.getAttribute('cy'));
+                                
+                                // Converti in coordinate Campo A per determinare la logica da usare
+                                const dotY_fieldA = FIELD_A_ORIGIN_Y - dotY_svg;
+                                
+                                // Coordinate della linea sinistra
+                                const leftX1 = parseFloat(leftLine2.getAttribute('x1'));
+                                const leftY1 = parseFloat(leftLine2.getAttribute('y1'));
+                                const leftX2 = parseFloat(leftLine2.getAttribute('x2'));
+                                const leftY2 = parseFloat(leftLine2.getAttribute('y2'));
+                                
+                                // Coordinate della linea destra
+                                const rightX1 = parseFloat(rightLine2.getAttribute('x1'));
+                                const rightY1 = parseFloat(rightLine2.getAttribute('y1'));
+                                const rightX2 = parseFloat(rightLine2.getAttribute('x2'));
+                                const rightY2 = parseFloat(rightLine2.getAttribute('y2'));
+                                
+                                console.log('Y del colpitore (Campo A):', dotY_fieldA);
+                                console.log('Linea sinistra (SVG): (' + leftX1 + ',' + leftY1 + ') -> (' + leftX2 + ',' + leftY2 + ')');
+                                console.log('Linea destra (SVG): (' + rightX1 + ',' + rightY1 + ') -> (' + rightX2 + ',' + rightY2 + ')');
+                                
+                                // Logica condizionale basata sulla Y del colpitore nel Campo A
+                                let targetY_campoA;
+                                
+                                if (dotY_fieldA > -30) {
+                                    // Y > -30: usa Y = -30
+                                    targetY_campoA = -30;
+                                    console.log('Y_campo_A > -30: usando Y = -30');
+                                } else if (dotY_fieldA > -100 && dotY_fieldA <= -30) {
+                                    // -100 < Y <= -30: usa la stessa Y del colpitore
+                                    targetY_campoA = dotY_fieldA;
+                                    console.log('-100 < Y_campo_A <= -30: usando la stessa Y del colpitore = ' + targetY_campoA);
+                                } else {
+                                    // Y <= -100: usa Y = -100
+                                    targetY_campoA = -100;
+                                    console.log('Y_campo_A <= -100: usando Y = -100');
+                                }
+                                
+                                // Converti targetY_campoA in Y_svg per il calcolo
+                                const targetY_svg = FIELD_A_ORIGIN_Y - targetY_campoA;
+                                
+                                console.log('Target Y_campo_A = ' + targetY_campoA + ' (Y_svg=' + targetY_svg + ')');
+                                
+                                // Calcola X della linea sinistra alla Y target
+                                let leftX_atTargetY = leftX1;
+                                if (Math.abs(leftY2 - leftY1) > 0.001) {
+                                    const t = (targetY_svg - leftY1) / (leftY2 - leftY1);
+                                    leftX_atTargetY = leftX1 + t * (leftX2 - leftX1);
+                                }
+                                
+                                // Calcola X della linea destra alla Y target
+                                let rightX_atTargetY = rightX1;
+                                if (Math.abs(rightY2 - rightY1) > 0.001) {
+                                    const t = (targetY_svg - rightY1) / (rightY2 - rightY1);
+                                    rightX_atTargetY = rightX1 + t * (rightX2 - rightX1);
+                                }
+                                
+                                console.log('X linea sinistra alla Y_campo_A=' + targetY_campoA + ' (Y_svg=' + targetY_svg + '): ' + leftX_atTargetY);
+                                console.log('X linea destra alla Y_campo_A=' + targetY_campoA + ' (Y_svg=' + targetY_svg + '): ' + rightX_atTargetY);
+                                
+                                // Converti in coordinate Campo A
+                                const leftX_fieldA = leftX_atTargetY - FIELD_A_ORIGIN_X;
+                                const rightX_fieldA = rightX_atTargetY - FIELD_A_ORIGIN_X;
+                                
+                                console.log('X linea sinistra (Campo A):', leftX_fieldA);
+                                console.log('X linea destra (Campo A):', rightX_fieldA);
+                                
+                                // Campo da coprire: distanza orizzontale tra le due linee
+                                campoDaCoprire = Math.abs(rightX_fieldA - leftX_fieldA);
+                                
+                                console.log('Campo da Coprire = |' + rightX_fieldA + ' - (' + leftX_fieldA + ')| = ' + campoDaCoprire);
+                            }
+                        }
+                        
+                        // Calcola Min/Max dinamici per tutte le variabili tattiche
+                        // Analizzando tutti i possibili colpi tra le direzioni sinistra e destra
+                        let spazioColpo2Min = 0;
+                        let spazioColpo2Max = 0;
+                        // Spostamento Avversario usa valori fissi: min=0, max=170
+                        const spostamentoAvversarioMin = 0;
+                        const spostamentoAvversarioMax = 170;
+                        let distanzaMidPointMin = 0;
+                        let distanzaMidPointMax = 0;
+                        let campoDaCoprireMin = 0;
+                        let campoDaCoprireMax = 0;
+                        
+                        const leftLine = document.getElementById('leftLine');
+                        const rightLine = document.getElementById('rightLine');
+                        const bisectorLineEl = document.getElementById('bisectorLine');
+                        
+                        if (cursorDot && leftLine && rightLine && bisectorLineEl) {
+                            // Posizione del colpitore (origine delle linee)
+                            const dotX = parseFloat(cursorDot.getAttribute('cx'));
+                            const dotY = parseFloat(cursorDot.getAttribute('cy'));
+                            
+                            // Endpoint della linea sinistra
+                            const leftX2 = parseFloat(leftLine.getAttribute('x2'));
+                            const leftY2 = parseFloat(leftLine.getAttribute('y2'));
+                            
+                            // Endpoint della linea destra
+                            const rightX2 = parseFloat(rightLine.getAttribute('x2'));
+                            const rightY2 = parseFloat(rightLine.getAttribute('y2'));
+                            
+                            // Coordinate della bisetrice
+                            const bisX1 = parseFloat(bisectorLineEl.getAttribute('x1'));
+                            const bisY1 = parseFloat(bisectorLineEl.getAttribute('y1'));
+                            const bisX2 = parseFloat(bisectorLineEl.getAttribute('x2'));
+                            const bisY2 = parseFloat(bisectorLineEl.getAttribute('y2'));
+                            
+                            // Y del ricevitore (presa da intersectionDot attuale)
+                            const intersectionDot = document.getElementById('intersectionDot');
+                            const ricevitoreY_svg = intersectionDot ? parseFloat(intersectionDot.getAttribute('cy')) : 250;
+                            
+                            console.log('=== Calcolo Min/Max Dinamici ===');
+                            console.log('Colpitore:', {x: dotX, y: dotY});
+                            console.log('Linea sinistra endpoint:', {x: leftX2, y: leftY2});
+                            console.log('Linea destra endpoint:', {x: rightX2, y: rightY2});
+                            console.log('Ricevitore Y:', ricevitoreY_svg);
+                            
+                            // Funzione per calcolare spazioColpo2 per una data direzione
+                            function calcSpazioColpoForDirection(x1, y1, x2, y2) {
+                                const clipped = clipLine(x1, y1, x2, y2, X_MIN_SVG, X_MAX_SVG, Y_MIN_SVG, Y_MAX_SVG_250);
+                                if (clipped.valid) {
+                                    const start = svgToFieldB(clipped.x1, clipped.y1);
+                                    const end = svgToFieldB(clipped.x2, clipped.y2);
+                                    const dx = end.x - start.x;
+                                    const dy = end.y - start.y;
+                                    return Math.sqrt(dx * dx + dy * dy);
+                                }
+                                return 0;
+                            }
+                            
+                            // Funzione per calcolare la X di una linea a una data Y
+                            function getLineXAtY(x1, y1, x2, y2, targetY) {
+                                if (Math.abs(y2 - y1) < 0.001) return x1;
+                                const t = (targetY - y1) / (y2 - y1);
+                                return x1 + t * (x2 - x1);
+                            }
+                            
+                            // Funzione per calcolare le metriche del secondo campo per una data direzione
+                            // Il ricevitore diventa il nuovo colpitore nel campo secondario
+                            function calcSecondaryMetricsForDirection(targetX, targetY) {
+                                // Posizione dove arriva il colpo (nuovo colpitore nel campo secondario)
+                                const shotLandingX = getLineXAtY(dotX, dotY, targetX, targetY, ricevitoreY_svg);
+                                const shotLandingY = ricevitoreY_svg;
+                                
+                                // Nel campo secondario, il "colpitore" è nella metà inferiore (Campo A)
+                                // e deve colpire verso il Campo B dove si trova l'avversario originale
+                                
+                                // La posizione del colpitore originale (ora ricevitore nel secondo campo)
+                                // è nel Campo A, alla stessa Y del cursorDot originale ma riflesso
+                                const originalHitterY_inSecondary = dotY; // Y del colpitore originale
+                                
+                                // Calcola le direzioni possibili dal nuovo colpitore (dove è arrivato il colpo)
+                                // verso i target (angoli del campo avversario)
+                                // I target per il nuovo colpitore sono i limiti X del campo alla riga di fondo
+                                const targetLeftX_secondary = 185; // X min del singolo
+                                const targetRightX_secondary = 415; // X max del singolo
+                                const targetY_secondary = dotY > NET_Y ? 150 : 822; // Verso l'altra metà campo
+                                
+                                // Calcola la bisetrice del nuovo colpitore
+                                // Centro tra le due direzioni estreme
+                                const newBisectorTargetX = (targetLeftX_secondary + targetRightX_secondary) / 2;
+                                
+                                // Distanza Mid Point: distanza tra il colpitore originale e la bisetrice del nuovo colpitore
+                                // Logica condizionale basata sulla Y del colpitore originale nel Campo A
+                                
+                                // Converti in coordinate Campo A per determinare la logica da usare
+                                const originalX_fieldA = dotX - FIELD_A_ORIGIN_X;
+                                const originalY_fieldA = FIELD_A_ORIGIN_Y - dotY;
+                                
+                                // Determina la Y target e il tipo di distanza in base alla Y del colpitore
+                                let targetY_campoA;
+                                let useHorizontalDistance = false;
+                                
+                                if (originalY_fieldA > -30) {
+                                    // Y > -30: usa distanza euclidea alla Y = -30
+                                    targetY_campoA = -30;
+                                    useHorizontalDistance = false;
+                                } else if (originalY_fieldA > -100 && originalY_fieldA <= -30) {
+                                    // -100 < Y <= -30: usa distanza orizzontale alla stessa Y del colpitore
+                                    targetY_campoA = originalY_fieldA;
+                                    useHorizontalDistance = true;
+                                } else {
+                                    // Y <= -100: usa distanza euclidea alla Y = -100
+                                    targetY_campoA = -100;
+                                    useHorizontalDistance = false;
+                                }
+                                
+                                // Converti targetY_campoA in Y_svg per il calcolo
+                                const targetY_svg_forDMP = FIELD_A_ORIGIN_Y - targetY_campoA;
+                                const newBisX_atTargetY = getLineXAtY(shotLandingX, shotLandingY, newBisectorTargetX, targetY_secondary, targetY_svg_forDMP);
+                                
+                                const bisX_fieldA = newBisX_atTargetY - FIELD_A_ORIGIN_X;
+                                const bisY_fieldA = targetY_campoA;
+                                
+                                // Calcola distanza in base alla logica selezionata
+                                let distMidPoint;
+                                if (useHorizontalDistance) {
+                                    // Distanza orizzontale (logica vecchia)
+                                    distMidPoint = Math.abs(originalX_fieldA - bisX_fieldA);
+                                } else {
+                                    // Distanza euclidea (logica attuale)
+                                    const dx = originalX_fieldA - bisX_fieldA;
+                                    const dy = originalY_fieldA - bisY_fieldA;
+                                    distMidPoint = Math.sqrt(dx * dx + dy * dy);
+                                }
+                                
+                                // Campo da Coprire: larghezza tra le linee sinistra e destra del nuovo colpitore
+                                // Logica condizionale basata sulla Y del colpitore originale nel Campo A
+                                // (usa la stessa logica condizionale di distanzaMidPoint)
+                                let targetY_campoA_CDC;
+                                
+                                if (originalY_fieldA > -30) {
+                                    // Y > -30: usa Y = -30
+                                    targetY_campoA_CDC = -30;
+                                } else if (originalY_fieldA > -100 && originalY_fieldA <= -30) {
+                                    // -100 < Y <= -30: usa la stessa Y del colpitore
+                                    targetY_campoA_CDC = originalY_fieldA;
+                                } else {
+                                    // Y <= -100: usa Y = -100
+                                    targetY_campoA_CDC = -100;
+                                }
+                                
+                                // Converti targetY_campoA_CDC in Y_svg per il calcolo
+                                const targetY_svg_forCDC = FIELD_A_ORIGIN_Y - targetY_campoA_CDC;
+                                const leftX_atTargetY = getLineXAtY(shotLandingX, shotLandingY, targetLeftX_secondary, targetY_secondary, targetY_svg_forCDC);
+                                const rightX_atTargetY = getLineXAtY(shotLandingX, shotLandingY, targetRightX_secondary, targetY_secondary, targetY_svg_forCDC);
+                                const campoCoprire = Math.abs(rightX_atTargetY - leftX_atTargetY);
+                                
+                                return { distanzaMidPoint: distMidPoint, campoDaCoprire: campoCoprire };
+                            }
+                            
+                            // Campiona molte direzioni tra sinistra e destra per trovare min/max
+                            const NUM_SAMPLES = 100;
+                            let spazioMin = Infinity, spazioMax = -Infinity;
+                            let distMPMin = Infinity, distMPMax = -Infinity;
+                            let campoMin = Infinity, campoMax = -Infinity;
+                            
+                            for (let i = 0; i <= NUM_SAMPLES; i++) {
+                                const t = i / NUM_SAMPLES;
+                                // Interpola tra la direzione sinistra e destra
+                                const targetX = leftX2 + t * (rightX2 - leftX2);
+                                const targetY = leftY2 + t * (rightY2 - leftY2);
+                                
+                                // Calcola spazioColpo per questa direzione
+                                const spazio = calcSpazioColpoForDirection(dotX, dotY, targetX, targetY);
+                                if (spazio > 0) {
+                                    if (spazio < spazioMin) spazioMin = spazio;
+                                    if (spazio > spazioMax) spazioMax = spazio;
+                                }
+                                
+                                // Calcola metriche del campo secondario
+                                const secondary = calcSecondaryMetricsForDirection(targetX, targetY);
+                                if (secondary.distanzaMidPoint < distMPMin) distMPMin = secondary.distanzaMidPoint;
+                                if (secondary.distanzaMidPoint > distMPMax) distMPMax = secondary.distanzaMidPoint;
+                                if (secondary.campoDaCoprire < campoMin) campoMin = secondary.campoDaCoprire;
+                                if (secondary.campoDaCoprire > campoMax) campoMax = secondary.campoDaCoprire;
+                        }
+                        
+                            // Assegna i valori trovati
+                            if (spazioMin !== Infinity && spazioMax !== -Infinity) {
+                                spazioColpo2Min = spazioMin;
+                                spazioColpo2Max = spazioMax;
+                            }
+                            if (distMPMin !== Infinity && distMPMax !== -Infinity) {
+                                distanzaMidPointMin = distMPMin;
+                                distanzaMidPointMax = distMPMax;
+                            }
+                            if (campoMin !== Infinity && campoMax !== -Infinity) {
+                                campoDaCoprireMin = campoMin;
+                                campoDaCoprireMax = campoMax;
+                            }
+                            
+                            console.log('Spazio Colpo Min/Max:', spazioColpo2Min, spazioColpo2Max);
+                            console.log('Spostamento Avversario Min/Max:', spostamentoAvversarioMin, spostamentoAvversarioMax, '(fissi)');
+                            console.log('Distanza Mid Point Min/Max:', distanzaMidPointMin, distanzaMidPointMax);
+                            console.log('Campo da Coprire Min/Max:', campoDaCoprireMin, campoDaCoprireMax);
+                        }
+                        
+                        // Definizione Min/Max per ogni variabile
+                        const ranges = {
+                            posizioneColpitore: { min: -180, max: 180 },
+                            spazioColpo2: { min: spazioColpo2Min, max: spazioColpo2Max },
+                            rischioErroreLaterale: { min: -117, max: 117 },
+                            altezzaRete: { min: 0, max: 100 },           // Fisso: min=0, max=100
+                            spostamentoAvversario: { min: 0, max: 170 }, // Fisso: min=0, max=170
+                            distanzaMidPoint: { min: 0, max: 200 },      // Fisso: min=0, max=200
+                            campoDaCoprire: { min: 250, max: 400 }       // Fisso: min=250, max=400
+                        };
+                        
+                        // Funzione per calcolare il valore normalizzato (0-1)
+                        function normalizeValue(value, min, max) {
+                            if (max === min) return 0.5; // Valore centrale se min == max
+                            
+                            // Normalizzazione lineare [0, 1]
+                            const linear = (value - min) / (max - min);
+                            const clamped = Math.max(0, Math.min(1, linear));
+                            
+                            // Mappa su [-6, 6] per la sigmoidea
+                            // Quando clamped = 0 -> x = -6
+                            // Quando clamped = 0.5 -> x = 0
+                            // Quando clamped = 1 -> x = 6
+                            const x = (clamped - 0.5) * 12;
+                            
+                            // Applica funzione sigmoidea: σ(x) = 1 / (1 + e^(-x))
+                            const sigmoid = 1 / (1 + Math.exp(-x));
+                            
+                            return sigmoid;
+                        }
+                        
+                        // Funzione di normalizzazione lineare semplice
+                        function normalizeLinear(value, min, max) {
+                            if (max === min) return 0.5;
+                            const normalized = (value - min) / (max - min);
+                            return Math.max(0, Math.min(1, normalized)); // Clamp tra 0 e 1
+                        }
+                        
+                        // Funzione di normalizzazione concava per Posizione Colpitore (esponente 0.5)
+                        // Crescita rapida all'inizio, rallenta verso il massimo
+                        function normalizePosizioneColpitore(value, min, max) {
+                            if (max === min) return 0.5;
+                            if (value >= max) return 1;
+                            if (value <= min) return 0;
+                            
+                            // Normalizzazione lineare [0, 1]
+                            const linear = (value - min) / (max - min);
+                            
+                            // Applica funzione potenza con esponente < 1 (concava)
+                            // Esponente 0.5 = radice quadrata: crescita rapida all'inizio, rallenta verso il massimo
+                            // 0.2→0.447, 0.5→0.707, 0.8→0.894, 0.9→0.949
+                            const result = Math.pow(linear, 0.5);
+                            
+                            return result;
+                        }
+                        
+                        // Funzione di normalizzazione per Spazio Colpo (funzione convessa)
+                        // Derivata seconda sempre positiva: le variazioni vicino ai massimi hanno effetti maggiori
+                        function normalizeSpazioColpo(value, min, max) {
+                            if (max === min) return 0.5;
+                            if (value >= max) return 1;
+                            if (value <= min) return 0;
+                            
+                            // Normalizzazione lineare [0, 1]
+                            const linear = (value - min) / (max - min);
+                            
+                            // Applica funzione potenza con esponente > 1 (convessa)
+                            // Esponente 3 dà crescita molto lenta all'inizio, forte accelerazione verso il massimo
+                            // Derivata seconda sempre positiva e crescente
+                            // 0.2→0.008, 0.5→0.125, 0.8→0.512, 0.9→0.729, 0.95→0.857
+                            const result = Math.pow(linear, 3);
+                            
+                            return result;
+                        }
+                        
+                        // Funzione di normalizzazione per Rischio Errore Laterale (usa valore assoluto)
+                        function normalizeRischioErroreLaterale(value, min, max) {
+                            // Il rischio è simmetrico: ±117 hanno lo stesso rischio (massimo), 0 ha rischio minimo
+                            // Usa normalizzazione lineare invece di sigmoidea
+                            const absValue = Math.abs(value);
+                            return normalizeLinear(absValue, 0, 117);
+                        }
+                        
+                        // Funzione speciale per normalizzare il Campo da Coprire
+                        // Crescita molto rapida all'inizio, quasi massimo già a 300-310
+                        function normalizeCampoDaCoprire(value, min, max) {
+                            if (max === min) return 0.5;
+                            if (value >= max) return 1;
+                            if (value <= min) return 0;
+                            
+                            // Normalizzazione lineare [0, 1]
+                            const linear = (value - min) / (max - min);
+                            
+                            // Applica funzione potenza con esponente < 1 per crescita rapida iniziale
+                            // Esponente 0.5 (radice quadrata) dà crescita moderata all'inizio
+                            // 260→0.26, 300→0.58, 310→0.63, 350→0.76
+                            const result = Math.pow(linear, 0.5);
+                            
+                            return result;
+                        }
+                        
+                        // Funzione di normalizzazione lineare per Altezza Rete
+                        function normalizeAltezzaRete(value, min, max) {
+                            return normalizeLinear(value, min, max);
+                        }
+                        
+                        // Funzione per aggiornare un campo con valore, min, max e normalizzato
+                        function updateField(id, value, min, max, normalizeFn = normalizeValue) {
+                            const valueSpan = document.getElementById(id);
+                            const minSpan = document.getElementById(id + 'Min');
+                            const maxSpan = document.getElementById(id + 'Max');
+                            const normSpan = document.getElementById(id + 'Norm');
+                            const fillDiv = document.getElementById(id + 'Fill');
+                            
+                            const normalized = normalizeFn(value, min, max);
+                            
+                            if (valueSpan) valueSpan.textContent = value.toFixed(2);
+                            if (minSpan) minSpan.textContent = min.toFixed(0);
+                            if (maxSpan) maxSpan.textContent = max.toFixed(0);
+                            if (normSpan) normSpan.textContent = normalized.toFixed(2);
+                            if (fillDiv) fillDiv.style.width = (normalized * 100) + '%';
+                        }
+                        
+                        // Funzione speciale per campi con overflow (mostra "X+" se supera il max)
+                        function updateFieldWithOverflow(id, value, min, max, normalizeFn = normalizeValue) {
+                            const valueSpan = document.getElementById(id);
+                            const minSpan = document.getElementById(id + 'Min');
+                            const maxSpan = document.getElementById(id + 'Max');
+                            const normSpan = document.getElementById(id + 'Norm');
+                            const fillDiv = document.getElementById(id + 'Fill');
+                            
+                            const exceedsMax = value > max;
+                            const normalized = exceedsMax ? 1 : normalizeFn(value, min, max);
+                            
+                            if (valueSpan) {
+                                if (exceedsMax) {
+                                    valueSpan.textContent = max.toFixed(0) + '+';
+                                } else {
+                                    valueSpan.textContent = value.toFixed(2);
+                        }
+                            }
+                            if (minSpan) minSpan.textContent = min.toFixed(0);
+                            if (maxSpan) maxSpan.textContent = max.toFixed(0);
+                            if (normSpan) normSpan.textContent = normalized.toFixed(2);
+                            if (fillDiv) fillDiv.style.width = (normalized * 100) + '%';
+                        }
+                        
+                        // Aggiorna tutti i campi
+                        updateFieldWithOverflow('posizioneColpitore', posizioneColpitore, 
+                            ranges.posizioneColpitore.min, ranges.posizioneColpitore.max, normalizePosizioneColpitore);
+                        
+                        updateField('spazioColpo2', spazioColpo2, 
+                            ranges.spazioColpo2.min, ranges.spazioColpo2.max, normalizeSpazioColpo);
+                        
+                        updateField('rischioErroreLaterale', Math.abs(rischioErroreLaterale), 
+                            0, 117, normalizeRischioErroreLaterale);
+                        
+                        updateFieldWithOverflow('altezzaRete', altezzaRete, 
+                            ranges.altezzaRete.min, ranges.altezzaRete.max, normalizeAltezzaRete);
+                        
+                        updateField('spostamentoAvversario', spostamentoAvversario, 
+                            ranges.spostamentoAvversario.min, ranges.spostamentoAvversario.max, normalizeLinear);
+                        
+                        // Usa la funzione con overflow per distanzaMidPoint e campoDaCoprire
+                        updateFieldWithOverflow('distanzaMidPoint', distanzaMidPoint, 
+                            ranges.distanzaMidPoint.min, ranges.distanzaMidPoint.max);
+                        
+                        updateFieldWithOverflow('campoDaCoprire', campoDaCoprire, 
+                            ranges.campoDaCoprire.min, ranges.campoDaCoprire.max, normalizeCampoDaCoprire);
+                        
+                        // Calcola i valori normalizzati per i rischi totali
+                        const posizioneColpitoreNorm = posizioneColpitore > ranges.posizioneColpitore.max ? 1 : 
+                            normalizePosizioneColpitore(posizioneColpitore, ranges.posizioneColpitore.min, ranges.posizioneColpitore.max);
+                        const spazioColpo2Norm = normalizeSpazioColpo(spazioColpo2, 
+                            ranges.spazioColpo2.min, ranges.spazioColpo2.max);
+                        // Per il rischio errore laterale, normalizziamo il valore assoluto
+                        // |X| = 0 (centro) -> rischio minimo = 0
+                        // |X| = 115 (bordo) -> rischio massimo = 1
+                        const rischioErroreLateraleNorm = normalizeLinear(Math.abs(rischioErroreLaterale), 
+                            0, 117);
+                        const altezzaReteNorm = altezzaRete > ranges.altezzaRete.max ? 1 : 
+                            normalizeAltezzaRete(altezzaRete, ranges.altezzaRete.min, ranges.altezzaRete.max);
+                        const spostamentoAvversarioNorm = normalizeLinear(spostamentoAvversario, 
+                            ranges.spostamentoAvversario.min, ranges.spostamentoAvversario.max);
+                        const distanzaMidPointNorm = distanzaMidPoint > ranges.distanzaMidPoint.max ? 1 : 
+                            normalizeValue(distanzaMidPoint, ranges.distanzaMidPoint.min, ranges.distanzaMidPoint.max);
+                        const campoDaCoprireNorm = campoDaCoprire > ranges.campoDaCoprire.max ? 1 : 
+                            normalizeCampoDaCoprire(campoDaCoprire, ranges.campoDaCoprire.min, ranges.campoDaCoprire.max);
+                        
+                        // Calcola Rischio Tecnico Totale
+                        // Media pesata: tutte e 4 le variabili hanno peso 0.25 (25% ciascuna)
+                        const rischioTecnicoTotale = (
+                            0.25 * (1 - posizioneColpitoreNorm) + 
+                            0.25 * (1 - spazioColpo2Norm) + 
+                            0.25 * rischioErroreLateraleNorm +
+                            0.25 * altezzaReteNorm
+                        );
+                        
+                        // Calcola Rischio Tattico Totale
+                        // Media pesata: Distanza Mid Point 0.4 (40%), Spostamento Avversario 0.3 (30%), Campo da Coprire 0.3 (30%)
+                        const rischioTatticoTotale = (
+                            0.3 * (1 - spostamentoAvversarioNorm) + 
+                            0.4 * distanzaMidPointNorm + 
+                            0.3 * campoDaCoprireNorm
+                        );
+                        
+                        console.log('=== Rischi Totali ===');
+                        console.log('Rischio Tecnico Totale:', rischioTecnicoTotale);
+                        console.log('Rischio Tattico Totale:', rischioTatticoTotale);
+                        
+                        // Aggiorna i campi dei rischi totali
+                        const rischioTecnicoTotaleSpan = document.getElementById('rischioTecnicoTotale');
+                        const rischioTecnicoTotaleNormSpan = document.getElementById('rischioTecnicoTotaleNorm');
+                        const rischioTecnicoTotaleFill = document.getElementById('rischioTecnicoTotaleFill');
+                        
+                        // Aggiorna i valori moltiplicando per 10 e mostrando 1 decimale
+                        if (rischioTecnicoTotaleSpan) {
+                            rischioTecnicoTotaleSpan.textContent = (rischioTecnicoTotale * 10).toFixed(1);
+                        }
+                        if (rischioTecnicoTotaleFill) {
+                            rischioTecnicoTotaleFill.style.width = (rischioTecnicoTotale * 100) + '%';
+                        }
+                        
+                        const rischioTatticoTotaleSpan = document.getElementById('rischioTatticoTotale');
+                        const rischioTatticoTotaleFill = document.getElementById('rischioTatticoTotaleFill');
+                        
+                        if (rischioTatticoTotaleSpan) {
+                            rischioTatticoTotaleSpan.textContent = (rischioTatticoTotale * 10).toFixed(1);
+                        }
+                        if (rischioTatticoTotaleFill) {
+                            rischioTatticoTotaleFill.style.width = (rischioTatticoTotale * 100) + '%';
+                        }
+                        
+                        // Calcola Rischio Colpo Totale
+                        // Media tra Rischio Tecnico e Rischio Tattico
+                        const rischioColpoTotale = (rischioTecnicoTotale + rischioTatticoTotale) / 2;
+                        
+                        console.log('Rischio Colpo Totale:', rischioColpoTotale);
+                        
+                        const rischioColpoTotaleSpan = document.getElementById('rischioColpoTotale');
+                        const rischioColpoTotaleFill = document.getElementById('rischioColpoTotaleFill');
+                        
+                        if (rischioColpoTotaleSpan) {
+                            rischioColpoTotaleSpan.textContent = (rischioColpoTotale * 10).toFixed(1);
+                        }
+                        if (rischioColpoTotaleFill) {
+                            rischioColpoTotaleFill.style.width = (rischioColpoTotale * 100) + '%';
+                        }
+                        
+                        if (risultatiDiv) {
+                            risultatiDiv.style.display = 'flex';
+                        }
+                     });
+                 }
+             }, 300);
+             
+             // Setup coordinate tooltip for secondary court
+             setTimeout(function() {
+                 const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                 const tooltip2 = document.getElementById('coordinateTooltip2');
+                 const fieldBCoords2 = document.getElementById('fieldB-coords-2');
+                 const fieldACoords2 = document.getElementById('fieldA-coords-2');
+                 const tooltipFieldB2 = document.getElementById('tooltip-field-b-2');
+                 const tooltipFieldA2 = document.getElementById('tooltip-field-a-2');
+                 
+                 if (svg2 && tooltip2) {
+                     console.log('Setting up secondary court coordinates');
+                     
+                     // Costanti del sistema di coordinate
+                     const FIELD_B_ORIGIN_X = 300;
+                     const FIELD_B_ORIGIN_Y = 150;
+                     const FIELD_A_ORIGIN_X = 300;
+                     const FIELD_A_ORIGIN_Y = 822;
+                     const NET_Y = 486;
+                     
+                     function svgToFieldB(svgX, svgY) {
+                         return {
+                             x: Math.round(svgX - FIELD_B_ORIGIN_X),
+                             y: Math.round(svgY - FIELD_B_ORIGIN_Y)
+                         };
+                     }
+                     
+                     function svgToFieldA(svgX, svgY) {
+                         return {
+                             x: Math.round(svgX - FIELD_A_ORIGIN_X),
+                             y: Math.round(FIELD_A_ORIGIN_Y - svgY)
+                         };
+                     }
+                     
+                     function getSVGCoordinates(evt) {
+                         const pt = svg2.createSVGPoint();
+                         pt.x = evt.clientX;
+                         pt.y = evt.clientY;
+                         const svgP = pt.matrixTransform(svg2.getScreenCTM().inverse());
+                         return { x: svgP.x, y: svgP.y };
+                     }
+                     
+                     svg2.addEventListener('mousemove', function(evt) {
+                         if (!window.__viewCoordinates__) {
+                             tooltip2.style.display = 'none';
+                             return;
+                         }
+                         
+                         const coords = getSVGCoordinates(evt);
+                         const isAboveNet = coords.y < NET_Y;
+                         
+                         if (isAboveNet) {
+                             // Campo B
+                             const fieldB = svgToFieldB(coords.x, coords.y);
+                             if (fieldBCoords2) {
+                                 fieldBCoords2.textContent = `X: ${fieldB.x}, Y: ${fieldB.y}`;
+                             }
+                             if (tooltipFieldB2) tooltipFieldB2.style.display = 'flex';
+                             if (tooltipFieldA2) tooltipFieldA2.style.display = 'none';
+                         } else {
+                             // Campo A
+                             const fieldA = svgToFieldA(coords.x, coords.y);
+                             if (fieldACoords2) {
+                                 fieldACoords2.textContent = `X: ${fieldA.x}, Y: ${fieldA.y}`;
+                             }
+                             if (tooltipFieldB2) tooltipFieldB2.style.display = 'none';
+                             if (tooltipFieldA2) tooltipFieldA2.style.display = 'flex';
+                         }
+                         
+                         // Position tooltip
+                         const tooltipRect = tooltip2.getBoundingClientRect();
+                         const offset = 10;
+                         let left = evt.clientX;
+                         let top = evt.clientY - offset;
+                         
+                         if (left + tooltipRect.width > window.innerWidth) {
+                             left = evt.clientX - tooltipRect.width - offset;
+                         }
+                         
+                         if (top < 0) {
+                             top = evt.clientY + offset;
+                             tooltip2.style.transform = 'translate(-50%, 0)';
+                         } else {
+                             tooltip2.style.transform = 'translate(-50%, -100%)';
+                         }
+                         
+                         tooltip2.style.left = left + 'px';
+                         tooltip2.style.top = top + 'px';
+                         tooltip2.style.display = 'block';
+                     });
+                     
+                     svg2.addEventListener('mouseleave', function() {
+                         tooltip2.style.display = 'none';
+                     });
+                     
+                     console.log('Secondary court coordinates setup complete');
+                 }
+             }, 500);
+             
+             // Setup collapsible sections for Rischio Tecnico and Rischio Tattico
+             setTimeout(function() {
+                 const collapsibleSections = document.querySelectorAll('.collapsible-section');
+                 
+                 collapsibleSections.forEach(function(section) {
+                     const header = section.querySelector('.section-header-clickable');
+                     const content = section.querySelector('.collapsible-content');
+                     const icon = section.querySelector('.collapse-icon');
+                     
+                     if (header && content && icon) {
+                         header.addEventListener('click', function() {
+                             const isOpen = content.style.display !== 'none';
+                             
+                             if (isOpen) {
+                                 content.style.display = 'none';
+                                 icon.textContent = '▼';
+                             } else {
+                                 content.style.display = 'block';
+                                 icon.textContent = '▲';
+                             }
+                         });
+                     }
+                 });
+                 
+                 console.log('Collapsible sections setup complete');
+             }, 600);
+         });
+    </script>
+</body>
+</html>
+
