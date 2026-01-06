@@ -856,12 +856,29 @@
                 // Show/hide panel sections
                 const panelModalita = document.getElementById('panelModalita');
                 const panelImpostazioni = document.getElementById('panelImpostazioni');
+                const panelDownload = document.getElementById('panelDownload');
                 
                 if (panelModalita) {
                     panelModalita.classList.toggle('mobile-visible', currentMobileSection === 'modalita');
                 }
                 if (panelImpostazioni) {
                     panelImpostazioni.classList.toggle('mobile-visible', currentMobileSection === 'impostazioni');
+                }
+                if (panelDownload) {
+                    panelDownload.classList.toggle('mobile-visible', currentMobileSection === 'download');
+                    // Expand download section content when opened on mobile
+                    if (currentMobileSection === 'download' && open) {
+                        const downloadContent = panelDownload.querySelector('.panel-section-content');
+                        if (downloadContent) {
+                            downloadContent.classList.add('expanded');
+                            const downloadHeader = panelDownload.querySelector('.panel-section-header');
+                            if (downloadHeader) {
+                                downloadHeader.setAttribute('aria-expanded', 'true');
+                            }
+                        }
+                        // Update download options visibility based on current mode
+                        updateDownloadButtonVisibility(window.__modalita__);
+                    }
                 }
             }
 
@@ -1887,6 +1904,7 @@
                         
                         // Update mode indicator
                         updateModeIndicator(val);
+                        updateDownloadButtonVisibility(val);
                         
                         // Aggiorna la modalità sidebar della guida se aperta
                         if (typeof window.updateDesktopTutorialSidebar === 'function') {
@@ -1910,7 +1928,271 @@
                         document.body.classList.add('mobile-dinamico');
                         document.body.classList.remove('mobile-1colpo', 'mobile-2colpi');
                     }
+                    // Initialize download button visibility
+                    updateDownloadButtonVisibility(initialVal);
                 }
+            }
+            
+            // Event listeners for download type selection (2 colpi mode)
+            const downloadTypeInputs = document.querySelectorAll('input[name="downloadType"]');
+            downloadTypeInputs.forEach(function(input) {
+                input.addEventListener('change', function() {
+                    updateSingleCourtOptions();
+                });
+            });
+            
+            // Download button event listener
+            const downloadCourtButton = document.getElementById('downloadCourtImage');
+            if (downloadCourtButton) {
+                downloadCourtButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    downloadCourtImage();
+                });
+            }
+            
+            // Download court image function
+            function downloadCourtImage() {
+                const currentMode = window.__modalita__;
+                
+                // Modalità dinamico: scarica sempre immagine di un singolo colpo
+                if (currentMode === 'dinamico') {
+                    downloadDinamicoSingleShot();
+                    return;
+                }
+                
+                // Modalità 1 colpo: scarica direttamente il campo principale
+                if (currentMode === '1colpo') {
+                    const svgElement = document.getElementById('tennisCourt');
+                    if (!svgElement) {
+                        alert('Errore: elemento SVG non trovato');
+                        return;
+                    }
+                    svgToCanvas(svgElement, 2).then(function(canvas) {
+                        downloadCanvas(canvas, 'campo-tennis-' + new Date().getTime() + '.png');
+                    }).catch(function(error) {
+                        console.error('Errore durante il download:', error);
+                        alert('Errore: ' + error.message);
+                    });
+                    return;
+                }
+                
+                // Modalità 2 colpi
+                const downloadTypeOption = document.querySelector('input[name="downloadType"]:checked');
+                if (!downloadTypeOption) {
+                    alert('Seleziona prima cosa vuoi scaricare');
+                    return;
+                }
+                
+                const downloadType = downloadTypeOption.value;
+                
+                try {
+                    if (downloadType === 'both') {
+                        // Download both courts side by side
+                        downloadBothCourts();
+                    } else {
+                        // Download single court - get which court
+                        const selectedCourt = document.querySelector('input[name="downloadCourt"]:checked');
+                        const courtType = selectedCourt ? selectedCourt.value : 'primary';
+                        
+                        const svgSelector = courtType === 'secondary' 
+                            ? '.svg-wrap.secondary svg' 
+                            : '#tennisCourt';
+                        
+                        const svgElement = document.querySelector(svgSelector);
+                        if (!svgElement) {
+                            console.error('SVG element not found:', svgSelector);
+                            alert('Errore: elemento SVG non trovato');
+                            return;
+                        }
+                        
+                        svgToCanvas(svgElement, 2).then(function(canvas) {
+                            downloadCanvas(canvas, 'campo-tennis-' + courtType + '-' + new Date().getTime() + '.png');
+                        }).catch(function(error) {
+                            console.error('Errore durante il download:', error);
+                            alert('Errore: ' + error.message);
+                        });
+                    }
+                } catch (error) {
+                    console.error('Errore durante il download dell\'immagine:', error);
+                    alert('Errore: ' + error.message);
+                }
+            }
+            
+            // Download single shot image in dinamico mode
+            function downloadDinamicoSingleShot() {
+                const shotNumberInput = document.getElementById('download_shot_number');
+                if (!shotNumberInput) {
+                    alert('Errore: campo numero colpo non trovato');
+                    return;
+                }
+                
+                const shotNumber = parseInt(shotNumberInput.value, 10);
+                if (isNaN(shotNumber) || shotNumber < 1) {
+                    alert('Inserisci un numero di colpo valido');
+                    return;
+                }
+                
+                const executedShots = Array.isArray(shotHistory) ? shotHistory.length : 0;
+                const maxShots = Math.max(executedShots + 1, 1);
+                if (shotNumber > maxShots) {
+                    alert('Il numero di colpo selezionato non è valido. Puoi scegliere da 1 a ' + maxShots + '.');
+                    return;
+                }
+                
+                // Salva lo stato corrente completo
+                const currentState = saveCurrentState();
+                
+                // Determina lo stato del colpo richiesto
+                let targetState = null;
+                if (shotNumber <= executedShots) {
+                    targetState = shotHistory[shotNumber - 1];
+                } else {
+                    // Colpo non ancora eseguito ma attualmente configurato (es. colpo successivo)
+                    targetState = currentState;
+                }
+                
+                if (!targetState) {
+                    alert('Errore: stato del colpo non trovato');
+                    return;
+                }
+                
+                // Se il colpo richiesto è diverso dallo stato corrente, ripristina quello stato
+                const needRestore = targetState !== currentState;
+                if (needRestore) {
+                    restoreState(targetState);
+                }
+                
+                // Attendi un attimo che lo stato venga applicato, poi cattura l'immagine
+                setTimeout(function() {
+                    const svgElement = document.getElementById('tennisCourt');
+                    if (!svgElement) {
+                        alert('Errore: elemento SVG non trovato');
+                        if (needRestore) {
+                            restoreState(currentState);
+                        }
+                        return;
+                    }
+                    
+                    svgToCanvas(svgElement, 2).then(function(canvas) {
+                        downloadCanvas(canvas, 'campo-tennis-colpo-' + shotNumber + '-' + new Date().getTime() + '.png');
+                        // Ripristina lo stato originale
+                        if (needRestore) {
+                            restoreState(currentState);
+                        }
+                    }).catch(function(error) {
+                        console.error('Errore durante il download:', error);
+                        alert('Errore: ' + error.message);
+                        if (needRestore) {
+                            restoreState(currentState);
+                        }
+                    });
+                }, 100);
+            }
+            
+            // Download both courts side by side
+            function downloadBothCourts() {
+                const primarySvg = document.getElementById('tennisCourt');
+                const secondarySvg = document.querySelector('.svg-wrap.secondary svg');
+                
+                if (!primarySvg) {
+                    alert('Errore: campo principale non trovato');
+                    return;
+                }
+                
+                if (!secondarySvg) {
+                    alert('Errore: campo secondario non trovato');
+                    return;
+                }
+                
+                Promise.all([
+                    svgToCanvas(primarySvg, 2),
+                    svgToCanvas(secondarySvg, 2)
+                ]).then(function(canvases) {
+                    const primaryCanvas = canvases[0];
+                    const secondaryCanvas = canvases[1];
+                    
+                    // Create a combined canvas
+                    const combinedCanvas = document.createElement('canvas');
+                    const ctx = combinedCanvas.getContext('2d');
+                    const gap = 40; // Gap between courts
+                    const width = primaryCanvas.width + secondaryCanvas.width + gap;
+                    const height = Math.max(primaryCanvas.height, secondaryCanvas.height);
+                    
+                    combinedCanvas.width = width;
+                    combinedCanvas.height = height;
+                    
+                    // Fill background
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(0, 0, width, height);
+                    
+                    // Draw primary court
+                    ctx.drawImage(primaryCanvas, 0, 0);
+                    
+                    // Draw secondary court
+                    ctx.drawImage(secondaryCanvas, primaryCanvas.width + gap, 0);
+                    
+                    downloadCanvas(combinedCanvas, 'campo-tennis-entrambi-' + new Date().getTime() + '.png');
+                }).catch(function(error) {
+                    console.error('Errore durante il download di entrambi i campi:', error);
+                    alert('Errore: ' + error.message);
+                });
+            }
+            
+            // Helper function to download canvas as PNG
+            function downloadCanvas(canvas, filename) {
+                canvas.toBlob(function(blob) {
+                    if (blob) {
+                        const downloadUrl = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.href = downloadUrl;
+                        link.download = filename;
+                        link.style.display = 'none';
+                        document.body.appendChild(link);
+                        
+                        // Trigger download
+                        setTimeout(function() {
+                            link.click();
+                            
+                            // Clean up after a delay
+                            setTimeout(function() {
+                                document.body.removeChild(link);
+                                URL.revokeObjectURL(downloadUrl);
+                            }, 200);
+                        }, 50);
+                    } else {
+                        console.error('Errore: blob non creato');
+                        alert('Errore durante la creazione dell\'immagine. Il blob non è stato generato.');
+                    }
+                }, 'image/png', 1.0);
+            }
+            
+            // Helper function to convert SVG to Canvas
+            function svgToCanvas(svgElement, scale) {
+                return new Promise(function(resolve, reject) {
+                    try {
+                        const svgData = new XMLSerializer().serializeToString(svgElement);
+                        const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+                        const url = URL.createObjectURL(svgBlob);
+                        
+                        const img = new Image();
+                        img.onload = function() {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = img.width * scale;
+                            canvas.height = img.height * scale;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                            URL.revokeObjectURL(url);
+                            resolve(canvas);
+                        };
+                        img.onerror = function(error) {
+                            URL.revokeObjectURL(url);
+                            reject(error);
+                        };
+                        img.src = url;
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
             }
             
             // Update mode indicator (icon and text)
@@ -1937,6 +2219,74 @@
                 }
                 if (desktopIndicator) {
                     desktopIndicator.textContent = labelText;
+                }
+            }
+            
+            // Update download button visibility based on mode
+            function updateDownloadButtonVisibility(mode) {
+                const downloadButton = document.getElementById('downloadCourtImage');
+                const downloadOptions = document.getElementById('downloadOptions');
+                const downloadOptions2Colpi = document.getElementById('downloadOptions2Colpi');
+                const downloadOptionsDinamico = document.getElementById('downloadOptionsDinamico');
+                const singleCourtOptions = document.getElementById('singleCourtOptions');
+                
+                if (downloadButton) {
+                    if (mode === '1colpo') {
+                        // Modalità 1 colpo: mostra solo il pulsante, nascondi le opzioni
+                        downloadButton.style.display = 'flex';
+                        if (downloadOptions) downloadOptions.style.display = 'none';
+                        if (downloadOptions2Colpi) downloadOptions2Colpi.style.display = 'none';
+                        if (downloadOptionsDinamico) downloadOptionsDinamico.style.display = 'none';
+                    } else if (mode === '2colpi') {
+                        // Modalità 2 colpi: mostra opzioni per scegliere entrambi o uno solo
+                        downloadButton.style.display = 'flex';
+                        if (downloadOptions) downloadOptions.style.display = 'block';
+                        if (downloadOptions2Colpi) downloadOptions2Colpi.style.display = 'block';
+                        if (downloadOptionsDinamico) downloadOptionsDinamico.style.display = 'none';
+                        
+                        // Imposta default: solo un campo, primo colpo
+                        const singleRadio = document.getElementById('download_single');
+                        const primaryRadio = document.getElementById('download_primary');
+                        if (singleRadio && !document.querySelector('input[name="downloadType"]:checked')) {
+                            singleRadio.checked = true;
+                        }
+                        if (primaryRadio && !document.querySelector('input[name="downloadCourt"]:checked')) {
+                            primaryRadio.checked = true;
+                        }
+                        updateSingleCourtOptions();
+                    } else if (mode === 'dinamico') {
+                        // Modalità dinamico: mostra opzione per scegliere il colpo
+                        downloadButton.style.display = 'flex';
+                        if (downloadOptions) downloadOptions.style.display = 'block';
+                        if (downloadOptions2Colpi) downloadOptions2Colpi.style.display = 'none';
+                        if (downloadOptionsDinamico) downloadOptionsDinamico.style.display = 'block';
+                        
+                        // Imposta default: colpo 1
+                        const shotNumberInput = document.getElementById('download_shot_number');
+                        if (shotNumberInput && (!shotNumberInput.value || shotNumberInput.value < 1)) {
+                            shotNumberInput.value = 1;
+                        }
+                    } else {
+                        // Modalità sconosciuta: nascondi tutto
+                        downloadButton.style.display = 'none';
+                        if (downloadOptions) downloadOptions.style.display = 'none';
+                        if (downloadOptions2Colpi) downloadOptions2Colpi.style.display = 'none';
+                        if (downloadOptionsDinamico) downloadOptionsDinamico.style.display = 'none';
+                    }
+                }
+            }
+            
+            // Update single court options visibility
+            function updateSingleCourtOptions() {
+                const downloadType = document.querySelector('input[name="downloadType"]:checked');
+                const singleCourtOptions = document.getElementById('singleCourtOptions');
+                
+                if (downloadType && singleCourtOptions) {
+                    if (downloadType.value === 'single') {
+                        singleCourtOptions.style.display = 'block';
+                    } else {
+                        singleCourtOptions.style.display = 'none';
+                    }
                 }
             }
 
@@ -4099,6 +4449,19 @@
                         setMobileSettingsState(false, 'impostazioni');
                     } else {
                         setMobileSettingsState(true, 'impostazioni');
+                    }
+                });
+            }
+            
+            // Mobile download button
+            const mobileNavDownload = document.getElementById('mobileNavDownload');
+            if (mobileNavDownload) {
+                mobileNavDownload.addEventListener('click', () => {
+                    // Open download section instead of downloading directly
+                    if (currentMobileSection === 'download' && mobileSettingsOpen) {
+                        setMobileSettingsState(false, 'download');
+                    } else {
+                        setMobileSettingsState(true, 'download');
                     }
                 });
             }
