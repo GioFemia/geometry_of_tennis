@@ -1910,6 +1910,8 @@
                         document.body.classList.add('mobile-dinamico');
                         document.body.classList.remove('mobile-1colpo', 'mobile-2colpi');
                     }
+                    // Update mode indicator and download button visibility
+                    updateModeIndicator(initialVal);
                 }
             }
             
@@ -1937,6 +1939,156 @@
                 }
                 if (desktopIndicator) {
                     desktopIndicator.textContent = labelText;
+                }
+                
+                // Show/hide download button based on mode
+                updateDownloadButtonVisibility(mode);
+            }
+            
+            // Update download button visibility based on mode
+            function updateDownloadButtonVisibility(mode) {
+                const downloadButton = document.getElementById('downloadCourtImage');
+                if (downloadButton) {
+                    if (mode === '1colpo') {
+                        downloadButton.style.display = 'flex';
+                    } else {
+                        downloadButton.style.display = 'none';
+                    }
+                }
+            }
+            
+            // Download court image function
+            function downloadCourtImage() {
+                const svgElement = document.getElementById('tennisCourt');
+                if (!svgElement) {
+                    console.error('SVG element not found');
+                    alert('Errore: elemento SVG non trovato');
+                    return;
+                }
+                
+                console.log('Inizio download immagine campo...');
+                
+                try {
+                    // Get the SVG container to capture its actual rendered size
+                    const svgContainer = svgElement.parentElement;
+                    const svgRect = svgElement.getBoundingClientRect();
+                    
+                    // Get viewBox or dimensions
+                    const viewBox = svgElement.viewBox.baseVal;
+                    const svgWidth = viewBox.width || parseFloat(svgElement.getAttribute('width')) || 600;
+                    const svgHeight = viewBox.height || parseFloat(svgElement.getAttribute('height')) || 1006;
+                    
+                    console.log('Dimensioni SVG:', svgWidth, 'x', svgHeight);
+                    console.log('Dimensioni renderizzate:', svgRect.width, 'x', svgRect.height);
+                    
+                    // Clone the SVG to avoid modifying the original
+                    const clonedSvg = svgElement.cloneNode(true);
+                    
+                    // Set explicit pixel dimensions on the clone (not percentage)
+                    clonedSvg.setAttribute('width', svgWidth);
+                    clonedSvg.setAttribute('height', svgHeight);
+                    clonedSvg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                    clonedSvg.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+                    
+                    // Get computed background color
+                    const computedStyle = window.getComputedStyle(svgElement);
+                    const bgColor = computedStyle.backgroundColor || '#1565c0';
+                    
+                    // Serialize SVG to string
+                    const serializer = new XMLSerializer();
+                    let svgString = serializer.serializeToString(clonedSvg);
+                    
+                    // Encode SVG string for data URL
+                    const encodedSvg = encodeURIComponent(svgString);
+                    const dataUrl = 'data:image/svg+xml;charset=utf-8,' + encodedSvg;
+                    
+                    console.log('SVG serializzato, creazione immagine...');
+                    
+                    // Create an image to convert SVG to canvas
+                    const img = new Image();
+                    
+                    img.onload = function() {
+                        console.log('Immagine caricata, dimensioni:', img.width, 'x', img.height);
+                        
+                        try {
+                            // Create a canvas with the same dimensions
+                            const canvas = document.createElement('canvas');
+                            const ctx = canvas.getContext('2d');
+                            const scale = 2; // For better quality
+                            const width = img.width * scale;
+                            const height = img.height * scale;
+                            
+                            canvas.width = width;
+                            canvas.height = height;
+                            
+                            // Fill background
+                            ctx.fillStyle = bgColor;
+                            ctx.fillRect(0, 0, width, height);
+                            
+                            // Draw the SVG image on the canvas
+                            ctx.drawImage(img, 0, 0, width, height);
+                            
+                            console.log('Canvas creato, conversione in blob...');
+                            
+                            // Convert canvas to blob and download
+                            canvas.toBlob(function(blob) {
+                                if (blob) {
+                                    console.log('Blob creato, dimensione:', blob.size, 'bytes');
+                                    const downloadUrl = URL.createObjectURL(blob);
+                                    const link = document.createElement('a');
+                                    link.href = downloadUrl;
+                                    link.download = 'campo-tennis-' + new Date().getTime() + '.png';
+                                    link.style.display = 'none';
+                                    document.body.appendChild(link);
+                                    
+                                    // Trigger download
+                                    setTimeout(function() {
+                                        link.click();
+                                        console.log('Click sul link di download eseguito');
+                                        
+                                        // Clean up after a delay
+                                        setTimeout(function() {
+                                            document.body.removeChild(link);
+                                            URL.revokeObjectURL(downloadUrl);
+                                            console.log('Download completato!');
+                                        }, 200);
+                                    }, 50);
+                                } else {
+                                    console.error('Errore: blob non creato');
+                                    alert('Errore durante la creazione dell\'immagine. Il blob non è stato generato.');
+                                }
+                            }, 'image/png', 1.0);
+                        } catch (canvasError) {
+                            console.error('Errore nella creazione del canvas:', canvasError);
+                            alert('Errore durante la creazione del canvas: ' + canvasError.message);
+                        }
+                    };
+                    
+                    img.onerror = function(error) {
+                        console.error('Errore nel caricamento dell\'immagine SVG:', error);
+                        console.error('Data URL length:', dataUrl.length);
+                        alert('Errore nel caricamento dell\'immagine SVG. Controlla la console per i dettagli.');
+                    };
+                    
+                    // Set timeout for image loading
+                    const timeout = setTimeout(function() {
+                        console.error('Timeout nel caricamento dell\'immagine');
+                        alert('Timeout: l\'immagine impiega troppo tempo a caricarsi. Prova a ricaricare la pagina.');
+                        img.onerror = null; // Prevent double error
+                    }, 10000);
+                    
+                    const originalOnload = img.onload;
+                    img.onload = function() {
+                        clearTimeout(timeout);
+                        if (originalOnload) originalOnload.call(this);
+                    };
+                    
+                    // Load the SVG as data URL
+                    img.src = dataUrl;
+                    
+                } catch (error) {
+                    console.error('Errore durante il download dell\'immagine:', error);
+                    alert('Errore: ' + error.message);
                 }
             }
 
@@ -1966,6 +2118,30 @@
             bindViewCheckbox(chkZones, '__viewZones__');
             bindViewCheckbox(chkCenter, '__viewCenter__');
             bindViewCheckbox(chkCoordinates, '__viewCoordinates__');
+            
+            // Download button event listener
+            const downloadCourtButton = document.getElementById('downloadCourtImage');
+            if (downloadCourtButton) {
+                downloadCourtButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Pulsante download cliccato!');
+                    downloadCourtImage();
+                });
+                console.log('Event listener per download button aggiunto');
+            } else {
+                console.warn('Pulsante download non trovato!');
+            }
+            
+            // Initialize download button visibility
+            if (window.__modalita__) {
+                updateDownloadButtonVisibility(window.__modalita__);
+            } else {
+                // Try to get initial mode from radio button
+                const initialModalita = document.querySelector('input[name="modalita"]:checked');
+                if (initialModalita) {
+                    updateDownloadButtonVisibility(initialModalita.value);
+                }
+            }
             
             // Collapsible sections
             function initCollapsibleSections() {
@@ -5056,3 +5232,4 @@
             })();
 
         })();
+

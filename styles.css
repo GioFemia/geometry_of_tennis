@@ -206,9 +206,44 @@ body {
     opacity: 0.5;
     cursor: not-allowed;
 }
-        
+
 .control-option:has(input[type="checkbox"]:disabled) {
     opacity: 0.6;
+}
+
+.download-court-button {
+    width: 100%;
+    padding: 10px 14px;
+    margin-top: 8px;
+    background: linear-gradient(135deg, #42a5f5 0%, #64b5f6 50%, #42a5f5 100%);
+    border: 2px solid #1976d2;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
+}
+
+.download-court-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(66, 165, 245, 0.4);
+    background: linear-gradient(135deg, #1976d2 0%, #42a5f5 50%, #1976d2 100%);
+}
+
+.download-court-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
+}
+
+.download-court-button svg {
+    flex-shrink: 0;
 }
         
 .control-option label {
