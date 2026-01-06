@@ -856,12 +856,16 @@
                 // Show/hide panel sections
                 const panelModalita = document.getElementById('panelModalita');
                 const panelImpostazioni = document.getElementById('panelImpostazioni');
+                const panelDownload = document.getElementById('panelDownload');
                 
                 if (panelModalita) {
                     panelModalita.classList.toggle('mobile-visible', currentMobileSection === 'modalita');
                 }
                 if (panelImpostazioni) {
                     panelImpostazioni.classList.toggle('mobile-visible', currentMobileSection === 'impostazioni');
+                }
+                if (panelDownload) {
+                    panelDownload.classList.toggle('mobile-visible', currentMobileSection === 'download');
                 }
             }
 
@@ -4562,31 +4566,25 @@
             const mobileNavDownload = document.getElementById('mobileNavDownload');
             if (mobileNavDownload) {
                 mobileNavDownload.addEventListener('click', () => {
-                    // Set default values for download options if needed
                     const currentMode = window.__modalita__;
                     
-                    // For 2 colpi mode, set default to single primary court if no option is selected
-                    if (currentMode === '2colpi') {
-                        const downloadTypeOption = document.querySelector('input[name="downloadType"]:checked');
-                        if (!downloadTypeOption) {
-                            // Set default to single primary court
-                            const singleRadio = document.getElementById('download_single');
-                            const primaryRadio = document.getElementById('download_primary');
-                            if (singleRadio) singleRadio.checked = true;
-                            if (primaryRadio) primaryRadio.checked = true;
-                        }
+                    // Modalità 1 colpo: scarica direttamente
+                    if (currentMode === '1colpo') {
+                        downloadCourtImage();
+                        return;
                     }
                     
-                    // For dinamico mode, set default to shot 1 if no option is set
-                    if (currentMode === 'dinamico') {
-                        const shotNumberInput = document.getElementById('download_shot_number');
-                        if (shotNumberInput && (!shotNumberInput.value || shotNumberInput.value < 1)) {
-                            shotNumberInput.value = 1;
+                    // Modalità 2 colpi o dinamico: apri il pannello download
+                    if (currentMode === '2colpi' || currentMode === 'dinamico') {
+                        if (currentMobileSection === 'download' && mobileSettingsOpen) {
+                            setMobileSettingsState(false, 'download');
+                        } else {
+                            // Assicura che le opzioni di download siano aggiornate per la modalità corrente
+                            updateDownloadButtonVisibility(currentMode);
+                            setMobileSettingsState(true, 'download');
                         }
+                        return;
                     }
-                    
-                    // Call download function
-                    downloadCourtImage();
                 });
             }
             
