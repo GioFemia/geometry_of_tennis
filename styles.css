@@ -266,6 +266,8 @@ body {
         margin-top: var(--top-bar-height);
         padding-top: 1em;
         padding-bottom: 1em;
+        overflow-y: auto;
+        overflow-x: hidden;
     }
 }
 
@@ -769,6 +771,15 @@ body {
     justify-content: center;
     min-width: 400px;
     flex: 1;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+@media (min-width: 901px) {
+    .court-container {
+        max-height: calc(100vh - var(--top-bar-height));
+    }
 }
 
 /* Freccia tra i campi per modalità 2 colpi (solo desktop) */
@@ -831,7 +842,7 @@ body {
 .svg-wrap { 
     position: relative; 
     width: auto; 
-    height: 95%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
