@@ -257,8 +257,240 @@
         </div>
     </div>
     
+    <!-- Top Bar for Desktop -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <h1 class="top-bar-title">Geometry of Tennis</h1>
+        </div>
+        <div class="top-bar-right">
+            <button id="topBarModalita" class="top-bar-item" title="Modalità">
+                <span class="top-bar-label">Modalità</span>
+            </button>
+            <button id="topBarGuida" class="top-bar-item" title="Guida">
+                <span class="top-bar-label">Guida</span>
+            </button>
+            <button id="topBarImpostazioni" class="top-bar-item" title="Impostazioni">
+                <span class="top-bar-label">Impostazioni</span>
+            </button>
+            <button id="topBarDownload" class="top-bar-item" title="Download">
+                <span class="top-bar-label">Download</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Top Bar Modals -->
+    <div id="topBarModalitaOverlay" class="top-bar-modal-overlay">
+        <div class="top-bar-modal">
+            <div class="top-bar-modal-header">
+                <h2 class="top-bar-modal-title">Modalità</h2>
+                <button class="top-bar-modal-close" aria-label="Chiudi">×</button>
+            </div>
+            <div class="top-bar-modal-content">
+                <div class="mode-options">
+                    <label class="mode-option" for="modo_1colpo_top">
+                        <input id="modo_1colpo_top" type="radio" name="modalita_top" value="1colpo" />
+                        <div class="mode-option-content">
+                            <span class="mode-option-icon">1</span>
+                            <span class="mode-option-label">1 Colpo</span>
+                        </div>
+                    </label>
+                    <label class="mode-option" for="modo_2colpi_top">
+                        <input id="modo_2colpi_top" type="radio" name="modalita_top" value="2colpi" checked />
+                        <div class="mode-option-content">
+                            <span class="mode-option-icon">2</span>
+                            <span class="mode-option-label">2 Colpi</span>
+                        </div>
+                    </label>
+                    <label class="mode-option" for="modo_dinamico_top">
+                        <input id="modo_dinamico_top" type="radio" name="modalita_top" value="dinamico" />
+                        <div class="mode-option-content">
+                            <span class="mode-option-icon">D</span>
+                            <span class="mode-option-label">Dinamico</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="topBarImpostazioniOverlay" class="top-bar-modal-overlay">
+        <div class="top-bar-modal">
+            <div class="top-bar-modal-header">
+                <h2 class="top-bar-modal-title">Impostazioni</h2>
+                <button class="top-bar-modal-close" aria-label="Chiudi">×</button>
+            </div>
+            <div class="top-bar-modal-content">
+                <!-- Superficie Campo -->
+                <div class="control-section">
+                    <h3 class="control-section-title">Superficie</h3>
+                    <div class="control-options">
+                        <label class="control-option" for="campo_cemento_top">
+                            <input id="campo_cemento_top" type="radio" name="campoType_top" value="cemento" checked />
+                            <span>Cemento</span>
+                        </label>
+                        <label class="control-option" for="campo_terra_top">
+                            <input id="campo_terra_top" type="radio" name="campoType_top" value="terra" />
+                            <span>Terra</span>
+                        </label>
+                        <label class="control-option" for="campo_erba_top">
+                            <input id="campo_erba_top" type="radio" name="campoType_top" value="erba" />
+                            <span>Erba</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Default -->
+                <div class="control-section">
+                    <h3 class="control-section-title">Default</h3>
+                    <div class="control-options">
+                        <div class="default-subsection">
+                            <label class="control-option" for="default_colpitore_top">
+                                <span>Colpitore:</span>
+                                <select id="default_colpitore_top" name="default_colpitore_top">
+                                    <option value="tuo" selected>Tu</option>
+                                    <option value="avversario">Avversario</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="default-subsection">
+                            <label class="control-option" for="default_modalita_top">
+                                <span>Modalità:</span>
+                                <select id="default_modalita_top" name="default_modalita_top">
+                                    <option value="1colpo">1 Colpo</option>
+                                    <option value="2colpi" selected>2 Colpi</option>
+                                    <option value="dinamico">Dinamico</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="default-subsection">
+                            <label class="control-option" for="default_tipologia_top">
+                                <span>Colpo:</span>
+                                <select id="default_tipologia_top" name="default_tipologia_top">
+                                    <option value="palleggio" selected>Palleggio</option>
+                                    <option value="passante">Passante</option>
+                                    <option value="attacco">Attacco</option>
+                                    <option value="servizio">Servizio</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="default-subsection">
+                            <label class="control-option" for="default_campoType_top">
+                                <span>Superficie:</span>
+                                <select id="default_campoType_top" name="default_campoType_top">
+                                    <option value="cemento" selected>Cemento</option>
+                                    <option value="terra">Terra</option>
+                                    <option value="erba">Erba</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="default-subsection">
+                            <label class="control-option" for="default_view_player_top">
+                                <input id="default_view_player_top" type="checkbox" checked />
+                                <span>Visualizza: Colpitore</span>
+                            </label>
+                            <label class="control-option" for="default_view_responder_top">
+                                <input id="default_view_responder_top" type="checkbox" checked />
+                                <span>Visualizza: Ricevitore</span>
+                            </label>
+                            <label class="control-option" for="default_view_directions_top">
+                                <input id="default_view_directions_top" type="checkbox" checked />
+                                <span>Visualizza: Direzioni</span>
+                            </label>
+                            <label class="control-option" for="default_view_shot_top">
+                                <input id="default_view_shot_top" type="checkbox" checked />
+                                <span>Visualizza: Colpo</span>
+                            </label>
+                            <label class="control-option" for="default_view_center_top">
+                                <input id="default_view_center_top" type="checkbox" checked />
+                                <span>Visualizza: Centro</span>
+                            </label>
+                            <label class="control-option" for="default_view_cover_top">
+                                <input id="default_view_cover_top" type="checkbox" />
+                                <span>Visualizza: Campo da Coprire</span>
+                            </label>
+                            <label class="control-option" for="default_view_zones_top">
+                                <input id="default_view_zones_top" type="checkbox" />
+                                <span>Visualizza: Zone del Campo</span>
+                            </label>
+                            <label class="control-option" for="default_view_coordinates_top">
+                                <input id="default_view_coordinates_top" type="checkbox" />
+                                <span>Visualizza: Coordinate</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="topBarDownloadOverlay" class="top-bar-modal-overlay">
+        <div class="top-bar-modal">
+            <div class="top-bar-modal-header">
+                <h2 class="top-bar-modal-title">Download</h2>
+                <button class="top-bar-modal-close" aria-label="Chiudi">×</button>
+            </div>
+            <div class="top-bar-modal-content">
+                <div id="downloadOptionsTop" style="display: none;">
+                    <!-- Opzioni per modalità 2 colpi -->
+                    <div id="downloadOptions2ColpiTop" style="display: none;">
+                        <div class="control-section" style="margin-bottom: 12px;">
+                            <h3 class="control-section-title" style="cursor: default; pointer-events: none;">Cosa vuoi scaricare?</h3>
+                            <div class="control-options" style="max-height: none; opacity: 1;">
+                                <label class="control-option" for="download_both_top">
+                                    <input id="download_both_top" type="radio" name="downloadType_top" value="both" />
+                                    <span>Entrambi i Campi</span>
+                                </label>
+                                <label class="control-option" for="download_single_top">
+                                    <input id="download_single_top" type="radio" name="downloadType_top" value="single" />
+                                    <span>Solo un Campo</span>
+                                </label>
+                            </div>
+                        </div>
+                        <div id="singleCourtOptionsTop" class="control-section" style="margin-bottom: 12px; display: none;">
+                            <h3 class="control-section-title" style="cursor: default; pointer-events: none;">Quale campo?</h3>
+                            <div class="control-options" style="max-height: none; opacity: 1;">
+                                <label class="control-option" for="download_primary_top">
+                                    <input id="download_primary_top" type="radio" name="downloadCourt_top" value="primary" checked />
+                                    <span>Primo Colpo</span>
+                                </label>
+                                <label class="control-option" for="download_secondary_top">
+                                    <input id="download_secondary_top" type="radio" name="downloadCourt_top" value="secondary" />
+                                    <span>Secondo Colpo</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Opzioni per modalità dinamico -->
+                    <div id="downloadOptionsDinamicoTop" style="display: none;">
+                        <div id="singleShotOptionsTop" class="control-section" style="margin-bottom: 12px;">
+                            <h3 class="control-section-title" style="cursor: default; pointer-events: none;">Numero Colpo</h3>
+                            <div class="control-options" style="max-height: none; opacity: 1;">
+                                <div class="default-subsection">
+                                    <label class="control-option download-shot-number-label" for="download_shot_number_top">
+                                        <input type="number" id="download_shot_number_top" min="1" value="1" />
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <button id="downloadCourtImageTop" class="download-court-button" style="display: none;">
+                    <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 6px;">
+                        <path fill="currentColor" d="M19,12V19H5V12H3V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19M13,12.67L15.59,10.08L17,11.5L12,16.5L7,11.5L8.41,10.08L11,12.67V3H13V12.67Z" />
+                    </svg>
+                    Scarica Immagine
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="page-container">
         <div class="controls-sidebar">
+            <!-- MENU Header (Desktop Only) -->
+            <div class="menu-header">
+                <h2 class="menu-title">MENU</h2>
+            </div>
+            
             <!-- Mobile Navigation Bar con 3 pallini -->
             <div class="mobile-nav-bar">
                 <span class="mobile-nav-title">Geometry<br>of Tennis</span>
@@ -282,7 +514,7 @@
                 </button>
             </div>
             
-            <!-- TITOLO PRINCIPALE -->
+            <!-- TITOLO PRINCIPALE (solo mobile) -->
             <div class="app-title-section">
                 <h1 class="app-title">Geometry of Tennis</h1>
             </div>
@@ -327,145 +559,162 @@
                 </div>
             </div>
             
-            <!-- SEZIONE IMPOSTAZIONI -->
-            <div class="panel-section" id="panelImpostazioni">
-                <div class="panel-section-header" role="button" tabindex="0" aria-expanded="false">
-                    <span class="panel-section-title">IMPOSTAZIONI</span>
-                </div>
-                <div class="panel-section-content">
-                    <!-- Colpitore -->
-            <div class="control-section collapsed">
-                <h3 class="control-section-title">Colpitore</h3>
-                <div class="control-options">
-                    <label class="control-option" for="colpitore_tuo">
+            <!-- SEZIONE COLPITORE -->
+            <div class="control-section compact">
+                <h3 class="control-section-title compact-title">
+                    <span class="menu-icon">👤</span>
+                    <span>Colpitore</span>
+                </h3>
+                <div class="control-options compact-options">
+                    <label class="control-option compact-option" for="colpitore_tuo">
                         <input id="colpitore_tuo" type="radio" name="colpitore" value="tuo" checked />
                         <span>Tu</span>
                     </label>
-                    <label class="control-option" for="colpitore_avv">
+                    <label class="control-option compact-option" for="colpitore_avv">
                         <input id="colpitore_avv" type="radio" name="colpitore" value="avversario" />
                         <span>Avversario</span>
                     </label>
                 </div>
             </div>
             
-            <!-- Tipologia di Colpo -->
-            <div class="control-section collapsed">
-                <h3 class="control-section-title">Colpo</h3>
-                <div class="control-options">
-                    <label class="control-option" for="tipo_pal">
+            <!-- SEZIONE COLPO -->
+            <div class="control-section compact">
+                <h3 class="control-section-title compact-title">
+                    <span class="menu-icon">🎾</span>
+                    <span>Colpo</span>
+                </h3>
+                <div class="control-options compact-options">
+                    <label class="control-option compact-option" for="tipo_pal">
                         <input id="tipo_pal" type="radio" name="tipologia" value="palleggio" checked />
                         <span>Palleggio</span>
                     </label>
-                    <label class="control-option" for="tipo_pas">
+                    <label class="control-option compact-option" for="tipo_pas">
                         <input id="tipo_pas" type="radio" name="tipologia" value="passante" />
                         <span>Passante / Vincente</span>
                     </label>
-                    <label class="control-option" for="tipo_att">
+                    <label class="control-option compact-option" for="tipo_att">
                         <input id="tipo_att" type="radio" name="tipologia" value="attacco" />
                         <span>Attacco</span>
                     </label>
-                    <label class="control-option" for="tipo_ser">
+                    <label class="control-option compact-option" for="tipo_ser">
                         <input id="tipo_ser" type="radio" name="tipologia" value="servizio" />
                         <span>Servizio</span>
                     </label>
                 </div>
             </div>
             
-            <!-- Visualizza -->
-            <div class="control-section collapsed">
-                <h3 class="control-section-title">Visualizza</h3>
-                <div class="control-options">
-                    <label class="control-option" for="view_player">
+            <!-- SEZIONE VISUALIZZA -->
+            <div class="control-section compact">
+                <h3 class="control-section-title compact-title">
+                    <span class="menu-icon">👁️</span>
+                    <span>Visualizza</span>
+                </h3>
+                <div class="control-options compact-options grid-view">
+                    <label class="control-option compact-option" for="view_player">
                         <input id="view_player" type="checkbox" checked />
                         <span>Colpitore</span>
                     </label>
-                    <label class="control-option" for="view_responder">
+                    <label class="control-option compact-option" for="view_responder">
                         <input id="view_responder" type="checkbox" checked />
                         <span>Ricevitore</span>
                     </label>
-                    <label class="control-option" for="view_directions">
+                    <label class="control-option compact-option" for="view_directions">
                         <input id="view_directions" type="checkbox" checked />
                         <span>Direzioni</span>
                     </label>
-                    <label class="control-option" for="view_shot">
+                    <label class="control-option compact-option" for="view_shot">
                         <input id="view_shot" type="checkbox" checked />
                         <span>Colpo</span>
                     </label>
-                    <label class="control-option" for="view_center">
+                    <label class="control-option compact-option" for="view_center">
                         <input id="view_center" type="checkbox" checked />
                         <span>Centro</span>
                     </label>
-                    <label class="control-option" for="view_cover">
+                    <label class="control-option compact-option" for="view_cover">
                         <input id="view_cover" type="checkbox" />
                         <span>Campo da Coprire</span>
                     </label>
-                    <label class="control-option" for="view_zones">
+                    <label class="control-option compact-option" for="view_zones">
                         <input id="view_zones" type="checkbox" />
                         <span>Zone del Campo</span>
                     </label>
-                    <label class="control-option" for="view_coordinates">
+                    <label class="control-option compact-option" for="view_coordinates">
                         <input id="view_coordinates" type="checkbox" />
                         <span>Coordinate</span>
                     </label>
                 </div>
             </div>
             
-            <!-- Disegna -->
-            <div class="control-section collapsed" id="draw-section">
-                <h3 class="control-section-title">Disegna</h3>
-                <div class="control-options">
-                    <div class="draw-buttons-container">
-                        <button id="draw_pen_btn" class="draw-tool-button" title="Matita">
-                            <svg viewBox="0 0 24 24" width="20" height="20">
+            <!-- SEZIONE DISEGNA -->
+            <div class="control-section compact" id="draw-section">
+                <h3 class="control-section-title compact-title">
+                    <span class="menu-icon">✏️</span>
+                    <span>Disegna</span>
+                </h3>
+                <div class="control-options compact-options">
+                    <div class="draw-buttons-container compact">
+                        <button id="draw_pen_btn" class="draw-tool-button compact" data-tool="pen" title="Matita">
+                            <svg viewBox="0 0 24 24" width="16" height="16">
                                 <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
                             </svg>
                         </button>
-                        <button id="draw_arrow_btn" class="draw-tool-button" title="Freccia">
-                            <svg viewBox="0 0 24 24" width="20" height="20">
+                        <button id="draw_arrow_btn" class="draw-tool-button compact" data-tool="arrow" title="Freccia">
+                            <svg viewBox="0 0 24 24" width="16" height="16">
                                 <path fill="currentColor" d="M4,12 L18,12 M18,12 L13,7 M18,12 L13,17" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
                         </button>
-                        <button id="draw_line_btn" class="draw-tool-button" title="Linea">
-                            <svg viewBox="0 0 24 24" width="20" height="20">
+                        <button id="draw_line_btn" class="draw-tool-button compact" data-tool="line" title="Linea">
+                            <svg viewBox="0 0 24 24" width="16" height="16">
                                 <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4,20 L20,4"/>
                             </svg>
                         </button>
-                        <button id="draw_text_btn" class="draw-tool-button" title="Testo">
-                            <svg viewBox="0 0 24 24" width="20" height="20">
+                        <button id="draw_text_btn" class="draw-tool-button compact" data-tool="text" title="Testo">
+                            <svg viewBox="0 0 24 24" width="16" height="16">
                                 <path fill="currentColor" d="M9.6,14L12,7.7L14.4,14M11,5L5.5,19H7.7L8.8,16H15.2L16.3,19H18.5L13,5H11Z"/>
                             </svg>
                         </button>
-                        <button id="draw_ruler_btn" class="draw-tool-button" title="Righello">
-                            <svg viewBox="0 0 24 24" width="20" height="20">
+                        <button id="draw_ruler_btn" class="draw-tool-button compact" data-tool="ruler" title="Righello">
+                            <svg viewBox="0 0 24 24" width="16" height="16">
                                 <path fill="currentColor" d="M1.39,18.36L3.16,16.6L4.58,18L5.64,16.95L4.22,15.54L5.64,14.12L8.11,16.6L9.17,15.54L6.7,13.06L8.11,11.65L9.53,13.06L10.59,12L9.17,10.59L10.59,9.17L13.06,11.65L14.12,10.59L11.65,8.11L13.06,6.7L14.47,8.11L15.54,7.05L14.12,5.64L15.54,4.22L18,6.7L19.07,5.64L16.6,3.16L18.36,1.39L22.61,5.64L5.64,22.61L1.39,18.36Z"/>
                             </svg>
                         </button>
-                        <button id="draw_eraser_btn" class="draw-tool-button" title="Gomma">
-                            <svg viewBox="0 0 24 24" width="20" height="20">
+                        <button id="draw_eraser_btn" class="draw-tool-button compact" data-tool="eraser" title="Gomma">
+                            <svg viewBox="0 0 24 24" width="16" height="16">
                                 <path fill="currentColor" d="M16.24,3.56L21.19,8.5C21.97,9.29 21.97,10.55 21.19,11.34L12,20.53C10.44,22.09 7.91,22.09 6.34,20.53L2.81,17C2.03,16.21 2.03,14.95 2.81,14.16L13.41,3.56C14.2,2.78 15.46,2.78 16.24,3.56M4.22,15.58L7.76,19.11C8.54,19.9 9.8,19.9 10.59,19.11L14.12,15.58L9.17,10.63L4.22,15.58Z" />
                             </svg>
                         </button>
-                        <button id="draw_clear_btn" class="draw-clear-button" title="Cancella tutto">
-                            Cancella tutto
+                        <button id="draw_clear_btn" class="draw-tool-button compact" data-tool="clear" title="Cancella tutto">
+                            <svg viewBox="0 0 24 24" width="16" height="16">
+                                <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+                            </svg>
                         </button>
                     </div>
-                    <div class="draw-color-picker">
-                        <label class="draw-label">Colore:</label>
-                        <input type="color" id="draw_color" value="#000000" />
+                    <!-- Controlli che appaiono al hover -->
+                    <div class="draw-controls-hover" id="draw_controls_hover" style="display: none;">
+                        <div class="draw-color-picker-hover compact">
+                            <label class="draw-label compact">Colore:</label>
+                            <input type="color" id="draw_color" value="#000000" class="compact-color" />
+                        </div>
+                        <div class="draw-width-picker-hover compact">
+                            <label class="draw-label compact">Spessore:</label>
+                            <input type="range" id="draw_width" min="1" max="10" value="3" class="compact-range" />
+                            <span id="draw_width_value" class="compact-value">3</span>
+                        </div>
                     </div>
-                    <div class="draw-width-picker">
-                        <label class="draw-label">Spessore:</label>
-                        <input type="range" id="draw_width" min="1" max="10" value="3" />
-                        <span id="draw_width_value">3</span>
-                    </div>
-                    <div class="draw-font-size-picker" id="draw_font_size_container" style="display: none;">
-                        <label class="draw-label">Dimensione:</label>
-                        <input type="range" id="draw_font_size" min="12" max="48" value="16" />
-                        <span id="draw_font_size_value">16</span>
+                    <div class="draw-font-size-picker-hover compact" id="draw_font_size_hover" style="display: none;">
+                        <label class="draw-label compact">Dimensione:</label>
+                        <input type="range" id="draw_font_size" min="12" max="48" value="16" class="compact-range" />
+                        <span id="draw_font_size_value" class="compact-value">16</span>
                     </div>
                 </div>
             </div>
             
+            <!-- SEZIONE IMPOSTAZIONI (solo Superficie e Default) -->
+            <div class="panel-section" id="panelImpostazioni">
+                <div class="panel-section-header" role="button" tabindex="0" aria-expanded="false">
+                    <span class="panel-section-title">IMPOSTAZIONI</span>
+                </div>
+                <div class="panel-section-content">
             <!-- Superficie Campo -->
             <div class="control-section collapsed">
                 <h3 class="control-section-title">Superficie</h3>
@@ -626,70 +875,6 @@
                     </button>
                 </div>
             </div>
-            
-            <!-- SEZIONE DOWNLOAD -->
-            <div class="panel-section" id="panelDownload">
-                <div class="panel-section-header" role="button" tabindex="0" aria-expanded="false">
-                    <span class="panel-section-title">DOWNLOAD</span>
-                </div>
-                <div class="panel-section-content">
-                    <div id="downloadOptions" style="display: none;">
-                        <!-- Opzioni per modalità 2 colpi -->
-                        <div id="downloadOptions2Colpi" style="display: none;">
-                            <div class="control-section collapsed" style="margin-bottom: 12px;">
-                                <h3 class="control-section-title" style="cursor: default; pointer-events: none;">Cosa vuoi scaricare?</h3>
-                                <div class="control-options" style="max-height: none; opacity: 1;">
-                                    <label class="control-option" for="download_both">
-                                        <input id="download_both" type="radio" name="downloadType" value="both" />
-                                        <span>Entrambi i Campi</span>
-                                    </label>
-                                    <label class="control-option" for="download_single">
-                                        <input id="download_single" type="radio" name="downloadType" value="single" />
-                                        <span>Solo un Campo</span>
-                                    </label>
-                                </div>
-                            </div>
-                            <div id="singleCourtOptions" class="control-section collapsed" style="margin-bottom: 12px; display: none;">
-                                <h3 class="control-section-title" style="cursor: default; pointer-events: none;">Quale campo?</h3>
-                                <div class="control-options" style="max-height: none; opacity: 1;">
-                                    <label class="control-option" for="download_primary">
-                                        <input id="download_primary" type="radio" name="downloadCourt" value="primary" checked />
-                                        <span>Primo Colpo</span>
-                                    </label>
-                                    <label class="control-option" for="download_secondary">
-                                        <input id="download_secondary" type="radio" name="downloadCourt" value="secondary" />
-                                        <span>Secondo Colpo</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Opzioni per modalità dinamico (solo immagine di un colpo) -->
-                        <div id="downloadOptionsDinamico" style="display: none;">
-                            <div id="singleShotOptions" class="control-section collapsed" style="margin-bottom: 12px;">
-                                <h3 class="control-section-title" style="cursor: default; pointer-events: none;">Numero Colpo</h3>
-                                <div class="control-options" style="max-height: none; opacity: 1;">
-                                    <div class="default-subsection">
-                                        <label class="control-option download-shot-number-label" for="download_shot_number">
-                                            <input type="number" id="download_shot_number" min="1" value="1" />
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <button id="downloadCourtImage" class="download-court-button" style="display: none;">
-                        <svg viewBox="0 0 24 24" width="16" height="16" style="margin-right: 6px;">
-                            <path fill="currentColor" d="M19,12V19H5V12H3V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19M13,12.67L15.59,10.08L17,11.5L12,16.5L7,11.5L8.41,10.08L11,12.67V3H13V12.67Z" />
-                        </svg>
-                        Scarica Immagine
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Footer con crediti -->
-            <div class="sidebar-footer">
-                <span class="sidebar-footer-text">© Web App di Giovanni Femia 2025</span>
-            </div>
         </div>
         
         <button id="mobilePanelToggle" class="mobile-panel-toggle" type="button" aria-label="Mostra campo secondario">
@@ -823,11 +1008,6 @@
                 <button id="nuovoScambioButton" class="nuovo-scambio-button">NUOVO PUNTO</button>
             </div>
         </div>
-    </div>
-    
-    <!-- Footer per mobile (in fondo alla schermata) -->
-    <div class="page-footer-mobile">
-        <span class="page-footer-text">© Web App di Giovanni Femia 2025</span>
     </div>
     
     <!-- Alert overlay per movimento colpitore in modalità dinamico -->

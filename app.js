@@ -5852,3 +5852,389 @@
 
         })();
 
+        // ==========================================
+        // TOP BAR FUNCTIONALITY (Desktop Only)
+        // ==========================================
+        (function() {
+            const topBarModalita = document.getElementById('topBarModalita');
+            const topBarGuida = document.getElementById('topBarGuida');
+            const topBarImpostazioni = document.getElementById('topBarImpostazioni');
+            const topBarDownload = document.getElementById('topBarDownload');
+            
+            const modalitaOverlay = document.getElementById('topBarModalitaOverlay');
+            const impostazioniOverlay = document.getElementById('topBarImpostazioniOverlay');
+            const downloadOverlay = document.getElementById('topBarDownloadOverlay');
+            
+            // Function to close all modals
+            function closeAllModals() {
+                [modalitaOverlay, impostazioniOverlay, downloadOverlay].forEach(overlay => {
+                    if (overlay) {
+                        overlay.classList.remove('active');
+                    }
+                });
+                
+                // Remove active class from all top bar items
+                document.querySelectorAll('.top-bar-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+            }
+            
+            // Function to open a modal
+            function openModal(overlay, button) {
+                closeAllModals();
+                if (overlay) {
+                    overlay.classList.add('active');
+                }
+                if (button) {
+                    button.classList.add('active');
+                }
+            }
+            
+            // Modalità button
+            if (topBarModalita && modalitaOverlay) {
+                topBarModalita.addEventListener('click', () => {
+                    if (modalitaOverlay.classList.contains('active')) {
+                        closeAllModals();
+                    } else {
+                        openModal(modalitaOverlay, topBarModalita);
+                    }
+                });
+            }
+            
+            // Guida button - opens tutorial
+            if (topBarGuida) {
+                topBarGuida.addEventListener('click', () => {
+                    closeAllModals();
+                    // Trigger the tutorial
+                    const desktopGuidaButton = document.getElementById('desktopGuidaButton');
+                    if (desktopGuidaButton) {
+                        desktopGuidaButton.click();
+                    }
+                });
+            }
+            
+            // Impostazioni button
+            if (topBarImpostazioni && impostazioniOverlay) {
+                topBarImpostazioni.addEventListener('click', () => {
+                    if (impostazioniOverlay.classList.contains('active')) {
+                        closeAllModals();
+                    } else {
+                        openModal(impostazioniOverlay, topBarImpostazioni);
+                    }
+                });
+            }
+            
+            // Download button
+            if (topBarDownload && downloadOverlay) {
+                topBarDownload.addEventListener('click', () => {
+                    if (downloadOverlay.classList.contains('active')) {
+                        closeAllModals();
+                    } else {
+                        openModal(downloadOverlay, topBarDownload);
+                        // Trigger download options update
+                        updateDownloadOptionsTop();
+                    }
+                });
+            }
+            
+            // Close buttons
+            document.querySelectorAll('.top-bar-modal-close').forEach(closeBtn => {
+                closeBtn.addEventListener('click', closeAllModals);
+            });
+            
+            // Close on overlay click
+            [modalitaOverlay, impostazioniOverlay, downloadOverlay].forEach(overlay => {
+                if (overlay) {
+                    overlay.addEventListener('click', (e) => {
+                        if (e.target === overlay) {
+                            closeAllModals();
+                        }
+                    });
+                }
+            });
+            
+            // Close on ESC key
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    closeAllModals();
+                }
+            });
+            
+            // Sync modalità changes between top bar and sidebar
+            const modalitaRadiosTop = document.querySelectorAll('input[name="modalita_top"]');
+            const modalitaRadiosSidebar = document.querySelectorAll('input[name="modalita"]');
+            
+            modalitaRadiosTop.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    // Sync to sidebar
+                    const correspondingSidebar = document.querySelector(`input[name="modalita"][value="${radio.value}"]`);
+                    if (correspondingSidebar) {
+                        correspondingSidebar.checked = true;
+                        correspondingSidebar.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                    closeAllModals();
+                });
+            });
+            
+            // Sync superficie changes
+            const superficieRadiosTop = document.querySelectorAll('input[name="campoType_top"]');
+            const superficieRadiosSidebar = document.querySelectorAll('input[name="campoType"]');
+            
+            superficieRadiosTop.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    const correspondingSidebar = document.querySelector(`input[name="campoType"][value="${radio.value}"]`);
+                    if (correspondingSidebar) {
+                        correspondingSidebar.checked = true;
+                        correspondingSidebar.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                });
+            });
+            
+            // Sync default settings
+            const defaultSelects = ['default_colpitore', 'default_modalita', 'default_tipologia', 'default_campoType'];
+            defaultSelects.forEach(selectName => {
+                const topSelect = document.getElementById(`${selectName}_top`);
+                const sidebarSelect = document.getElementById(selectName);
+                
+                if (topSelect && sidebarSelect) {
+                    topSelect.addEventListener('change', () => {
+                        sidebarSelect.value = topSelect.value;
+                        sidebarSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                    
+                    sidebarSelect.addEventListener('change', () => {
+                        topSelect.value = sidebarSelect.value;
+                    });
+                }
+            });
+            
+            // Sync default checkboxes
+            const defaultCheckboxes = ['default_view_player', 'default_view_responder', 'default_view_directions', 
+                                      'default_view_shot', 'default_view_center', 'default_view_cover', 
+                                      'default_view_zones', 'default_view_coordinates'];
+            defaultCheckboxes.forEach(checkboxName => {
+                const topCheckbox = document.getElementById(`${checkboxName}_top`);
+                const sidebarCheckbox = document.getElementById(checkboxName);
+                
+                if (topCheckbox && sidebarCheckbox) {
+                    topCheckbox.addEventListener('change', () => {
+                        sidebarCheckbox.checked = topCheckbox.checked;
+                        sidebarCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                    
+                    sidebarCheckbox.addEventListener('change', () => {
+                        topCheckbox.checked = sidebarCheckbox.checked;
+                    });
+                }
+            });
+            
+            // Download functionality for top bar
+            function updateDownloadOptionsTop() {
+                const downloadOptionsTop = document.getElementById('downloadOptionsTop');
+                const downloadOptions2ColpiTop = document.getElementById('downloadOptions2ColpiTop');
+                const downloadOptionsDinamicoTop = document.getElementById('downloadOptionsDinamicoTop');
+                const downloadButtonTop = document.getElementById('downloadCourtImageTop');
+                const singleCourtOptionsTop = document.getElementById('singleCourtOptionsTop');
+                
+                if (!downloadOptionsTop) return;
+                
+                // Get current mode
+                const currentMode = document.querySelector('input[name="modalita"]:checked')?.value || '2colpi';
+                
+                // Show/hide options based on mode
+                if (currentMode === '2colpi') {
+                    downloadOptionsTop.style.display = 'block';
+                    downloadOptions2ColpiTop.style.display = 'block';
+                    downloadOptionsDinamicoTop.style.display = 'none';
+                    downloadButtonTop.style.display = 'flex';
+                } else if (currentMode === 'dinamico') {
+                    downloadOptionsTop.style.display = 'block';
+                    downloadOptions2ColpiTop.style.display = 'none';
+                    downloadOptionsDinamicoTop.style.display = 'block';
+                    downloadButtonTop.style.display = 'flex';
+                } else {
+                    downloadOptionsTop.style.display = 'none';
+                    downloadButtonTop.style.display = 'flex';
+                }
+                
+                // Handle single court options visibility
+                const downloadSingleTop = document.getElementById('download_single_top');
+                if (downloadSingleTop) {
+                    downloadSingleTop.addEventListener('change', () => {
+                        if (singleCourtOptionsTop) {
+                            singleCourtOptionsTop.style.display = 'block';
+                        }
+                    });
+                }
+                
+                const downloadBothTop = document.getElementById('download_both_top');
+                if (downloadBothTop) {
+                    downloadBothTop.addEventListener('change', () => {
+                        if (singleCourtOptionsTop) {
+                            singleCourtOptionsTop.style.display = 'none';
+                        }
+                    });
+                }
+            }
+            
+            // Download button click handler
+            const downloadButtonTop = document.getElementById('downloadCourtImageTop');
+            if (downloadButtonTop) {
+                downloadButtonTop.addEventListener('click', () => {
+                    // Trigger the main download button
+                    const mainDownloadButton = document.getElementById('downloadCourtImage');
+                    if (mainDownloadButton) {
+                        // Sync download options first
+                        const currentMode = document.querySelector('input[name="modalita"]:checked')?.value || '2colpi';
+                        
+                        if (currentMode === '2colpi') {
+                            const downloadTypeTop = document.querySelector('input[name="downloadType_top"]:checked')?.value;
+                            if (downloadTypeTop) {
+                                const correspondingMain = document.querySelector(`input[name="downloadType"][value="${downloadTypeTop}"]`);
+                                if (correspondingMain) {
+                                    correspondingMain.checked = true;
+                                    correspondingMain.dispatchEvent(new Event('change', { bubbles: true }));
+                                }
+                            }
+                            
+                            const downloadCourtTop = document.querySelector('input[name="downloadCourt_top"]:checked')?.value;
+                            if (downloadCourtTop) {
+                                const correspondingMain = document.querySelector(`input[name="downloadCourt"][value="${downloadCourtTop}"]`);
+                                if (correspondingMain) {
+                                    correspondingMain.checked = true;
+                                }
+                            }
+                        } else if (currentMode === 'dinamico') {
+                            const shotNumberTop = document.getElementById('download_shot_number_top');
+                            const shotNumberMain = document.getElementById('download_shot_number');
+                            if (shotNumberTop && shotNumberMain) {
+                                shotNumberMain.value = shotNumberTop.value;
+                            }
+                        }
+                        
+                        mainDownloadButton.click();
+                    }
+                    closeAllModals();
+                });
+            }
+        })();
+
+        // ==========================================
+        // DRAW CONTROLS HOVER FUNCTIONALITY
+        // ==========================================
+        (function() {
+            const drawControlsHover = document.getElementById('draw_controls_hover');
+            const drawFontSizeHover = document.getElementById('draw_font_size_hover');
+            const drawSection = document.getElementById('draw-section');
+            
+            if (!drawSection || !drawControlsHover) return;
+            
+            // Tools that need color and width controls
+            const toolsWithControls = ['pen', 'arrow', 'line', 'ruler'];
+            // Tools that need font size controls
+            const toolsWithFontSize = ['text'];
+            // Tools that don't need controls
+            const toolsWithoutControls = ['eraser', 'clear'];
+            
+            // Get all draw tool buttons
+            const drawToolButtons = drawSection.querySelectorAll('.draw-tool-button[data-tool]');
+            
+            let hoverTimeout;
+            
+            function showControls(tool) {
+                // Clear any existing timeout
+                if (hoverTimeout) {
+                    clearTimeout(hoverTimeout);
+                    hoverTimeout = null;
+                }
+                
+                // Hide all controls first
+                drawControlsHover.classList.remove('show');
+                if (drawFontSizeHover) {
+                    drawFontSizeHover.classList.remove('show');
+                }
+                
+                // Show appropriate controls based on tool
+                if (toolsWithControls.includes(tool)) {
+                    // Show color and width controls
+                    drawControlsHover.classList.add('show');
+                    if (drawFontSizeHover) {
+                        drawFontSizeHover.classList.remove('show');
+                    }
+                } else if (toolsWithFontSize.includes(tool)) {
+                    // Show color, width, and font size controls for text
+                    drawControlsHover.classList.add('show');
+                    if (drawFontSizeHover) {
+                        drawFontSizeHover.classList.add('show');
+                    }
+                }
+            }
+            
+            function hideControls() {
+                hoverTimeout = setTimeout(() => {
+                    drawControlsHover.classList.remove('show');
+                    if (drawFontSizeHover) {
+                        drawFontSizeHover.classList.remove('show');
+                    }
+                }, 200); // Small delay to allow moving between button and controls
+            }
+            
+            // Add hover listeners to each tool button
+            drawToolButtons.forEach(button => {
+                const tool = button.getAttribute('data-tool');
+                
+                if (tool && !toolsWithoutControls.includes(tool)) {
+                    button.addEventListener('mouseenter', () => {
+                        showControls(tool);
+                    });
+                    
+                    button.addEventListener('mouseleave', () => {
+                        hideControls();
+                    });
+                }
+            });
+            
+            // Keep controls visible when hovering over them
+            if (drawControlsHover) {
+                drawControlsHover.addEventListener('mouseenter', () => {
+                    if (hoverTimeout) {
+                        clearTimeout(hoverTimeout);
+                        hoverTimeout = null;
+                    }
+                });
+                
+                drawControlsHover.addEventListener('mouseleave', () => {
+                    hideControls();
+                });
+            }
+            
+            if (drawFontSizeHover) {
+                drawFontSizeHover.addEventListener('mouseenter', () => {
+                    if (hoverTimeout) {
+                        clearTimeout(hoverTimeout);
+                        hoverTimeout = null;
+                    }
+                });
+                
+                drawFontSizeHover.addEventListener('mouseleave', () => {
+                    hideControls();
+                });
+            }
+            
+            // Hide controls when clicking on clear or eraser (they don't need controls)
+            const clearButton = document.getElementById('draw_clear_btn');
+            const eraserButton = document.getElementById('draw_eraser_btn');
+            
+            if (clearButton) {
+                clearButton.addEventListener('click', () => {
+                    hideControls();
+                });
+            }
+            
+            if (eraserButton) {
+                eraserButton.addEventListener('click', () => {
+                    hideControls();
+                });
+            }
+        })();
+

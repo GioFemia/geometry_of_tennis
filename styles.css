@@ -8,6 +8,7 @@ body {
     overflow-y: hidden;
     background: linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
     --mobile-side-padding: clamp(12px, 5vw, 24px);
+    --top-bar-height: 60px;
 }
 
 :root {
@@ -18,35 +19,318 @@ body {
     --mobile-dinamico-court-shift: 0px;
 }
 
+/* ==========================================
+   TOP BAR (Desktop Only)
+   ========================================== */
+.top-bar {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: var(--top-bar-height);
+    background: linear-gradient(135deg, #1565c0 0%, #1976d2 50%, #1565c0 100%);
+    box-shadow: 0 2px 12px rgba(21, 101, 192, 0.3);
+    z-index: 100;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    box-sizing: border-box;
+}
+
+@media (min-width: 901px) {
+    .top-bar {
+        display: flex;
+    }
+}
+
+.top-bar-left {
+    display: flex;
+    align-items: center;
+}
+
+.top-bar-title {
+    font-family: 'Poppins', 'Roboto', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #ffffff 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 2px;
+    margin: 0;
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+    animation: gradientShift 4s ease infinite;
+    text-transform: uppercase;
+    font-style: italic;
+    white-space: nowrap;
+}
+
+.top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.top-bar-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.top-bar-item:hover {
+    background: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.top-bar-item.active {
+    background: #ffffff;
+    color: #1976d2;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.top-bar-label {
+    white-space: nowrap;
+}
+
+/* ==========================================
+   TOP BAR MODALS (Desktop Only)
+   ========================================== */
+.top-bar-modal-overlay {
+    display: none;
+    position: fixed;
+    top: var(--top-bar-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 90;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.top-bar-modal-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+.top-bar-modal {
+    position: absolute;
+    top: 12px;
+    right: 24px;
+    width: 400px;
+    max-width: calc(100vw - 48px);
+    max-height: calc(100vh - var(--top-bar-height) - 24px);
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(-10px);
+    opacity: 0;
+    transition: all 0.3s ease;
+}
+
+.top-bar-modal-overlay.active .top-bar-modal {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.top-bar-modal-header {
+    padding: 20px 24px;
+    background: linear-gradient(135deg, #1565c0 0%, #1976d2 50%, #1565c0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.top-bar-modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+.top-bar-modal-close {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    font-size: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.top-bar-modal-close:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: rotate(90deg);
+}
+
+.top-bar-modal-content {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+.top-bar-modal-content .control-section {
+    margin-bottom: 20px;
+}
+
+.top-bar-modal-content .panel-section-content {
+    max-height: none !important;
+    opacity: 1 !important;
+    padding-top: 0 !important;
+}
+
+@media (min-width: 901px) {
+    .top-bar-modal-overlay {
+        display: none;
+    }
+    
+    .top-bar-modal-overlay.active {
+        display: block;
+    }
+}
+
 .page-container { 
     display: grid; 
     grid-template-columns: auto 1fr 1fr; 
     gap: 0.8em; 
     height: 100vh;
     padding: 0.8em;
+    padding-left: 1.5em;
+    padding-right: 1.5em;
     box-sizing: border-box;
     position: relative; 
-    margin-right: 8em;
+    margin-right: 0;
     min-width: 1400px;
+}
+
+@media (min-width: 901px) {
+    .page-container {
+        height: calc(100vh - var(--top-bar-height));
+        margin-top: var(--top-bar-height);
+        padding-top: 1em;
+        padding-bottom: 1em;
+    }
 }
 
 .controls-sidebar {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    padding: 12px;
-    background: #ffffff;
-    border-radius: 18px;
-    box-shadow: 0 4px 24px rgba(44, 62, 80, 0.13);
-    min-width: 200px;
-    max-width: 240px;
-    width: 240px;
+    gap: 8px;
+    padding: 10px;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 1px solid rgba(25, 118, 210, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 6px 28px rgba(44, 62, 80, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+    min-width: 280px;
+    max-width: 320px;
+    width: 320px;
     flex-shrink: 0;
-    margin-left: 8em;
+    margin-left: 0;
     max-height: calc(100vh - 1.6em);
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
+}
+
+@media (min-width: 901px) {
+    .controls-sidebar {
+        max-height: calc(100vh - var(--top-bar-height) - 1.6em);
+        gap: 6px;
+        padding: 10px;
+        overflow-y: hidden; /* No scroll on desktop */
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+    }
+    
+    /* Ensure menu header doesn't take too much space */
+    .controls-sidebar .menu-header {
+        flex-shrink: 0;
+        padding: 8px 0 6px;
+        margin-bottom: 6px;
+    }
+    
+    /* Compact all sections on desktop */
+    .controls-sidebar .control-section.compact {
+        flex-shrink: 0;
+    }
+    
+    /* Ensure sections fit without scroll */
+    .controls-sidebar .control-section:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/* ==========================================
+   MENU HEADER (Desktop Only)
+   ========================================== */
+.menu-header {
+    display: none;
+    padding: 12px 0 10px;
+    border-bottom: 2px solid rgba(25, 118, 210, 0.2);
+    margin-bottom: 8px;
+    position: relative;
+}
+
+.menu-header::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 20%;
+    right: 20%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #1976d2, transparent);
+    opacity: 0.5;
+}
+
+@media (min-width: 901px) {
+    .menu-header {
+        display: block;
+        padding: 8px 0 6px;
+        margin-bottom: 6px;
+    }
+}
+
+.menu-title {
+    font-family: 'Poppins', 'Roboto', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: #1976d2;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0;
+    text-align: center;
+    background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .sidebar-footer {
@@ -68,6 +352,35 @@ body {
     display: flex;
     flex-direction: column;
     gap: 6px;
+    margin-bottom: 16px;
+}
+
+/* Compact version for desktop */
+.control-section.compact {
+    margin-bottom: 8px;
+    gap: 4px;
+}
+
+@media (min-width: 901px) {
+    .control-section {
+        display: flex !important;
+        margin-bottom: 10px;
+    }
+    
+    .control-section.compact {
+        margin-bottom: 8px;
+    }
+    
+    .control-section .control-section-title::after {
+        display: none;
+    }
+    
+    .control-section .control-options {
+        max-height: none !important;
+        opacity: 1 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
 }
         
 .control-section-title {
@@ -83,6 +396,62 @@ body {
     user-select: none;
     position: relative;
     transition: color 0.2s ease;
+}
+
+/* Compact title style */
+.control-section-title.compact-title {
+    padding: 7px 0 5px 0;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border-bottom: 1.5px solid #e0e0e0;
+    color: #455a64;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+}
+
+.control-section-title.compact-title span:not(.menu-icon) {
+    font-size: 13px;
+}
+
+@media (min-width: 901px) {
+    .control-section-title.compact-title {
+        font-size: 13px;
+        padding: 7px 0 5px 0;
+        gap: 7px;
+    }
+    
+    .control-section-title.compact-title span:not(.menu-icon) {
+        font-size: 13px;
+    }
+}
+
+.menu-icon {
+    font-size: 14px;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+}
+
+@media (min-width: 901px) {
+    .menu-icon {
+        font-size: 12px;
+    }
+}
+
+/* On desktop, make titles non-interactive */
+@media (min-width: 901px) {
+    .control-section-title {
+        cursor: default;
+        pointer-events: none;
+    }
+    
+    .control-section-title.compact-title {
+        padding: 5px 0 3px 0;
+        font-size: 10px;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+    }
 }
         
 .control-section-title:hover {
@@ -109,6 +478,30 @@ body {
     gap: 4px;
     transition: all 0.3s ease;
     overflow: hidden;
+}
+
+/* Compact options */
+.control-options.compact-options {
+    gap: 3px;
+}
+
+/* Grid layout for Visualizza section on desktop */
+.control-options.grid-view {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3px;
+    column-gap: 6px;
+}
+
+@media (min-width: 901px) {
+    .control-options.compact-options {
+        gap: 2px;
+    }
+    
+    .control-options.grid-view {
+        gap: 2px;
+        column-gap: 4px;
+    }
 }
         
 .control-section.collapsed .control-options {
@@ -229,9 +622,44 @@ body {
     transition: background 0.2s ease;
     user-select: none;
 }
+
+/* Compact option */
+.control-option.compact-option {
+    padding: 4px 7px;
+    gap: 6px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+    transition: all 0.2s ease;
+    font-size: 11px;
+}
+
+@media (min-width: 901px) {
+    .control-option.compact-option {
+        padding: 5px 8px;
+        gap: 7px;
+        font-size: 13px;
+    }
+    
+    .control-option.compact-option span {
+        font-size: 13px;
+    }
+    
+    .control-option.compact-option:has(input:checked) {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border-color: #1976d2;
+        color: #1565c0;
+        font-weight: 600;
+    }
+}
         
 .control-option:hover {
     background: #f5f5f5;
+}
+
+.control-option.compact-option:hover {
+    background: #e3f2fd;
+    border-color: #90caf9;
+    transform: translateX(2px);
 }
         
 .control-option input[type="radio"],
@@ -306,9 +734,8 @@ body {
 /* Freccia tra i campi per modalità 2 colpi (solo desktop) */
 .courts-arrow {
     position: absolute;
-    /* Posizionata al centro tra i due campi: considerando che la sidebar è a sinistra e i due campi occupano ciascuno 1fr */
-    /* Il page-container ha grid: auto 1fr 1fr, quindi la freccia deve essere al 75% circa della larghezza totale */
-    left: 61.5%;
+    /* Posizionata al centro tra i due campi */
+    left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
     width: 64px;
@@ -486,18 +913,14 @@ body {
     order: 2;
 }
 
-/* Mobile responsiveness - riduce spazi esterni e permette scroll orizzontale */
-@media (max-width: 1600px) {
+/* Desktop responsiveness */
+@media (min-width: 901px) and (max-width: 1600px) {
     .page-container {
-        margin-right: 4em;
-    }
-            
-    .controls-sidebar {
-        margin-left: 4em;
+        margin-right: 2em;
     }
 }
         
-@media (max-width: 1400px) {
+@media (min-width: 901px) and (max-width: 1400px) {
     body {
         overflow-x: auto;
         overflow-y: hidden;
@@ -505,39 +928,27 @@ body {
             
     .page-container {
         min-width: 1200px;
-        margin-right: 2em;
+        margin-right: 1em;
         gap: 0.5em;
         padding: 0.5em;
     }
-            
-    .controls-sidebar {
-        margin-left: 2em;
-    }
 }
         
-@media (max-width: 1200px) {
+@media (min-width: 901px) and (max-width: 1200px) {
     .page-container {
         min-width: 1100px;
-        margin-right: 1em;
+        margin-right: 0.5em;
         gap: 0.4em;
         padding: 0.4em;
     }
-            
-    .controls-sidebar {
-        margin-left: 1em;
-    }
 }
         
-@media (max-width: 1100px) {
+@media (min-width: 901px) and (max-width: 1100px) {
     .page-container {
         min-width: 1050px;
-        margin-right: 0.5em;
+        margin-right: 0.3em;
         gap: 0.3em;
         padding: 0.3em;
-    }
-            
-    .controls-sidebar {
-        margin-left: 0.5em;
     }
 }
 
@@ -1202,6 +1613,13 @@ body {
     flex-shrink: 0;
 }
 
+/* Hide app title section on desktop (shown in top bar instead) */
+@media (min-width: 901px) {
+    .app-title-section {
+        display: none;
+    }
+}
+
 .app-title-section::before {
     content: '';
     position: absolute;
@@ -1247,6 +1665,13 @@ body {
    ========================================== */
 .panel-section {
     margin-bottom: 12px;
+}
+
+/* Hide panel sections on desktop (accessed via top bar) */
+@media (min-width: 901px) {
+    .panel-section {
+        display: none !important;
+    }
 }
 
 .panel-section-header {
@@ -1885,6 +2310,19 @@ body {
     margin-bottom: 12px;
     flex-wrap: wrap;
 }
+
+/* Compact draw buttons */
+.draw-buttons-container.compact {
+    gap: 4px;
+    margin-bottom: 8px;
+}
+
+@media (min-width: 901px) {
+    .draw-buttons-container.compact {
+        gap: 3px;
+        margin-bottom: 6px;
+    }
+}
         
 .draw-tool-button {
     flex: 0 0 calc(33.333% - 6px);
@@ -1901,11 +2339,61 @@ body {
     transition: all 0.3s ease;
     padding: 0;
 }
+
+/* Compact draw button */
+.draw-tool-button.compact {
+    flex: 0 0 calc(25% - 3px);
+    min-width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    border-width: 1.5px;
+}
+
+@media (min-width: 901px) {
+    .draw-tool-button.compact {
+        min-width: 30px;
+        height: 30px;
+        border-radius: 5px;
+    }
+    
+    .draw-tool-button.compact[data-tool="clear"] {
+        border-color: #f44336;
+        color: #f44336;
+    }
+    
+    .draw-tool-button.compact[data-tool="clear"] {
+        border-color: #f44336;
+        color: #f44336;
+    }
+    
+    .draw-tool-button.compact[data-tool="clear"]:hover {
+        background: #f44336;
+        color: #ffffff;
+        transform: scale(1.05);
+    }
+    
+    .draw-tool-button.compact[data-tool="clear"].active {
+        background: linear-gradient(135deg, #f44336 0%, #e53935 100%);
+        border-color: #f44336;
+        color: #ffffff;
+        box-shadow: 0 2px 6px rgba(244, 67, 54, 0.3);
+    }
+    
+    .draw-tool-button.compact[data-tool="eraser"]:hover {
+        border-color: #ff9800;
+        color: #ff9800;
+    }
+}
         
 .draw-tool-button:hover {
     background: #f5f5f5;
     border-color: #1976d2;
     color: #1976d2;
+}
+
+.draw-tool-button.compact:hover {
+    background: #e3f2fd;
+    transform: scale(1.05);
 }
         
 .draw-tool-button.active {
@@ -1914,34 +2402,77 @@ body {
     color: #ffffff;
     box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
 }
-        
-.draw-clear-button {
-    width: 100%;
-    padding: 10px;
-    border: 2px solid #f44336;
-    border-radius: 8px;
-    background: #ffffff;
-    color: #f44336;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+
+.draw-tool-button.compact.active {
+    box-shadow: 0 2px 6px rgba(25, 118, 210, 0.3);
 }
         
-.draw-clear-button:hover {
-    background: #f44336;
-    color: #ffffff;
+/* Draw controls that appear on hover */
+.draw-controls-hover {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 6px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    animation: fadeIn 0.2s ease;
 }
-        
-.draw-color-picker,
-.draw-width-picker,
-.draw-font-size-picker {
+
+.draw-controls-hover.show {
     display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 8px;
+}
+
+.draw-color-picker-hover,
+.draw-width-picker-hover,
+.draw-font-size-picker-hover {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 6px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    animation: fadeIn 0.2s ease;
+}
+
+.draw-font-size-picker-hover.show {
+    display: flex;
+}
+
+@media (min-width: 901px) {
+    .draw-controls-hover {
+        gap: 3px;
+        margin-top: 4px;
+        padding: 4px;
+        border-radius: 4px;
+    }
+    
+    .draw-font-size-picker-hover {
+        gap: 3px;
+        margin-top: 4px;
+        padding: 4px;
+        border-radius: 4px;
+    }
+    
+    .draw-color-picker-hover,
+    .draw-width-picker-hover,
+    .draw-font-size-picker-hover {
+        gap: 4px;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
         
 .draw-label {
@@ -1949,6 +2480,49 @@ body {
     font-weight: 600;
     color: #607d8b;
     min-width: 90px;
+}
+
+.draw-label.compact {
+    font-size: 11px;
+    min-width: 60px;
+}
+
+@media (min-width: 901px) {
+    .draw-label.compact {
+        font-size: 11px;
+        min-width: 55px;
+    }
+}
+
+.compact-color {
+    width: 32px;
+    height: 28px;
+}
+
+@media (min-width: 901px) {
+    .compact-color {
+        width: 28px;
+        height: 24px;
+    }
+}
+
+.compact-range {
+    flex: 1;
+}
+
+.compact-value {
+    min-width: 20px;
+    text-align: center;
+    font-weight: 600;
+    color: #1976d2;
+    font-size: 12px;
+}
+
+@media (min-width: 901px) {
+    .compact-value {
+        font-size: 11px;
+        min-width: 18px;
+    }
 }
         
 .draggable-text {
