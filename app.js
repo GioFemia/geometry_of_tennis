@@ -1742,6 +1742,7 @@
                 window.addEventListener('pointermove', onPointerMove);
                 window.addEventListener('pointerup', onPointerUp);
                 window.addEventListener('resize', updateArrowHtmlPosition);
+                window.addEventListener('resize', updateCourtsArrowPosition);
             })();
 
             // Colpitore change
@@ -1893,6 +1894,9 @@
                         updateModeIndicator(val);
                         updateDownloadButtonVisibility(val);
                         
+                        // Aggiorna la posizione della freccia tra i campi
+                        updateCourtsArrowPosition();
+                        
                         // Aggiorna la modalità sidebar della guida se aperta
                         if (typeof window.updateDesktopTutorialSidebar === 'function') {
                             window.updateDesktopTutorialSidebar();
@@ -1917,7 +1921,53 @@
                     }
                     // Initialize download button visibility
                     updateDownloadButtonVisibility(initialVal);
+                    
+                    // Inizializza la posizione della freccia tra i campi
+                    setTimeout(() => {
+                        updateCourtsArrowPosition();
+                    }, 100);
                 }
+            }
+            
+            // Funzione per aggiornare la posizione della freccia all'altezza della rete
+            function updateCourtsArrowPosition() {
+                const courtsArrow = document.getElementById('courtsArrow');
+                if (!courtsArrow) return;
+                
+                // Solo su desktop e in modalità 2 colpi
+                if (window.innerWidth <= 900 || window.__modalita__ !== '2colpi') {
+                    return;
+                }
+                
+                const primaryCourt = document.querySelector('.court-container.primary-court');
+                if (!primaryCourt) return;
+                
+                // Ottieni il page-container come riferimento
+                const pageContainer = document.querySelector('.page-container');
+                if (!pageContainer) return;
+                
+                // Ottieni le posizioni e dimensioni
+                const pageRect = pageContainer.getBoundingClientRect();
+                const courtRect = primaryCourt.getBoundingClientRect();
+                
+                // Nel viewBox SVG, la rete è a NET_Y = 486
+                // Il campo visibile va da ORIGIN_TOP_Y (150) a ORIGIN_BOTTOM_Y (822)
+                // Quindi la rete è a: 486 - 150 = 336 pixel dal top del campo visibile
+                // Su un'altezza totale del campo visibile di: 822 - 150 = 672 pixel
+                // Percentuale: 336 / 672 = 0.5 = 50% (centro del campo)
+                
+                const courtTop = courtRect.top - pageRect.top;
+                const courtHeight = courtRect.height;
+                
+                // La rete è al 50% dell'altezza del campo visibile
+                // Calcoliamo la posizione assoluta della rete nel campo
+                const netPosition = courtTop + (courtHeight / 2);
+                
+                // Posiziona la freccia all'altezza della rete, centrata orizzontalmente
+                courtsArrow.style.position = 'absolute';
+                courtsArrow.style.top = `${netPosition}px`;
+                courtsArrow.style.left = '62%';
+                courtsArrow.style.transform = 'translate(-50%, -50%)';
             }
             
             // Event listeners for download type selection (2 colpi mode)
@@ -2186,6 +2236,7 @@
             function updateModeIndicator(mode) {
                 const mobileIcon = document.getElementById('mobileNavModalitaIcon');
                 const desktopIndicator = document.getElementById('currentModeIndicator');
+                const topBarIcon = document.getElementById('topBarModalitaIcon');
                 
                 let iconText = '2';
                 let labelText = '2 Colpi';
@@ -2206,6 +2257,9 @@
                 }
                 if (desktopIndicator) {
                     desktopIndicator.textContent = labelText;
+                }
+                if (topBarIcon) {
+                    topBarIcon.textContent = iconText;
                 }
                 
                 // Show/hide download button based on mode
@@ -2642,6 +2696,7 @@
                             primaryRadio.checked = true;
                         }
                         updateSingleCourtOptions();
+                        bindDownloadTypeRadios();
                     } else if (mode === 'dinamico') {
                         // Modalità dinamico: mostra opzione per scegliere il colpo
                         downloadButton.style.display = 'flex';
@@ -2675,6 +2730,24 @@
                     } else {
                         singleCourtOptions.style.display = 'none';
                     }
+                }
+            }
+            
+            // Bind download type radio buttons for sidebar
+            function bindDownloadTypeRadios() {
+                const downloadBoth = document.getElementById('download_both');
+                const downloadSingle = document.getElementById('download_single');
+                
+                if (downloadBoth) {
+                    downloadBoth.addEventListener('change', () => {
+                        updateSingleCourtOptions();
+                    });
+                }
+                
+                if (downloadSingle) {
+                    downloadSingle.addEventListener('change', () => {
+                        updateSingleCourtOptions();
+                    });
                 }
             }
 
@@ -2815,25 +2888,60 @@
                             if (checkbox) {
                                 checkbox.checked = defaults[key] === 'true';
                             }
+                            // Aggiorna anche la versione topbar se esiste
+                            const checkboxTop = document.getElementById(`default_${key}_top`);
+                            if (checkboxTop) {
+                                checkboxTop.checked = defaults[key] === 'true';
+                            }
                         } else {
+                            // Aggiorna il select nella sidebar
                             const select = document.getElementById(`default_${key}`);
                             if (select) {
                                 select.value = defaults[key];
+                            }
+                            // Aggiorna anche il select nella topbar se esiste
+                            const selectTop = document.getElementById(`default_${key}_top`);
+                            if (selectTop) {
+                                selectTop.value = defaults[key];
                             }
                         }
                     }
                 });
                 
                 // Se la modalità è 2colpi, forza e disabilita i primi 4 elementi nella sezione Default
-                if (window.__modalita__ === '2colpi') {
+                // Usa il valore dalla localStorage se disponibile, altrimenti window.__modalita__
+                const savedModalita = defaults.modalita || window.__modalita__;
+                if (savedModalita === '2colpi') {
                     updateVisualizationCheckboxes();
                 }
             }
             
             function applyToActualControls(defaults) {
                 // Apply to actual control sections
+                // Applica prima la modalità se presente, così window.__modalita__ viene aggiornato correttamente
+                if (defaults.modalita !== null) {
+                    const targetRadio = document.querySelector(`input[name="modalita"][value="${defaults.modalita}"]`);
+                    if (targetRadio) {
+                        targetRadio.checked = true;
+                        window.__modalita__ = defaults.modalita;
+                        
+                        // Aggiorna anche i select nella sezione Default per assicurarsi che siano sincronizzati
+                        const defaultModalitaSelect = document.getElementById('default_modalita');
+                        const defaultModalitaSelectTop = document.getElementById('default_modalita_top');
+                        if (defaultModalitaSelect) {
+                            defaultModalitaSelect.value = defaults.modalita;
+                        }
+                        if (defaultModalitaSelectTop) {
+                            defaultModalitaSelectTop.value = defaults.modalita;
+                        }
+                        
+                        targetRadio.dispatchEvent(new Event('change'));
+                    }
+                }
+                
+                // Poi applica gli altri controlli
                 Object.keys(defaults).forEach(key => {
-                    if (defaults[key] !== null) {
+                    if (defaults[key] !== null && key !== 'modalita') {
                         if (key.startsWith('view_')) {
                             const targetCheckbox = document.getElementById(key);
                             if (targetCheckbox) {
@@ -5896,6 +6004,12 @@
                     if (modalitaOverlay.classList.contains('active')) {
                         closeAllModals();
                     } else {
+                        // Sincronizza i radio button della topbar con la modalità corrente
+                        const currentModalita = window.__modalita__ || '2colpi';
+                        const topRadio = document.querySelector(`input[name="modalita_top"][value="${currentModalita}"]`);
+                        if (topRadio) {
+                            topRadio.checked = true;
+                        }
                         openModal(modalitaOverlay, topBarModalita);
                     }
                 });
@@ -6058,23 +6172,38 @@
                 }
                 
                 // Handle single court options visibility
-                const downloadSingleTop = document.getElementById('download_single_top');
-                if (downloadSingleTop) {
-                    downloadSingleTop.addEventListener('change', () => {
-                        if (singleCourtOptionsTop) {
+                // Usa una funzione helper per aggiornare la visibilità
+                const updateSingleCourtOptionsTopVisibility = () => {
+                    const selectedType = document.querySelector('input[name="downloadType_top"]:checked');
+                    if (singleCourtOptionsTop && currentMode === '2colpi') {
+                        if (selectedType && selectedType.value === 'single') {
                             singleCourtOptionsTop.style.display = 'block';
-                        }
-                    });
-                }
-                
-                const downloadBothTop = document.getElementById('download_both_top');
-                if (downloadBothTop) {
-                    downloadBothTop.addEventListener('change', () => {
-                        if (singleCourtOptionsTop) {
+                        } else {
                             singleCourtOptionsTop.style.display = 'none';
                         }
+                    }
+                };
+                
+                const downloadSingleTop = document.getElementById('download_single_top');
+                const downloadBothTop = document.getElementById('download_both_top');
+                
+                // Rimuovi eventuali listener precedenti usando un flag
+                if (downloadSingleTop && !downloadSingleTop.dataset.listenerAdded) {
+                    downloadSingleTop.addEventListener('change', () => {
+                        updateSingleCourtOptionsTopVisibility();
                     });
+                    downloadSingleTop.dataset.listenerAdded = 'true';
                 }
+                
+                if (downloadBothTop && !downloadBothTop.dataset.listenerAdded) {
+                    downloadBothTop.addEventListener('change', () => {
+                        updateSingleCourtOptionsTopVisibility();
+                    });
+                    downloadBothTop.dataset.listenerAdded = 'true';
+                }
+                
+                // Aggiorna la visibilità iniziale
+                updateSingleCourtOptionsTopVisibility();
             }
             
             // Download button click handler
