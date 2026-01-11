@@ -56,7 +56,7 @@ body {
 
 .top-bar-title {
     font-family: 'Poppins', 'Roboto', sans-serif;
-    font-size: 20px;
+    font-size: 26px;
     font-weight: 800;
     background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #ffffff 100%);
     background-size: 200% 200%;
@@ -130,10 +130,6 @@ body {
     flex-shrink: 0;
 }
 
-/* Quando il pulsante ha solo l'icona (senza label), riduci il padding */
-#topBarDownload.top-bar-item {
-    padding: 10px;
-}
 
 /* ==========================================
    TOP BAR MODALS (Desktop Only)
@@ -701,13 +697,50 @@ body {
 .control-option.compact-option:hover {
     background: #e3f2fd;
     border-color: #90caf9;
-    transform: translateX(2px);
 }
         
 .control-option input[type="radio"],
 .control-option input[type="checkbox"] {
     accent-color: #1976d2;
     cursor: pointer;
+}
+
+/* Personalizza i radio button per assomigliare ai checkbox */
+.control-option.compact-option input[type="radio"] {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #1976d2;
+    border-radius: 4px;
+    background-color: #ffffff;
+    position: relative;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.control-option.compact-option input[type="radio"]:checked {
+    background-color: #1976d2;
+    border-color: #1976d2;
+}
+
+.control-option.compact-option input[type="radio"]:checked::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    width: 5px;
+    height: 10px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+}
+
+.control-option.compact-option input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
 }
         
 .control-option input[type="checkbox"]:disabled {
@@ -1687,7 +1720,7 @@ body {
 
 .app-title {
     font-family: 'Poppins', 'Roboto', sans-serif;
-    font-size: 18px;
+    font-size: 22px;
     font-weight: 800;
     background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #ffffff 100%);
     background-size: 200% 200%;
@@ -2418,7 +2451,6 @@ body {
     .draw-tool-button.compact[data-tool="clear"]:hover {
         background: #f44336;
         color: #ffffff;
-        transform: scale(1.05);
     }
     
     .draw-tool-button.compact[data-tool="clear"].active {
@@ -2442,7 +2474,6 @@ body {
 
 .draw-tool-button.compact:hover {
     background: #e3f2fd;
-    transform: scale(1.05);
 }
         
 .draw-tool-button.active {

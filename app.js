@@ -1743,6 +1743,32 @@
                 window.addEventListener('pointerup', onPointerUp);
                 window.addEventListener('resize', updateArrowHtmlPosition);
                 window.addEventListener('resize', updateCourtsArrowPosition);
+                
+                // Chiama updateCourtsArrowPosition quando la pagina è completamente caricata
+                // Questo risolve il problema quando la modalità 2colpi è quella di default
+                if (document.readyState === 'loading') {
+                    window.addEventListener('load', () => {
+                        if (window.__modalita__ === '2colpi' && window.innerWidth > 900) {
+                            requestAnimationFrame(() => {
+                                requestAnimationFrame(() => {
+                                    updateCourtsArrowPosition();
+                                    // Riprova dopo un breve delay per assicurarsi che tutto sia renderizzato
+                                    setTimeout(updateCourtsArrowPosition, 300);
+                                });
+                            });
+                        }
+                    });
+                } else {
+                    // Se il documento è già caricato, chiama direttamente
+                    if (window.__modalita__ === '2colpi' && window.innerWidth > 900) {
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                updateCourtsArrowPosition();
+                                setTimeout(updateCourtsArrowPosition, 300);
+                            });
+                        });
+                    }
+                }
             })();
 
             // Colpitore change
@@ -1923,9 +1949,16 @@
                     updateDownloadButtonVisibility(initialVal);
                     
                     // Inizializza la posizione della freccia tra i campi
-                    setTimeout(() => {
-                        updateCourtsArrowPosition();
-                    }, 100);
+                    // Usa requestAnimationFrame per assicurarsi che il layout sia completo
+                    if (initialVal === '2colpi') {
+                        requestAnimationFrame(() => {
+                            requestAnimationFrame(() => {
+                                updateCourtsArrowPosition();
+                                // Riprova dopo un breve delay per assicurarsi che tutto sia renderizzato
+                                setTimeout(updateCourtsArrowPosition, 200);
+                            });
+                        });
+                    }
                 }
             }
             
@@ -1950,6 +1983,15 @@
                 const pageRect = pageContainer.getBoundingClientRect();
                 const courtRect = primaryCourt.getBoundingClientRect();
                 
+                // Verifica che i campi abbiano dimensioni valide
+                if (courtRect.height <= 0 || pageRect.height <= 0) {
+                    // Se le dimensioni non sono ancora disponibili, riprova dopo un breve delay
+                    requestAnimationFrame(() => {
+                        setTimeout(updateCourtsArrowPosition, 50);
+                    });
+                    return;
+                }
+                
                 // Nel viewBox SVG, la rete è a NET_Y = 486
                 // Il campo visibile va da ORIGIN_TOP_Y (150) a ORIGIN_BOTTOM_Y (822)
                 // Quindi la rete è a: 486 - 150 = 336 pixel dal top del campo visibile
@@ -1962,6 +2004,16 @@
                 // La rete è al 50% dell'altezza del campo visibile
                 // Calcoliamo la posizione assoluta della rete nel campo
                 const netPosition = courtTop + (courtHeight / 2);
+                
+                // Verifica che la posizione calcolata sia ragionevole
+                // La freccia dovrebbe essere all'interno del page-container
+                if (netPosition < pageRect.top || netPosition > pageRect.bottom) {
+                    // Posizione non valida, riprova dopo un breve delay
+                    requestAnimationFrame(() => {
+                        setTimeout(updateCourtsArrowPosition, 50);
+                    });
+                    return;
+                }
                 
                 // Posiziona la freccia all'altezza della rete, centrata orizzontalmente
                 courtsArrow.style.position = 'absolute';
