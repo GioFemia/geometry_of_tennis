@@ -705,8 +705,9 @@ body {
     cursor: pointer;
 }
 
-/* Personalizza i radio button per assomigliare ai checkbox */
-.control-option.compact-option input[type="radio"] {
+/* Personalizza radio button e checkbox per avere lo stesso aspetto */
+.control-option.compact-option input[type="radio"],
+.control-option.compact-option input[type="checkbox"] {
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -720,12 +721,14 @@ body {
     flex-shrink: 0;
 }
 
-.control-option.compact-option input[type="radio"]:checked {
+.control-option.compact-option input[type="radio"]:checked,
+.control-option.compact-option input[type="checkbox"]:checked {
     background-color: #1976d2;
     border-color: #1976d2;
 }
 
-.control-option.compact-option input[type="radio"]:checked::after {
+.control-option.compact-option input[type="radio"]:checked::after,
+.control-option.compact-option input[type="checkbox"]:checked::after {
     content: '';
     position: absolute;
     left: 50%;
@@ -735,12 +738,6 @@ body {
     height: 10px;
     border: solid white;
     border-width: 0 2px 2px 0;
-}
-
-.control-option.compact-option input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    flex-shrink: 0;
 }
         
 .control-option input[type="checkbox"]:disabled {
