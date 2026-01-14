@@ -958,20 +958,17 @@ body {
     border: none;
     background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
     color: #ffffff;
-    box-shadow: 0 4px 14px rgba(25, 118, 210, 0.35);
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease;
     padding: 0;
 }
 
 .mobile-panel-toggle:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 18px rgba(25, 118, 210, 0.4);
 }
 
 .mobile-panel-toggle:active {
     transform: translateY(0);
-    box-shadow: 0 4px 10px rgba(25, 118, 210, 0.3);
 }
 
 .mobile-panel-toggle-icon::before {
@@ -2618,7 +2615,6 @@ body {
     text-transform: uppercase;
     letter-spacing: 2px;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.5), 0 0 20px rgba(255, 215, 0, 0.3);
     transition: all 0.3s ease;
     width: 100%;
     margin-top: 12px;
@@ -2664,14 +2660,12 @@ body {
         
 .colpo-button:hover {
     transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 8px 25px rgba(255, 107, 53, 0.6), 0 0 30px rgba(255, 215, 0, 0.5);
     border-color: #ffd700;
     animation: gradientShift 3s ease-in-out infinite;
 }
         
 .colpo-button:active {
     transform: translateY(-1px) scale(0.98);
-    box-shadow: 0 4px 15px rgba(255, 107, 53, 0.5), 0 0 20px rgba(255, 215, 0, 0.3);
 }
         
 .colpo-button:disabled {
@@ -2700,7 +2694,6 @@ body {
     text-transform: uppercase;
     letter-spacing: 1px;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(66, 165, 245, 0.3);
     transition: all 0.3s ease;
     width: 100%;
     margin-top: 12px;
