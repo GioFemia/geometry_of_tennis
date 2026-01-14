@@ -856,17 +856,28 @@
                 // Show/hide panel sections
                 const panelModalita = document.getElementById('panelModalita');
                 const panelImpostazioni = document.getElementById('panelImpostazioni');
-                const panelDownload = document.getElementById('panelDownload');
+                
+                // Per la sezione 'menu', mostriamo le sezioni principali (Colpitore, Colpo, Visualizza, Disegna, Scarica)
+                const isMenuSection = currentMobileSection === 'menu';
                 
                 if (panelModalita) {
                     panelModalita.classList.toggle('mobile-visible', currentMobileSection === 'modalita');
                 }
                 if (panelImpostazioni) {
+                    // Impostazioni solo quando si seleziona impostazioni, NON nel menu
                     panelImpostazioni.classList.toggle('mobile-visible', currentMobileSection === 'impostazioni');
                 }
-                if (panelDownload) {
-                    panelDownload.classList.toggle('mobile-visible', currentMobileSection === 'download');
-                }
+                
+                // Mostra solo le sezioni .compact (Colpitore, Colpo, Visualizza, Disegna, Scarica) quando è aperto il menu
+                // Queste sono le sezioni dirette del sidebar, NON quelle dentro panelImpostazioni
+                const mainControlSections = controlsSidebar.querySelectorAll(':scope > .control-section.compact');
+                mainControlSections.forEach(section => {
+                    if (isMenuSection && open) {
+                        section.classList.add('mobile-visible');
+                    } else if (!isMenuSection) {
+                        section.classList.remove('mobile-visible');
+                    }
+                });
             }
 
             function applyMobileSettingsMode(forceCollapse = false) {
@@ -2350,10 +2361,10 @@
                             if (downloadOptions2Colpi) downloadOptions2Colpi.style.display = 'block';
                             if (downloadOptionsDinamico) downloadOptionsDinamico.style.display = 'none';
                             if (secondaryLabel) secondaryLabel.style.display = 'flex';
-                            // Reset to default: no selection
+                            // Default: "Entrambi i Campi" selezionato
                             const bothRadio = document.getElementById('download_both');
                             const singleRadio = document.getElementById('download_single');
-                            if (bothRadio) bothRadio.checked = false;
+                            if (bothRadio) bothRadio.checked = true;
                             if (singleRadio) singleRadio.checked = false;
                             if (singleCourtOptions) singleCourtOptions.style.display = 'none';
                         } else if (mode === 'dinamico') {
@@ -4976,11 +4987,136 @@
             // ==========================================
             // MOBILE NAV PILLS & PANEL SECTIONS
             // ==========================================
-            const mobileNavGuida = document.getElementById('mobileNavGuida');
             const mobileNavModalita = document.getElementById('mobileNavModalita');
-            const mobileNavImpostazioni = document.getElementById('mobileNavImpostazioni');
+            const mobileNavMenu = document.getElementById('mobileNavMenu');
+            const mobileNavDots = document.getElementById('mobileNavDots');
             const panelModalita = document.getElementById('panelModalita');
             const panelImpostazioni = document.getElementById('panelImpostazioni');
+            
+            // Mobile side drawer elements
+            const mobileSideDrawer = document.getElementById('mobileSideDrawer');
+            const mobileDrawerOverlay = document.getElementById('mobileDrawerOverlay');
+            const mobileDrawerClose = document.getElementById('mobileDrawerClose');
+            const mobileDrawerGuida = document.getElementById('mobileDrawerGuida');
+            
+            // Mobile drawer functions
+            function openMobileDrawer() {
+                if (mobileSideDrawer) {
+                    mobileSideDrawer.classList.add('open');
+                    document.body.style.overflow = 'hidden';
+                }
+            }
+            
+            function closeMobileDrawer() {
+                if (mobileSideDrawer) {
+                    mobileSideDrawer.classList.remove('open');
+                    document.body.style.overflow = '';
+                }
+            }
+            
+            // Mobile drawer event listeners
+            if (mobileNavDots) {
+                mobileNavDots.addEventListener('click', () => {
+                    openMobileDrawer();
+                });
+            }
+            
+            if (mobileDrawerOverlay) {
+                mobileDrawerOverlay.addEventListener('click', () => {
+                    closeMobileDrawer();
+                });
+            }
+            
+            if (mobileDrawerClose) {
+                mobileDrawerClose.addEventListener('click', () => {
+                    closeMobileDrawer();
+                });
+            }
+            
+            if (mobileDrawerGuida) {
+                mobileDrawerGuida.addEventListener('click', () => {
+                    closeMobileDrawer();
+                    if (typeof window.openTutorial === 'function') {
+                        window.openTutorial();
+                    }
+                });
+            }
+            
+            // Sincronizzazione superficie drawer con controlli principali
+            const drawerSuperficieRadios = document.querySelectorAll('input[name="campoType_drawer"]');
+            const mainSuperficieRadios = document.querySelectorAll('input[name="campoType"]');
+            
+            drawerSuperficieRadios.forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    // Sincronizza con i radio principali
+                    mainSuperficieRadios.forEach(mainRadio => {
+                        if (mainRadio.value === e.target.value) {
+                            mainRadio.checked = true;
+                            mainRadio.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    });
+                });
+            });
+            
+            // Sincronizzazione default drawer con controlli principali
+            const drawerDefaultSelects = {
+                colpitore: document.getElementById('default_colpitore_drawer'),
+                modalita: document.getElementById('default_modalita_drawer'),
+                tipologia: document.getElementById('default_tipologia_drawer'),
+                campoType: document.getElementById('default_campoType_drawer')
+            };
+            
+            const mainDefaultSelects = {
+                colpitore: document.getElementById('default_colpitore'),
+                modalita: document.getElementById('default_modalita'),
+                tipologia: document.getElementById('default_tipologia'),
+                campoType: document.getElementById('default_campoType')
+            };
+            
+            Object.keys(drawerDefaultSelects).forEach(key => {
+                const drawerSelect = drawerDefaultSelects[key];
+                const mainSelect = mainDefaultSelects[key];
+                if (drawerSelect && mainSelect) {
+                    drawerSelect.addEventListener('change', () => {
+                        mainSelect.value = drawerSelect.value;
+                        mainSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                }
+            });
+            
+            // Sincronizzazione checkbox visualizza drawer con controlli principali
+            const drawerViewCheckboxes = {
+                player: document.getElementById('default_view_player_drawer'),
+                responder: document.getElementById('default_view_responder_drawer'),
+                directions: document.getElementById('default_view_directions_drawer'),
+                shot: document.getElementById('default_view_shot_drawer'),
+                center: document.getElementById('default_view_center_drawer'),
+                cover: document.getElementById('default_view_cover_drawer'),
+                zones: document.getElementById('default_view_zones_drawer'),
+                coordinates: document.getElementById('default_view_coordinates_drawer')
+            };
+            
+            const mainViewCheckboxes = {
+                player: document.getElementById('default_view_player'),
+                responder: document.getElementById('default_view_responder'),
+                directions: document.getElementById('default_view_directions'),
+                shot: document.getElementById('default_view_shot'),
+                center: document.getElementById('default_view_center'),
+                cover: document.getElementById('default_view_cover'),
+                zones: document.getElementById('default_view_zones'),
+                coordinates: document.getElementById('default_view_coordinates')
+            };
+            
+            Object.keys(drawerViewCheckboxes).forEach(key => {
+                const drawerCheckbox = drawerViewCheckboxes[key];
+                const mainCheckbox = mainViewCheckboxes[key];
+                if (drawerCheckbox && mainCheckbox) {
+                    drawerCheckbox.addEventListener('change', () => {
+                        mainCheckbox.checked = drawerCheckbox.checked;
+                        mainCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                }
+            });
             
             // Desktop guida button (ora è un header come gli altri)
             const desktopGuidaButton = document.getElementById('desktopGuidaButton');
@@ -5000,18 +5136,7 @@
                 });
             }
             
-            // Mobile nav pill clicks
-            if (mobileNavGuida) {
-                mobileNavGuida.addEventListener('click', () => {
-                    // Open tutorial using global function
-                    if (typeof window.openTutorial === 'function') {
-                        window.openTutorial();
-                    }
-                    // Collapse mobile sidebar
-                    setMobileSettingsState(false, 'guida');
-                });
-            }
-            
+            // Mobile nav pill clicks - Modalità
             if (mobileNavModalita) {
                 mobileNavModalita.addEventListener('click', () => {
                     if (currentMobileSection === 'modalita' && mobileSettingsOpen) {
@@ -5022,38 +5147,17 @@
                 });
             }
             
-            if (mobileNavImpostazioni) {
-                mobileNavImpostazioni.addEventListener('click', () => {
-                    if (currentMobileSection === 'impostazioni' && mobileSettingsOpen) {
-                        setMobileSettingsState(false, 'impostazioni');
+            // Mobile nav Menu button - opens menu with all options + download at bottom
+            if (mobileNavMenu) {
+                mobileNavMenu.addEventListener('click', () => {
+                    if (currentMobileSection === 'menu' && mobileSettingsOpen) {
+                        setMobileSettingsState(false, 'menu');
                     } else {
-                        setMobileSettingsState(true, 'impostazioni');
-                    }
-                });
-            }
-            
-            // Mobile download button
-            const mobileNavDownload = document.getElementById('mobileNavDownload');
-            if (mobileNavDownload) {
-                mobileNavDownload.addEventListener('click', () => {
-                    const currentMode = window.__modalita__;
-                    
-                    // Modalità 1 colpo: scarica direttamente
-                    if (currentMode === '1colpo') {
-                        downloadCourtImage();
-                        return;
-                    }
-                    
-                    // Modalità 2 colpi o dinamico: apri il pannello download
-                    if (currentMode === '2colpi' || currentMode === 'dinamico') {
-                        if (currentMobileSection === 'download' && mobileSettingsOpen) {
-                            setMobileSettingsState(false, 'download');
-                        } else {
-                            // Assicura che le opzioni di download siano aggiornate per la modalità corrente
-                            updateDownloadButtonVisibility(currentMode);
-                            setMobileSettingsState(true, 'download');
+                        setMobileSettingsState(true, 'menu');
+                        // Aggiorna visibilità opzioni download per la modalità corrente
+                        if (typeof updateDownloadButtonVisibility === 'function') {
+                            updateDownloadButtonVisibility(window.__modalita__ || '2colpi');
                         }
-                        return;
                     }
                 });
             }

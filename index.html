@@ -501,25 +501,31 @@
                 <h2 class="menu-title">MENU</h2>
             </div>
             
-            <!-- Mobile Navigation Bar con 3 pallini -->
+            <!-- Mobile Navigation Bar -->
             <div class="mobile-nav-bar">
+                <!-- Titolo a sinistra -->
                 <span class="mobile-nav-title">Geometry<br>of Tennis</span>
-                <button id="mobileNavGuida" class="mobile-nav-pill" data-section="guida" title="Guida">
+                
+                <!-- Bottoni centrali -->
+                <div class="mobile-nav-center">
+                    <!-- Modalità -->
+                    <button id="mobileNavModalita" class="mobile-nav-pill" data-section="modalita" title="Modalità">
+                        <span class="pill-icon pill-icon-mode" id="mobileNavModalitaIcon">2</span>
+                    </button>
+                    
+                    <!-- Menu (apre pannello sotto con opzioni come desktop) -->
+                    <button id="mobileNavMenu" class="mobile-nav-pill mobile-nav-pill-with-label" data-section="menu" title="Menu">
+                        <svg class="pill-icon" viewBox="0 0 24 24" width="20" height="20">
+                            <path fill="currentColor" d="M3,6H21V8H3V6M3,11H21V13H3V11M3,16H21V18H3V16Z"/>
+                        </svg>
+                        <span class="pill-text">Menu</span>
+                    </button>
+                </div>
+                
+                <!-- 3 pallini a destra (apre drawer laterale con Guida e Impostazioni) -->
+                <button id="mobileNavDots" class="mobile-nav-pill mobile-nav-dots" title="Altro">
                     <svg class="pill-icon" viewBox="0 0 24 24" width="20" height="20">
-                        <path fill="currentColor" d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"/>
-                    </svg>
-                </button>
-                <button id="mobileNavModalita" class="mobile-nav-pill" data-section="modalita" title="Modalità">
-                    <span class="pill-icon pill-icon-mode" id="mobileNavModalitaIcon">2</span>
-                </button>
-                <button id="mobileNavImpostazioni" class="mobile-nav-pill active" data-section="impostazioni" title="Impostazioni">
-                    <svg class="pill-icon" viewBox="0 0 24 24" width="20" height="20">
-                        <path fill="currentColor" d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
-                    </svg>
-                </button>
-                <button id="mobileNavDownload" class="mobile-nav-pill" data-section="download" title="Scarica Immagine">
-                    <svg class="pill-icon" viewBox="0 0 24 24" width="20" height="20">
-                        <path fill="currentColor" d="M19,12V19H5V12H3V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19M13,12.67L15.59,10.08L17,11.5L12,16.5L7,11.5L8.41,10.08L11,12.67V3H13V12.67Z" />
+                        <path fill="currentColor" d="M12,16A2,2 0 0,1 14,18A2,2 0 0,1 12,20A2,2 0 0,1 10,18A2,2 0 0,1 12,16M12,10A2,2 0 0,1 14,12A2,2 0 0,1 12,14A2,2 0 0,1 10,12A2,2 0 0,1 12,10M12,4A2,2 0 0,1 14,6A2,2 0 0,1 12,8A2,2 0 0,1 10,6A2,2 0 0,1 12,4Z"/>
                     </svg>
                 </button>
             </div>
@@ -828,19 +834,20 @@
             </div>
             
             <!-- SEZIONE DOWNLOAD -->
-            <div class="panel-section" id="panelDownload">
-                <div class="panel-section-header" role="button" tabindex="0" aria-expanded="false">
-                    <span class="panel-section-title">SCARICA</span>
-                </div>
-                <div class="panel-section-content">
+            <div class="control-section compact" id="panelDownload">
+                <h3 class="control-section-title compact-title">
+                    <span class="menu-icon">📥</span>
+                    <span>Scarica</span>
+                </h3>
+                <div class="control-options compact-options">
                     <div id="downloadOptions" style="display: none;">
                         <!-- Opzioni per modalità 2 colpi -->
                         <div id="downloadOptions2Colpi" style="display: none;">
-                            <div class="control-section collapsed" style="margin-bottom: 12px;">
-                                <h3 class="control-section-title" style="cursor: default; pointer-events: none;">Cosa vuoi scaricare?</h3>
-                                <div class="control-options" style="max-height: none; opacity: 1;">
+                            <div class="download-option-group" style="margin-bottom: 12px;">
+                                <h4 class="download-option-title">Cosa vuoi scaricare?</h4>
+                                <div class="download-option-choices">
                                     <label class="control-option" for="download_both">
-                                        <input id="download_both" type="radio" name="downloadType" value="both" />
+                                        <input id="download_both" type="radio" name="downloadType" value="both" checked />
                                         <span>Entrambi i Campi</span>
                                     </label>
                                     <label class="control-option" for="download_single">
@@ -849,9 +856,9 @@
                                     </label>
                                 </div>
                             </div>
-                            <div id="singleCourtOptions" class="control-section collapsed" style="margin-bottom: 12px; display: none;">
-                                <h3 class="control-section-title" style="cursor: default; pointer-events: none;">Quale campo?</h3>
-                                <div class="control-options" style="max-height: none; opacity: 1;">
+                            <div id="singleCourtOptions" class="download-option-group" style="margin-bottom: 12px; display: none;">
+                                <h4 class="download-option-title">Quale campo?</h4>
+                                <div class="download-option-choices">
                                     <label class="control-option" for="download_primary">
                                         <input id="download_primary" type="radio" name="downloadCourt" value="primary" checked />
                                         <span>Primo Colpo</span>
@@ -865,14 +872,12 @@
                         </div>
                         <!-- Opzioni per modalità dinamico (solo immagine di un colpo) -->
                         <div id="downloadOptionsDinamico" style="display: none;">
-                            <div id="singleShotOptions" class="control-section collapsed" style="margin-bottom: 12px;">
-                                <h3 class="control-section-title" style="cursor: default; pointer-events: none;">Numero Colpo</h3>
-                                <div class="control-options" style="max-height: none; opacity: 1;">
-                                    <div class="default-subsection">
-                                        <label class="control-option download-shot-number-label" for="download_shot_number">
-                                            <input type="number" id="download_shot_number" min="1" value="1" />
-                                        </label>
-                                    </div>
+                            <div id="singleShotOptions" class="download-option-group" style="margin-bottom: 12px;">
+                                <h4 class="download-option-title">Numero Colpo</h4>
+                                <div class="download-option-choices">
+                                    <label class="control-option download-shot-number-label" for="download_shot_number">
+                                        <input type="number" id="download_shot_number" min="1" value="1" />
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -1031,7 +1036,123 @@
         </div>
     </div>
 
-        <script src="app.js"></script>
+    <!-- Mobile Side Drawer (Guida e Impostazioni) -->
+    <div id="mobileSideDrawer" class="mobile-side-drawer">
+        <div class="mobile-drawer-overlay" id="mobileDrawerOverlay"></div>
+        <div class="mobile-drawer-content">
+            <div class="mobile-drawer-header">
+                <h3 class="mobile-drawer-title">Impostazioni</h3>
+                <button id="mobileDrawerClose" class="mobile-drawer-close">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="mobile-drawer-body">
+                <!-- Guida Button -->
+                <button id="mobileDrawerGuida" class="mobile-drawer-item">
+                    <svg viewBox="0 0 24 24" width="24" height="24">
+                        <path fill="currentColor" d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"/>
+                    </svg>
+                    <span>Guida</span>
+                </button>
+                
+                <!-- Superficie -->
+                <div class="mobile-drawer-settings-group">
+                    <h4 class="mobile-drawer-settings-title">Superficie</h4>
+                    <div class="mobile-drawer-radio-group">
+                        <label class="mobile-drawer-radio">
+                            <input type="radio" name="campoType_drawer" value="cemento" checked />
+                            <span>Cemento</span>
+                        </label>
+                        <label class="mobile-drawer-radio">
+                            <input type="radio" name="campoType_drawer" value="terra" />
+                            <span>Terra</span>
+                        </label>
+                        <label class="mobile-drawer-radio">
+                            <input type="radio" name="campoType_drawer" value="erba" />
+                            <span>Erba</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Default -->
+                <div class="mobile-drawer-settings-group">
+                    <h4 class="mobile-drawer-settings-title">Default</h4>
+                    <div class="mobile-drawer-select-group">
+                        <label class="mobile-drawer-select-label">
+                            <span>Colpitore:</span>
+                            <select id="default_colpitore_drawer">
+                                <option value="tuo" selected>Tu</option>
+                                <option value="avversario">Avversario</option>
+                            </select>
+                        </label>
+                        <label class="mobile-drawer-select-label">
+                            <span>Modalità:</span>
+                            <select id="default_modalita_drawer">
+                                <option value="1colpo">1 Colpo</option>
+                                <option value="2colpi" selected>2 Colpi</option>
+                                <option value="dinamico">Dinamico</option>
+                            </select>
+                        </label>
+                        <label class="mobile-drawer-select-label">
+                            <span>Colpo:</span>
+                            <select id="default_tipologia_drawer">
+                                <option value="palleggio" selected>Palleggio</option>
+                                <option value="passante">Passante</option>
+                                <option value="attacco">Attacco</option>
+                                <option value="servizio">Servizio</option>
+                            </select>
+                        </label>
+                        <label class="mobile-drawer-select-label">
+                            <span>Superficie:</span>
+                            <select id="default_campoType_drawer">
+                                <option value="cemento" selected>Cemento</option>
+                                <option value="terra">Terra</option>
+                                <option value="erba">Erba</option>
+                            </select>
+                        </label>
+                    </div>
+                    <div class="mobile-drawer-checkbox-group">
+                        <label class="mobile-drawer-checkbox">
+                            <input type="checkbox" id="default_view_player_drawer" checked />
+                            <span>Visualizza: Colpitore</span>
+                        </label>
+                        <label class="mobile-drawer-checkbox">
+                            <input type="checkbox" id="default_view_responder_drawer" checked />
+                            <span>Visualizza: Ricevitore</span>
+                        </label>
+                        <label class="mobile-drawer-checkbox">
+                            <input type="checkbox" id="default_view_directions_drawer" checked />
+                            <span>Visualizza: Direzioni</span>
+                        </label>
+                        <label class="mobile-drawer-checkbox">
+                            <input type="checkbox" id="default_view_shot_drawer" checked />
+                            <span>Visualizza: Colpo</span>
+                        </label>
+                        <label class="mobile-drawer-checkbox">
+                            <input type="checkbox" id="default_view_center_drawer" checked />
+                            <span>Visualizza: Centro</span>
+                        </label>
+                        <label class="mobile-drawer-checkbox">
+                            <input type="checkbox" id="default_view_cover_drawer" />
+                            <span>Visualizza: Campo da Coprire</span>
+                        </label>
+                        <label class="mobile-drawer-checkbox">
+                            <input type="checkbox" id="default_view_zones_drawer" />
+                            <span>Visualizza: Zone del Campo</span>
+                        </label>
+                        <label class="mobile-drawer-checkbox">
+                            <input type="checkbox" id="default_view_coordinates_drawer" />
+                            <span>Visualizza: Coordinate</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
 
 </body>
 </html>
