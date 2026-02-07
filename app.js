@@ -5285,6 +5285,25 @@
                     };
                 }
                 
+                function findCompactSectionByTitle(titleMatch) {
+                    const sections = document.querySelectorAll('.control-section.compact');
+                    const match = titleMatch.toLowerCase();
+                    
+                    for (let section of sections) {
+                        const title = section.querySelector('.control-section-title');
+                        if (!title) continue;
+                        const titleText = title.textContent.trim().toLowerCase();
+                        if (!titleText.includes(match)) continue;
+                        
+                        const rect = section.getBoundingClientRect();
+                        if (rect.width > 0 && rect.height > 0) {
+                            return section;
+                        }
+                    }
+                    
+                    return null;
+                }
+                
                 // Mappa i valori di data-highlight agli elementi reali dell'interfaccia
                 function getHighlightElement(highlightValue) {
                     switch (highlightValue) {
@@ -5293,6 +5312,11 @@
                         case 'modalita-section':
                             return document.getElementById('panelModalita');
                         case 'colpitore-section':
+                            // Prima cerca la scheda compatta (scelta colpitore)
+                            const compactColpitore = findCompactSectionByTitle('colpitore');
+                            if (compactColpitore) {
+                                return compactColpitore;
+                            }
                             // Trova la sezione Colpitore dentro panelImpostazioni
                             const impostazioniPanel = document.getElementById('panelImpostazioni');
                             if (impostazioniPanel) {
@@ -5328,6 +5352,11 @@
                                 elements: [hMeasureEl, hMeasureLabelEl, hMeasureBadgeEl, arrowHtmlEl].filter(el => el !== null)
                             };
                         case 'tipologia-section':
+                            // Prima cerca la scheda compatta (scelta colpo)
+                            const compactColpo = findCompactSectionByTitle('colpo');
+                            if (compactColpo) {
+                                return compactColpo;
+                            }
                             // Trova la sezione Colpo (precedentemente chiamata Tipologia) dentro panelImpostazioni
                             const tipologiaPanel = document.getElementById('panelImpostazioni');
                             if (tipologiaPanel) {
