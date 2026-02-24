@@ -24,7 +24,7 @@
             <div class="tutorial-content">
                 <!-- Step 0: Introduzione -->
                 <div class="tutorial-step" data-step="0">
-                    <h2>Benvenuto!</h2>
+                    <h2>Benvenuto/a!</h2>
                     <p>Questa applicazione ti permette di <strong>visualizzare e comprendere la geometria dei colpi nel tennis</strong>.</p>
                     <p>Scoprirai come la posizione in campo influenza le traiettorie possibili, il posizionamento ottimale del ricevitore e le strategie tattiche fondamentali.</p>
                     <div class="tutorial-tip">
@@ -40,7 +40,7 @@
                         <li><strong>Il Tuo Campo:</strong> La metà di campo in basso</li>
                         <li><strong>Il Campo Avversario:</strong> La metà di campo in alto</li>
                     </ul>
-                    <p>Il campo mostra le <strong>linee di delimitazione</strong> e le <strong>aree di gioco</strong> standard di un campo da tennis professionale.</p>
+                    <p>Il campo mostra le <strong>linee di delimitazione</strong> e le <strong>aree di gioco</strong> standard di un campo da tennis.</p>
                     <div data-highlight="primary-court">    
                     </div>
                 </div>
@@ -87,24 +87,7 @@
                     </div>
                 </div>
                 
-                <!-- Step 5: Campo da Colpire -->
-                <div class="tutorial-step" data-step="5">
-                    <h2>Il Campo da Colpire</h2>
-                    <p>La <strong>linea orizzontale</strong> nel campo del ricevitore mostra la lunghezza del campo che deve coprire.</p>
-                    <p>Il campo da coprire varia in base a:</p>
-                    <ul class="tutorial-list">
-                        <li>La posizione del colpitore</li>
-                        <li>La distanza dalla riga del ricevitore</li>
-                    </ul>
-                    <p>Utlizza la <strong>freccia</strong> sul lato del campo per regolare la posizione del ricevitore.</p>
-                    <div class="tutorial-tip">
-                        <span>Sposta gli elementi nel campo per vedere come varia la lunghezza del campo da coprire.</span>
-                    </div>
-                    <div data-highlight="h-measure">
-                    </div>
-                </div>
-                
-                <!-- Step 6: Modalità -->
+                <!-- Step 5: Modalità -->
                 <div class="tutorial-step" data-step="6">
                     <h2>Le Modalità</h2>
                     <p>L'app offre <strong>tre modalità</strong> di visualizzazione:</p>
@@ -125,7 +108,7 @@
                         <li><strong>Campo sulla sinistra:</strong> Il colpo e le direzioni possibili</li>
                         <li><strong>Campo sulla destra:</strong> Le potenziali risposte del ricevitore e le sue opzioni</li>
                     </ul>
-                    <p>Questa modalità è perfetta per <strong>analizzare la geometria completa</strong> di uno scambio: dove colpisci e come può rispondere l'avversario.</p>
+                    <p>Questa modalità mostra la visuale del ricevitore in base al colpo che riceve.</p>
                     <div class="tutorial-tip">
                         <span>Usa questa modalità per capire le conseguenze tattiche delle tue scelte!</span>
                     </div>
@@ -179,18 +162,18 @@
                     </div>
                 </div>
                 
-                <!-- Step 11: Altre Funzioni -->
+                <!-- Step 11: Visualizza e Disegna -->
                 <div class="tutorial-step" data-step="11">
-                    <h2>Altre Funzioni</h2>
-                    <p>L'applicazione offre diverse <strong>funzionalità</strong> aggiuntive:</p>
+                    <h2>Visualizza e Disegna</h2>
+                    <p>Il menu include due sezioni per personalizzare la visualizzazione:</p>
                     <ul class="tutorial-list">
-                        <li><strong>Disegna:</strong> Puoi disegnare sul campo per annotare strategie e traiettorie</li>
-                        <li><strong>Visualizza:</strong> Attiva o disattiva gli elementi visivi in base alle tue esigenze</li>
-                        <li><strong>Superficie:</strong> Scegli tra cemento, terra e erba</li>
-                        <li><strong>Impostazioni di Default:</strong> Salva le tue preferenze per un accesso rapido</li>
+                        <li><strong>Visualizza:</strong> Attiva o disattiva i singoli elementi grafici</li>
+                        <li><strong>Disegna:</strong> Traccia annotazioni direttamente sul campo</li>
                     </ul>
                     <div class="tutorial-tip">
-                        <span>Esplora tutte le opzioni nelle Impostazioni per personalizzare la tua esperienza!</span>
+                        <span>Usa Visualizza per scegliere gli elementi da mostrare nel campo. Usa Disegna per aggiungere appunti o linee.</span>
+                    </div>
+                    <div data-highlight="visualizza-disegna-section">
                     </div>
                 </div>
                 
@@ -549,6 +532,9 @@
                     <span class="panel-section-indicator" id="currentModeIndicator">2 Colpi</span>
                 </div>
                 <div class="panel-section-content">
+                    <h3 class="control-section-title compact-title mobile-panel-content-title">
+                        <span>Modalità</span>
+                    </h3>
                     <div class="mode-options">
                         <label class="mode-option" for="modo_1colpo">
                             <input id="modo_1colpo" type="radio" name="modalita" value="1colpo" />
@@ -578,7 +564,6 @@
             <!-- SEZIONE COLPITORE -->
             <div class="control-section compact">
                 <h3 class="control-section-title compact-title">
-                    <span class="menu-icon">👤</span>
                     <span>Colpitore</span>
                 </h3>
                 <div class="control-options compact-options">
@@ -596,7 +581,6 @@
             <!-- SEZIONE COLPO -->
             <div class="control-section compact">
                 <h3 class="control-section-title compact-title">
-                    <span class="menu-icon">🎾</span>
                     <span>Colpo</span>
                 </h3>
                 <div class="control-options compact-options grid-view">
@@ -622,7 +606,6 @@
             <!-- SEZIONE VISUALIZZA -->
             <div class="control-section compact">
                 <h3 class="control-section-title compact-title">
-                    <span class="menu-icon">👁️</span>
                     <span>Visualizza</span>
                 </h3>
                 <div class="control-options compact-options grid-view">
@@ -664,7 +647,6 @@
             <!-- SEZIONE DISEGNA -->
             <div class="control-section compact" id="draw-section">
                 <h3 class="control-section-title compact-title">
-                    <span class="menu-icon">✏️</span>
                     <span>Disegna</span>
                 </h3>
                 <div class="control-options compact-options">
@@ -836,7 +818,6 @@
             <!-- SEZIONE DOWNLOAD -->
             <div class="control-section compact" id="panelDownload">
                 <h3 class="control-section-title compact-title">
-                    <span class="menu-icon">📥</span>
                     <span>Scarica</span>
                 </h3>
                 <div class="control-options compact-options">
@@ -948,6 +929,15 @@
                     <text id="zone-label-c-field-a" x="329" y="654" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">C</text>
                     <circle id="zone-circle-d-field-a" cx="387" cy="654" r="14" fill="#ffffff" stroke="#9c27b0" stroke-width="2" opacity="0.95" style="display: none;" />
                     <text id="zone-label-d-field-a" x="387" y="654" fill="#9c27b0" font-size="18" font-weight="700" text-anchor="middle" dominant-baseline="middle" style="display: none;">D</text>
+                    <!-- Tutorial field labels (step 2: Il Campo) -->
+                    <g id="tutorialFieldLabelTu" style="display: none;">
+                        <rect x="258" y="851" width="84" height="38" rx="8" fill="white" fill-opacity="0.97" stroke="#1976d2" stroke-width="2"/>
+                        <text x="300" y="870" fill="#1565c0" font-size="18" font-weight="800" text-anchor="middle" dominant-baseline="middle" letter-spacing="3">TU</text>
+                    </g>
+                    <g id="tutorialFieldLabelAvversario" style="display: none;">
+                        <rect x="204" y="36" width="192" height="38" rx="8" fill="white" fill-opacity="0.97" stroke="#1976d2" stroke-width="2"/>
+                        <text x="300" y="55" fill="#1565c0" font-size="18" font-weight="800" text-anchor="middle" dominant-baseline="middle" letter-spacing="3">AVVERSARIO</text>
+                    </g>
                     <circle id="cursorDot" cx="300" cy="822" r="12" fill="#ff5252" stroke="#fff" stroke-width="2" />
                     <circle id="intersectionDot" cx="300" cy="100" r="8" fill="#ff5252" stroke="#fff" stroke-width="2" style="display: none; cursor: move;" />
                 </svg>

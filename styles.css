@@ -1546,6 +1546,23 @@ body {
         display: flex;
     }
 
+    /* Spaziatura ridotta tra sezioni e font opzioni più grande */
+    .control-section.compact {
+        margin-bottom: 3px;
+    }
+
+    .control-section-title.compact-title {
+        padding-top: 5px;
+    }
+
+    .control-option.compact-option {
+        font-size: 13px;
+    }
+
+    .control-option.compact-option span {
+        font-size: 13px;
+    }
+
     /* Pulsanti modalità più piccoli su mobile */
     .mode-options {
         gap: 5px;
@@ -2264,6 +2281,27 @@ body {
 /* Legacy settings-title per compatibilità */
 .settings-title {
     display: none;
+}
+
+/* ==========================================
+   MOBILE PANEL CONTENT TITLE
+   Titolo visibile solo in mobile all'interno delle sezioni pannello
+   ========================================== */
+.mobile-panel-content-title {
+    display: none;
+}
+
+@media (max-width: 900px) {
+    .mobile-panel-content-title {
+        display: flex;
+        cursor: default;
+        pointer-events: none;
+        margin-bottom: 8px;
+    }
+
+    .mobile-panel-content-title::after {
+        display: none;
+    }
 }
 
 .coordinate-tooltip {
