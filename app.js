@@ -55,6 +55,23 @@
             const doppioB1 = document.getElementById('doppioB1');
             const doppioB2 = document.getElementById('doppioB2');
             const doppioDots = [doppioA1, doppioA2, doppioB1, doppioB2];
+
+            // Horizontal position lines for doubles players on opposite field
+            const doppioHLineMap = new Map();
+            doppioDots.forEach(d => {
+                if (!d) return;
+                const mkLine = () => {
+                    const el = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    el.setAttribute('stroke', '#000');
+                    el.setAttribute('stroke-width', '2');
+                    el.setAttribute('stroke-linecap', 'round');
+                    el.style.display = 'none';
+                    el.style.pointerEvents = 'none';
+                    svg.insertBefore(el, d);
+                    return el;
+                };
+                doppioHLineMap.set(d, { line: mkLine(), tick1: mkLine(), tick2: mkLine() });
+            });
             const dinamicoPanel = document.getElementById('dinamicoPanel');
             const numeroColpoInput = document.getElementById('numeroColpo');
             const colpoButton = document.getElementById('colpoButton');
@@ -1220,9 +1237,10 @@
                     };
                 }
 
-                let leftX = LEFT_X_SVG;
+                const isDoppio = window.__gioco__ === 'doppio';
+                let leftX = isDoppio ? COURT_X_MIN : LEFT_X_SVG;
                 let leftY = targets.left;
-                let rightX = RIGHT_X_SVG;
+                let rightX = isDoppio ? COURT_X_MAX : RIGHT_X_SVG;
                 let rightY = targets.right;
 
                 if (isPassante) {
@@ -1230,22 +1248,22 @@
                         const fieldA = calculateFieldACoordinates(dotX, dotY);
                         const xA = fieldA.x;
                         if (xA >= 115) {
-                            rightX = FIELD_B_ORIGIN_X + 115;
+                            rightX = isDoppio ? COURT_X_MAX : FIELD_B_ORIGIN_X + 115;
                             rightY = FIELD_B_ORIGIN_Y;
                         }
                         if (xA <= -115) {
-                            leftX = FIELD_B_ORIGIN_X - 115;
+                            leftX = isDoppio ? COURT_X_MIN : FIELD_B_ORIGIN_X - 115;
                             leftY = FIELD_B_ORIGIN_Y;
                         }
                     } else {
                         const fieldB = calculateFieldBCoordinates(dotX, dotY);
                         const xB = fieldB.x;
                         if (xB >= 115) {
-                            rightX = FIELD_A_ORIGIN_X + 115;
+                            rightX = isDoppio ? COURT_X_MAX : FIELD_A_ORIGIN_X + 115;
                             rightY = FIELD_A_ORIGIN_Y;
                         }
                         if (xB <= -115) {
-                            leftX = FIELD_A_ORIGIN_X - 115;
+                            leftX = isDoppio ? COURT_X_MIN : FIELD_A_ORIGIN_X - 115;
                             leftY = FIELD_A_ORIGIN_Y;
                         }
                     }
@@ -1569,6 +1587,7 @@
                 const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
                 updateLinesAndWedge(dotX, dotY);
                 updateZones();
+                updateDoppioHorizontalLines();
             }
 
             function updateDoppioColpitoreUI(isDoppio) {
@@ -1613,6 +1632,7 @@
                     }
                     applyViewToggles();
                     updateLinesAndWedge(ORIGIN_X, originY);
+                    updateDoppioHorizontalLines();
                 }
             }
 
@@ -1635,6 +1655,7 @@
                     }
                     updateLinesAndWedge(clampedX, clampedY);
                 }
+                updateDoppioHorizontalLines();
             }
 
             function onDoppioPointerUp() {
@@ -1661,6 +1682,46 @@
                     evt.stopPropagation();
                 });
             });
+
+            function updateDoppioHorizontalLines() {
+                const TICK_LEN = 10;
+                doppioDots.forEach(d => {
+                    const elems = doppioHLineMap.get(d);
+                    if (!elems || !d) return;
+                    const { line, tick1, tick2 } = elems;
+                    const hide = () => { line.style.display = 'none'; tick1.style.display = 'none'; tick2.style.display = 'none'; };
+                    if (window.__gioco__ !== 'doppio') { hide(); return; }
+                    const info = getActiveDoppioInfo();
+                    if (d === info.dot) { hide(); return; }
+                    const cy = parseFloat(d.getAttribute('cy'));
+                    const cx = parseFloat(d.getAttribute('cx'));
+                    // Opposite field from the active hitter
+                    const onOppField = isPlayer ? (cy < NET_Y) : (cy > NET_Y);
+                    // Y in the dot's own field coordinate system
+                    const fieldY = (cy < NET_Y)
+                        ? cy - FIELD_B_ORIGIN_Y        // Campo B: y from top baseline
+                        : FIELD_A_ORIGIN_Y - cy;       // Campo A: y from bottom baseline
+                    if (onOppField && fieldY > 170) {
+                        line.setAttribute('x1', String(cx - 60));
+                        line.setAttribute('y1', String(cy));
+                        line.setAttribute('x2', String(cx + 60));
+                        line.setAttribute('y2', String(cy));
+                        line.style.display = '';
+                        tick1.setAttribute('x1', String(cx - 60));
+                        tick1.setAttribute('y1', String(cy - TICK_LEN));
+                        tick1.setAttribute('x2', String(cx - 60));
+                        tick1.setAttribute('y2', String(cy + TICK_LEN));
+                        tick1.style.display = '';
+                        tick2.setAttribute('x1', String(cx + 60));
+                        tick2.setAttribute('y1', String(cy - TICK_LEN));
+                        tick2.setAttribute('x2', String(cx + 60));
+                        tick2.setAttribute('y2', String(cy + TICK_LEN));
+                        tick2.style.display = '';
+                    } else {
+                        hide();
+                    }
+                });
+            }
 
             // Listen for gioco changes
             window.addEventListener('giocoChanged', () => {
