@@ -130,6 +130,19 @@ body {
     flex-shrink: 0;
 }
 
+.top-bar-icon-gioco {
+    font-size: 14px;
+    font-weight: 700;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
 
 /* ==========================================
    TOP BAR MODALS (Desktop Only)

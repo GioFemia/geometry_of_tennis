@@ -245,6 +245,10 @@
     <div class="top-bar">
         <div class="top-bar-left">
             <h1 class="top-bar-title">Geometry of Tennis</h1>
+            <button id="topBarGioco" class="top-bar-item" title="Gioco">
+                <span class="top-bar-icon-gioco" id="topBarGiocoIcon">S</span>
+                <span class="top-bar-label">Gioco</span>
+            </button>
             <button id="topBarModalita" class="top-bar-item" title="Modalità">
                 <span class="top-bar-icon-mode" id="topBarModalitaIcon">2</span>
                 <span class="top-bar-label">Modalità</span>
@@ -273,6 +277,33 @@
     </div>
 
     <!-- Top Bar Modals -->
+    <div id="topBarGiocoOverlay" class="top-bar-modal-overlay">
+        <div class="top-bar-modal">
+            <div class="top-bar-modal-header">
+                <h2 class="top-bar-modal-title">Gioco</h2>
+                <button class="top-bar-modal-close" aria-label="Chiudi">×</button>
+            </div>
+            <div class="top-bar-modal-content">
+                <div class="mode-options">
+                    <label class="mode-option" for="gioco_singolare_top">
+                        <input id="gioco_singolare_top" type="radio" name="gioco_top" value="singolare" checked />
+                        <div class="mode-option-content">
+                            <span class="mode-option-icon">S</span>
+                            <span class="mode-option-label">Singolare</span>
+                        </div>
+                    </label>
+                    <label class="mode-option" for="gioco_doppio_top">
+                        <input id="gioco_doppio_top" type="radio" name="gioco_top" value="doppio" />
+                        <div class="mode-option-content">
+                            <span class="mode-option-icon">D</span>
+                            <span class="mode-option-label">Doppio</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="topBarModalitaOverlay" class="top-bar-modal-overlay">
         <div class="top-bar-modal">
             <div class="top-bar-modal-header">
@@ -563,18 +594,34 @@
             </div>
             
             <!-- SEZIONE COLPITORE -->
-            <div class="control-section compact">
+            <div class="control-section compact" id="colpitoreSection">
                 <h3 class="control-section-title compact-title">
                     <span>Colpitore</span>
                 </h3>
                 <div class="control-options compact-options">
-                    <label class="control-option compact-option" for="colpitore_tuo">
+                    <label class="control-option compact-option singolare-colpitore" for="colpitore_tuo">
                         <input id="colpitore_tuo" type="radio" name="colpitore" value="tuo" checked />
                         <span>Tu</span>
                     </label>
-                    <label class="control-option compact-option" for="colpitore_avv">
+                    <label class="control-option compact-option singolare-colpitore" for="colpitore_avv">
                         <input id="colpitore_avv" type="radio" name="colpitore" value="avversario" />
                         <span>Avversario</span>
+                    </label>
+                    <label class="control-option compact-option doppio-colpitore" for="colpitore_g1" style="display:none">
+                        <input id="colpitore_g1" type="radio" name="colpitore" value="giocatore1" />
+                        <span>Giocatore 1</span>
+                    </label>
+                    <label class="control-option compact-option doppio-colpitore" for="colpitore_g2" style="display:none">
+                        <input id="colpitore_g2" type="radio" name="colpitore" value="giocatore2" />
+                        <span>Giocatore 2</span>
+                    </label>
+                    <label class="control-option compact-option doppio-colpitore" for="colpitore_a1" style="display:none">
+                        <input id="colpitore_a1" type="radio" name="colpitore" value="avversario1" />
+                        <span>Avversario 1</span>
+                    </label>
+                    <label class="control-option compact-option doppio-colpitore" for="colpitore_a2" style="display:none">
+                        <input id="colpitore_a2" type="radio" name="colpitore" value="avversario2" />
+                        <span>Avversario 2</span>
                     </label>
                 </div>
             </div>
@@ -941,6 +988,11 @@
                     </g>
                     <circle id="cursorDot" cx="300" cy="822" r="12" fill="#ff5252" stroke="#fff" stroke-width="2" />
                     <circle id="intersectionDot" cx="300" cy="100" r="8" fill="#ff5252" stroke="#fff" stroke-width="2" style="display: none; cursor: move;" />
+                    <!-- Doubles players (hidden by default) -->
+                    <circle id="doppioA1" cx="380" cy="842" r="12" fill="#ff5252" stroke="#fff" stroke-width="2" style="display: none; cursor: grab;" />
+                    <circle id="doppioA2" cx="240" cy="582" r="12" fill="#ff5252" stroke="#fff" stroke-width="2" style="display: none; cursor: grab;" />
+                    <circle id="doppioB1" cx="220" cy="130" r="12" fill="#ff5252" stroke="#fff" stroke-width="2" style="display: none; cursor: grab;" />
+                    <circle id="doppioB2" cx="360" cy="390" r="12" fill="#ff5252" stroke="#fff" stroke-width="2" style="display: none; cursor: grab;" />
                 </svg>
                 <div id="measureArrowHtml" class="arrow-container"><div class="arrow"></div></div>
                 <div id="coordinateTooltip" class="coordinate-tooltip">
@@ -1047,6 +1099,21 @@
                     </svg>
                     <span>Guida</span>
                 </button>
+                
+                <!-- Gioco -->
+                <div class="mobile-drawer-settings-group">
+                    <h4 class="mobile-drawer-settings-title">Gioco</h4>
+                    <div class="mobile-drawer-radio-group">
+                        <label class="mobile-drawer-radio">
+                            <input type="radio" name="gioco_drawer" value="singolare" checked />
+                            <span>Singolare</span>
+                        </label>
+                        <label class="mobile-drawer-radio">
+                            <input type="radio" name="gioco_drawer" value="doppio" />
+                            <span>Doppio</span>
+                        </label>
+                    </div>
+                </div>
                 
                 <!-- Superficie -->
                 <div class="mobile-drawer-settings-group">

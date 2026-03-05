@@ -50,6 +50,11 @@
             const tooltipFieldB = document.getElementById('tooltip-field-b');
             const tooltipFieldA = document.getElementById('tooltip-field-a');
             const courtLockOverlay = document.getElementById('courtLockOverlay');
+            const doppioA1 = document.getElementById('doppioA1');
+            const doppioA2 = document.getElementById('doppioA2');
+            const doppioB1 = document.getElementById('doppioB1');
+            const doppioB2 = document.getElementById('doppioB2');
+            const doppioDots = [doppioA1, doppioA2, doppioB1, doppioB2];
             const dinamicoPanel = document.getElementById('dinamicoPanel');
             const numeroColpoInput = document.getElementById('numeroColpo');
             const colpoButton = document.getElementById('colpoButton');
@@ -100,6 +105,12 @@
             const FIELD_A_ORIGIN_X = 300; // Center of bottom horizontal line  
             const FIELD_A_ORIGIN_Y = 822; // Bottom horizontal line
 
+            // Doubles default positions (in field coordinates → SVG)
+            const DOPPIO_A1_DEFAULT = { x: FIELD_A_ORIGIN_X + 80, y: FIELD_A_ORIGIN_Y + 20 };   // Campo A (80, -20)
+            const DOPPIO_A2_DEFAULT = { x: FIELD_A_ORIGIN_X - 60, y: FIELD_A_ORIGIN_Y - 240 };   // Campo A (-60, 240)
+            const DOPPIO_B1_DEFAULT = { x: FIELD_B_ORIGIN_X - 80, y: FIELD_B_ORIGIN_Y - 20 };    // Campo B (-80, -20)
+            const DOPPIO_B2_DEFAULT = { x: FIELD_B_ORIGIN_X + 60, y: FIELD_B_ORIGIN_Y + 240 };   // Campo B (60, 240)
+
             let currentMeasureY = ORIGIN_TOP_Y - 50;
             let draggingArrow = false;
             let isPlayer = true;
@@ -120,6 +131,8 @@
             window.__viewCenter__ = true;
             window.__viewCoordinates__ = false;
             window.__modalita__ = '2colpi';
+            window.__gioco__ = 'singolare';
+            window.__doppioColpitore__ = 'giocatore1';
             window.__numeroColpo__ = 1;
             let isMobileLayout = false;
             let mobileSettingsOpen = false;
@@ -504,6 +517,11 @@
             function updateIntersectionDot() {
                 if (!intersectionDot) return;
                 
+                if (window.__gioco__ === 'doppio') {
+                    intersectionDot.style.display = 'none';
+                    return;
+                }
+
                 // Show intersection dot in all modes (dinamico, 1colpo, 2colpi) and only when both shot and responder are visible
                 const inValidMode = (window.__modalita__ === 'dinamico' || window.__modalita__ === '1colpo' || window.__modalita__ === '2colpi');
                 const shouldDisplay = inValidMode && window.__viewResponder__ === true;
@@ -1502,7 +1520,7 @@
                 if (leftLine) leftLine.style.display = (window.__viewDirections__ === false) ? 'none' : '';
                 if (rightLine) rightLine.style.display = (window.__viewDirections__ === false) ? 'none' : '';
                 if (wedge) wedge.style.display = (window.__viewDirections__ === false) ? 'none' : '';
-                if (dot) dot.style.display = (window.__viewPlayer__ === false) ? 'none' : '';
+                if (dot) dot.style.display = (window.__viewPlayer__ === false || window.__gioco__ === 'doppio') ? 'none' : '';
                 if (yellowLine) yellowLine.style.display = (window.__viewShot__ === false) ? 'none' : '';
                 if (bisectorLine) bisectorLine.style.display = (window.__viewCenter__ === false) ? 'none' : '';
                 // Durante l'animazione "Visualizza Punto", nascondi sempre il campo da coprire
@@ -1517,6 +1535,138 @@
                 updateIntersectionDot();
             }
 
+            // Doubles mode helpers
+            function getDoppioColpitoreInfo(value) {
+                switch (value) {
+                    case 'giocatore1': return { dot: doppioA1, isPlayer: true };
+                    case 'giocatore2': return { dot: doppioA2, isPlayer: true };
+                    case 'avversario1': return { dot: doppioB1, isPlayer: false };
+                    case 'avversario2': return { dot: doppioB2, isPlayer: false };
+                    default: return { dot: doppioA1, isPlayer: true };
+                }
+            }
+
+            function getActiveDoppioInfo() {
+                return getDoppioColpitoreInfo(window.__doppioColpitore__);
+            }
+
+            function syncDotWithActiveColpitore() {
+                const info = getActiveDoppioInfo();
+                isPlayer = info.isPlayer;
+                if (info.dot && dot) {
+                    const x = parseFloat(info.dot.getAttribute('cx'));
+                    const y = parseFloat(info.dot.getAttribute('cy'));
+                    dot.setAttribute('cx', x);
+                    dot.setAttribute('cy', y);
+                }
+                if (isPlayer) {
+                    currentMeasureY = Math.max(SVG_Y_MIN, Math.min(NET_Y, currentMeasureY));
+                } else {
+                    currentMeasureY = Math.max(NET_Y, Math.min(SVG_Y_MAX, currentMeasureY));
+                }
+                updateArrowHtmlPosition();
+                const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                updateLinesAndWedge(dotX, dotY);
+                updateZones();
+            }
+
+            function updateDoppioColpitoreUI(isDoppio) {
+                document.querySelectorAll('.singolare-colpitore').forEach(el => {
+                    el.style.display = isDoppio ? 'none' : '';
+                });
+                document.querySelectorAll('.doppio-colpitore').forEach(el => {
+                    el.style.display = isDoppio ? '' : 'none';
+                });
+                if (isDoppio) {
+                    const radio = document.getElementById('colpitore_g1');
+                    if (radio) { radio.checked = true; }
+                    window.__doppioColpitore__ = 'giocatore1';
+                } else {
+                    const radio = document.getElementById('colpitore_tuo');
+                    if (radio) { radio.checked = true; }
+                    isPlayer = true;
+                }
+            }
+
+            function resetDoppioDots() {
+                if (doppioA1) { doppioA1.setAttribute('cx', DOPPIO_A1_DEFAULT.x); doppioA1.setAttribute('cy', DOPPIO_A1_DEFAULT.y); }
+                if (doppioA2) { doppioA2.setAttribute('cx', DOPPIO_A2_DEFAULT.x); doppioA2.setAttribute('cy', DOPPIO_A2_DEFAULT.y); }
+                if (doppioB1) { doppioB1.setAttribute('cx', DOPPIO_B1_DEFAULT.x); doppioB1.setAttribute('cy', DOPPIO_B1_DEFAULT.y); }
+                if (doppioB2) { doppioB2.setAttribute('cx', DOPPIO_B2_DEFAULT.x); doppioB2.setAttribute('cy', DOPPIO_B2_DEFAULT.y); }
+            }
+
+            function applyDoppioMode(isDoppio) {
+                if (isDoppio) {
+                    resetDoppioDots();
+                    doppioDots.forEach(d => { if (d) d.style.display = ''; });
+                    updateDoppioColpitoreUI(true);
+                    syncDotWithActiveColpitore();
+                    applyViewToggles();
+                } else {
+                    doppioDots.forEach(d => { if (d) d.style.display = 'none'; });
+                    updateDoppioColpitoreUI(false);
+                    const originY = isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
+                    if (dot) {
+                        dot.setAttribute('cx', String(ORIGIN_X));
+                        dot.setAttribute('cy', String(originY));
+                    }
+                    applyViewToggles();
+                    updateLinesAndWedge(ORIGIN_X, originY);
+                }
+            }
+
+            // Doubles dot dragging — listeners attached directly on each circle
+            let draggingDoppioDot = null;
+            let _doppioPointerId = null;
+
+            function onDoppioPointerMove(evt) {
+                if (!draggingDoppioDot) return;
+                const p = toSvgPoint(evt);
+                const clampedX = Math.max(SVG_X_MIN, Math.min(SVG_X_MAX, p.x));
+                const clampedY = Math.max(SVG_Y_MIN, Math.min(SVG_Y_MAX, p.y));
+                draggingDoppioDot.setAttribute('cx', clampedX);
+                draggingDoppioDot.setAttribute('cy', clampedY);
+                const info = getActiveDoppioInfo();
+                if (draggingDoppioDot === info.dot) {
+                    if (dot) {
+                        dot.setAttribute('cx', clampedX);
+                        dot.setAttribute('cy', clampedY);
+                    }
+                    updateLinesAndWedge(clampedX, clampedY);
+                }
+            }
+
+            function onDoppioPointerUp() {
+                if (draggingDoppioDot) {
+                    draggingDoppioDot.style.cursor = 'grab';
+                    draggingDoppioDot = null;
+                    _doppioPointerId = null;
+                }
+            }
+
+            window.addEventListener('pointermove', onDoppioPointerMove);
+            window.addEventListener('pointerup', onDoppioPointerUp);
+
+            doppioDots.forEach(circleEl => {
+                if (!circleEl) return;
+                circleEl.addEventListener('pointerdown', (evt) => {
+                    if (window.__gioco__ !== 'doppio') return;
+                    if (window.drawingEnabled) return;
+                    draggingDoppioDot = circleEl;
+                    _doppioPointerId = evt.pointerId;
+                    circleEl.style.cursor = 'grabbing';
+                    circleEl.setPointerCapture(evt.pointerId);
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                });
+            });
+
+            // Listen for gioco changes
+            window.addEventListener('giocoChanged', () => {
+                applyDoppioMode(window.__gioco__ === 'doppio');
+            });
+
             (function initGraphics() {
                 const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
                 const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
@@ -1528,6 +1678,7 @@
                 applyViewToggles();
                 updateTipologiaAvailability();
                 updateVisualizationCheckboxes();
+                if (window.__gioco__ === 'doppio') applyDoppioMode(true);
             })();
 
             svg.addEventListener('mousemove', onMove, { passive: true });
@@ -1670,6 +1821,7 @@
                 if (!isMobileViewport()) return;
                 if (evt.pointerType === 'mouse') return;
                 if (window.drawingEnabled) return;
+                if (window.__gioco__ === 'doppio') return;
                 const targetNode = evt.target;
                 if (targetNode === dot || targetNode === intersectionDot || targetNode === yellowLine || targetNode === arrowHtml) {
                     return;
@@ -1788,6 +1940,27 @@
                 colpitoreInputs.forEach((inp) => {
                     inp.addEventListener('change', (e) => {
                         const val = e.target && e.target.value ? e.target.value : 'tuo';
+
+                        // Doppio mode: handle 4-player colpitore
+                        if (window.__gioco__ === 'doppio') {
+                            const prevIsPlayer = isPlayer;
+                            window.__doppioColpitore__ = val;
+                            const info = getDoppioColpitoreInfo(val);
+                            isPlayer = info.isPlayer;
+                            if (prevIsPlayer !== isPlayer) {
+                                currentMeasureY = 2 * NET_Y - currentMeasureY;
+                            }
+                            if (isPlayer) {
+                                currentMeasureY = Math.max(SVG_Y_MIN, Math.min(NET_Y, currentMeasureY));
+                            } else {
+                                currentMeasureY = Math.max(NET_Y, Math.min(SVG_Y_MAX, currentMeasureY));
+                            }
+                            updateArrowHtmlPosition();
+                            syncDotWithActiveColpitore();
+                            return;
+                        }
+
+                        // Singolare mode
                         isPlayer = (val === 'tuo');
                         
                         // Mirror measure Y
@@ -6171,18 +6344,20 @@
         // TOP BAR FUNCTIONALITY (Desktop Only)
         // ==========================================
         (function() {
+            const topBarGioco = document.getElementById('topBarGioco');
             const topBarModalita = document.getElementById('topBarModalita');
             const topBarGuida = document.getElementById('topBarGuida');
             const topBarImpostazioni = document.getElementById('topBarImpostazioni');
             const topBarDownload = document.getElementById('topBarDownload');
             
+            const giocoOverlay = document.getElementById('topBarGiocoOverlay');
             const modalitaOverlay = document.getElementById('topBarModalitaOverlay');
             const impostazioniOverlay = document.getElementById('topBarImpostazioniOverlay');
             const downloadOverlay = document.getElementById('topBarDownloadOverlay');
             
             // Function to close all modals
             function closeAllModals() {
-                [modalitaOverlay, impostazioniOverlay, downloadOverlay].forEach(overlay => {
+                [giocoOverlay, modalitaOverlay, impostazioniOverlay, downloadOverlay].forEach(overlay => {
                     if (overlay) {
                         overlay.classList.remove('active');
                     }
@@ -6203,6 +6378,22 @@
                 if (button) {
                     button.classList.add('active');
                 }
+            }
+            
+            // Gioco button
+            if (topBarGioco && giocoOverlay) {
+                topBarGioco.addEventListener('click', () => {
+                    if (giocoOverlay.classList.contains('active')) {
+                        closeAllModals();
+                    } else {
+                        const currentGioco = window.__gioco__ || 'singolare';
+                        const topRadio = document.querySelector(`input[name="gioco_top"][value="${currentGioco}"]`);
+                        if (topRadio) {
+                            topRadio.checked = true;
+                        }
+                        openModal(giocoOverlay, topBarGioco);
+                    }
+                });
             }
             
             // Modalità button
@@ -6264,7 +6455,7 @@
             });
             
             // Close on overlay click
-            [modalitaOverlay, impostazioniOverlay, downloadOverlay].forEach(overlay => {
+            [giocoOverlay, modalitaOverlay, impostazioniOverlay, downloadOverlay].forEach(overlay => {
                 if (overlay) {
                     overlay.addEventListener('click', (e) => {
                         if (e.target === overlay) {
@@ -6279,6 +6470,41 @@
                 if (e.key === 'Escape') {
                     closeAllModals();
                 }
+            });
+            
+            // Gioco icon update helper
+            function updateGiocoIcon(value) {
+                const icon = document.getElementById('topBarGiocoIcon');
+                if (icon) {
+                    icon.textContent = value === 'doppio' ? 'D' : 'S';
+                }
+            }
+
+            // Sync gioco changes between top bar and drawer
+            const giocoRadiosTop = document.querySelectorAll('input[name="gioco_top"]');
+            const giocoRadiosDrawer = document.querySelectorAll('input[name="gioco_drawer"]');
+
+            giocoRadiosTop.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    window.__gioco__ = radio.value;
+                    updateGiocoIcon(radio.value);
+                    giocoRadiosDrawer.forEach(dr => {
+                        if (dr.value === radio.value) dr.checked = true;
+                    });
+                    window.dispatchEvent(new Event('giocoChanged'));
+                    closeAllModals();
+                });
+            });
+
+            giocoRadiosDrawer.forEach(radio => {
+                radio.addEventListener('change', () => {
+                    window.__gioco__ = radio.value;
+                    updateGiocoIcon(radio.value);
+                    giocoRadiosTop.forEach(tr => {
+                        if (tr.value === radio.value) tr.checked = true;
+                    });
+                    window.dispatchEvent(new Event('giocoChanged'));
+                });
             });
             
             // Sync modalità changes between top bar and sidebar
