@@ -369,6 +369,15 @@
                     <h3 class="control-section-title">Default</h3>
                     <div class="control-options">
                         <div class="default-subsection">
+                            <label class="control-option" for="default_gioco_top">
+                                <span>Gioco:</span>
+                                <select id="default_gioco_top" name="default_gioco_top">
+                                    <option value="singolare" selected>Singolare</option>
+                                    <option value="doppio">Doppio</option>
+                                </select>
+                            </label>
+                        </div>
+                        <div class="default-subsection">
                             <label class="control-option" for="default_colpitore_top">
                                 <span>Colpitore:</span>
                                 <select id="default_colpitore_top" name="default_colpitore_top">
@@ -598,7 +607,7 @@
                 <h3 class="control-section-title compact-title">
                     <span>Colpitore</span>
                 </h3>
-                <div class="control-options compact-options">
+                <div class="control-options compact-options grid-view">
                     <label class="control-option compact-option singolare-colpitore" for="colpitore_tuo">
                         <input id="colpitore_tuo" type="radio" name="colpitore" value="tuo" checked />
                         <span>Tu</span>
@@ -784,6 +793,15 @@
             <div class="control-section collapsed">
                 <h3 class="control-section-title">Default</h3>
                 <div class="control-options">
+                    <div class="default-subsection">
+                        <label class="control-option" for="default_gioco">
+                            <span>Gioco:</span>
+                            <select id="default_gioco" name="default_gioco">
+                                <option value="singolare" selected>Singolare</option>
+                                <option value="doppio">Doppio</option>
+                            </select>
+                        </label>
+                    </div>
                     <div class="default-subsection">
                         <label class="control-option" for="default_colpitore">
                             <span>Colpitore:</span>
@@ -1138,6 +1156,13 @@
                 <div class="mobile-drawer-settings-group">
                     <h4 class="mobile-drawer-settings-title">Default</h4>
                     <div class="mobile-drawer-select-group">
+                        <label class="mobile-drawer-select-label">
+                            <span>Gioco:</span>
+                            <select id="default_gioco_drawer">
+                                <option value="singolare" selected>Singolare</option>
+                                <option value="doppio">Doppio</option>
+                            </select>
+                        </label>
                         <label class="mobile-drawer-select-label">
                             <span>Colpitore:</span>
                             <select id="default_colpitore_drawer">

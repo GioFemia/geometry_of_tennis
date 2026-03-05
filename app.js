@@ -1369,16 +1369,21 @@
                         const xRightAtH = computeIntersectionX(dotX, dotY, rightX, rightY, currentMeasureY);
                         const minXAtH = Math.min(xLeftAtH, xRightAtH);
                         const maxXAtH = Math.max(xLeftAtH, xRightAtH);
+                        let yellowX2, yellowY2;
                         if (yellowEndX == null) {
                             const xOnBis = computeBisectorXAtY(dotX, dotY, bisectorTarget, currentMeasureY, leftX, leftY, rightX, rightY);
-                            const clamped = Math.max(minXAtH, Math.min(maxXAtH, xOnBis));
-                            yellowLine.setAttribute('x2', String(clamped));
-                            yellowLine.setAttribute('y2', String(currentMeasureY));
+                            yellowX2 = Math.max(minXAtH, Math.min(maxXAtH, xOnBis));
                         } else {
-                            const clamped = Math.max(minXAtH, Math.min(maxXAtH, yellowEndX));
-                            yellowLine.setAttribute('x2', String(clamped));
-                            yellowLine.setAttribute('y2', String(currentMeasureY));
+                            yellowX2 = Math.max(minXAtH, Math.min(maxXAtH, yellowEndX));
                         }
+                        yellowY2 = currentMeasureY;
+                        if (window.__gioco__ === 'doppio' && currentMeasureY !== dotY) {
+                            const newY = computeDoppioYellowEndY(dotX, dotY, yellowX2);
+                            yellowX2 = dotX + (newY - dotY) / (currentMeasureY - dotY) * (yellowX2 - dotX);
+                            yellowY2 = newY;
+                        }
+                        yellowLine.setAttribute('x2', String(yellowX2));
+                        yellowLine.setAttribute('y2', String(yellowY2));
                     }
                 }
                 updateSecondaryCourtLock();
@@ -1644,7 +1649,11 @@
                 if (!draggingDoppioDot) return;
                 const p = toSvgPoint(evt);
                 const clampedX = Math.max(SVG_X_MIN, Math.min(SVG_X_MAX, p.x));
-                const clampedY = Math.max(SVG_Y_MIN, Math.min(SVG_Y_MAX, p.y));
+                // Each dot is confined to its own half: A-dots stay below NET_Y, B-dots stay above
+                const isADot = draggingDoppioDot === doppioA1 || draggingDoppioDot === doppioA2;
+                const minY = isADot ? NET_Y : SVG_Y_MIN;
+                const maxY = isADot ? SVG_Y_MAX : NET_Y;
+                const clampedY = Math.max(minY, Math.min(maxY, p.y));
                 draggingDoppioDot.setAttribute('cx', clampedX);
                 draggingDoppioDot.setAttribute('cy', clampedY);
                 const info = getActiveDoppioInfo();
@@ -1723,6 +1732,66 @@
                 });
             }
 
+            function computeDoppioYellowEndY(dotX, dotY, yellowCurrentX) {
+                // Collect receiver dots (on the opposite side of the net from the hitter)
+                const receivers = doppioDots.filter(d => {
+                    if (!d) return false;
+                    const cy = parseFloat(d.getAttribute('cy'));
+                    return isPlayer ? (cy < NET_Y) : (cy > NET_Y);
+                });
+                if (receivers.length < 2) return currentMeasureY;
+
+                // Sort left → right by SVG x
+                receivers.sort((a, b) => parseFloat(a.getAttribute('cx')) - parseFloat(b.getAttribute('cx')));
+                const lDot = receivers[0], rDot = receivers[1];
+                const lCx = parseFloat(lDot.getAttribute('cx')), lCy = parseFloat(lDot.getAttribute('cy'));
+                const rCx = parseFloat(rDot.getAttribute('cx')), rCy = parseFloat(rDot.getAttribute('cy'));
+
+                // Field Y for each receiver (positive = toward net from own baseline)
+                const lFY = (lCy < NET_Y) ? lCy - FIELD_B_ORIGIN_Y : FIELD_A_ORIGIN_Y - lCy;
+                const rFY = (rCy < NET_Y) ? rCy - FIELD_B_ORIGIN_Y : FIELD_A_ORIGIN_Y - rCy;
+                const lAtNet = lFY > 170, rAtNet = rFY > 170;
+
+                // Y = -80 in field coords (past the baseline, deep)
+                const yDeep = isPlayer ? (FIELD_B_ORIGIN_Y - 80) : (FIELD_A_ORIGIN_Y + 80);
+
+                // X of yellow line at a given SVG y (linear extrapolation from the direction)
+                function xAtY(targetY) {
+                    return dotX + (targetY - dotY) / (currentMeasureY - dotY) * (yellowCurrentX - dotX);
+                }
+                function crosses(cx, cy) {
+                    const x = xAtY(cy);
+                    return x >= cx - 60 && x <= cx + 60;
+                }
+
+                // Case 1: both at baseline → stop at Y of the receiver closest to the hitter
+                if (!lAtNet && !rAtNet) {
+                    return lFY > rFY ? lCy : rCy;
+                }
+
+                // Case 2: left = baseline, right = net
+                if (!lAtNet && rAtNet) {
+                    if (crosses(rCx, rCy)) return rCy;
+                    return xAtY(rCy) < rCx - 60 ? lCy : yDeep;
+                }
+
+                // Case 3: left = net, right = baseline
+                if (lAtNet && !rAtNet) {
+                    if (crosses(lCx, lCy)) return lCy;
+                    return xAtY(lCy) > lCx + 60 ? rCy : yDeep;
+                }
+
+                // Case 4: both at net → stop at first crossed line, or go deep
+                const cl = crosses(lCx, lCy), cr = crosses(rCx, rCy);
+                if (cl && cr) {
+                    // First encountered = closer to the hitter (smallest |cy - NET_Y|)
+                    return Math.abs(lCy - NET_Y) < Math.abs(rCy - NET_Y) ? lCy : rCy;
+                }
+                if (cl) return lCy;
+                if (cr) return rCy;
+                return yDeep;
+            }
+
             // Listen for gioco changes
             window.addEventListener('giocoChanged', () => {
                 applyDoppioMode(window.__gioco__ === 'doppio');
@@ -1787,10 +1856,16 @@
                 const maxXAtH = Math.max(xLeftAtH, xRightAtH);
                 const clampedX = Math.max(minXAtH, Math.min(maxXAtH, p.x));
                 yellowEndX = clampedX;
+                let yellowX2 = clampedX, yellowY2 = currentMeasureY;
+                if (window.__gioco__ === 'doppio' && currentMeasureY !== dotY) {
+                    const newY = computeDoppioYellowEndY(dotX, dotY, clampedX);
+                    yellowX2 = dotX + (newY - dotY) / (currentMeasureY - dotY) * (clampedX - dotX);
+                    yellowY2 = newY;
+                }
                 yellowLine.setAttribute('x1', String(dotX));
                 yellowLine.setAttribute('y1', String(dotY));
-                yellowLine.setAttribute('x2', String(clampedX));
-                yellowLine.setAttribute('y2', String(currentMeasureY));
+                yellowLine.setAttribute('x2', String(yellowX2));
+                yellowLine.setAttribute('y2', String(yellowY2));
                 updateSecondaryCourtLock();
                 updateSecondaryFromLeft();
                 updateIntersectionDot();
@@ -3155,6 +3230,7 @@
             function loadAndApplyDefaults() {
                 // Load defaults from localStorage
                 const savedDefaults = {
+                    gioco: localStorage.getItem('default_gioco'),
                     colpitore: localStorage.getItem('default_colpitore'),
                     modalita: localStorage.getItem('default_modalita'),
                     tipologia: localStorage.getItem('default_tipologia'),
@@ -3245,6 +3321,13 @@
                                 targetCheckbox.checked = defaults[key] === 'true';
                                 targetCheckbox.dispatchEvent(new Event('change'));
                             }
+                        } else if (key === 'gioco') {
+                            window.__gioco__ = defaults[key];
+                            const topRadio = document.querySelector(`input[name="gioco_top"][value="${defaults[key]}"]`);
+                            if (topRadio) topRadio.checked = true;
+                            const drawerRadio = document.querySelector(`input[name="gioco_drawer"][value="${defaults[key]}"]`);
+                            if (drawerRadio) drawerRadio.checked = true;
+                            window.dispatchEvent(new Event('giocoChanged'));
                         } else {
                             const targetRadio = document.querySelector(`input[name="${key}"][value="${defaults[key]}"]`);
                             if (targetRadio) {
@@ -3263,7 +3346,7 @@
             
             function addDefaultEventListeners() {
                 // Listen for changes in DEFAULT section
-                const defaultControls = document.querySelectorAll('#default_colpitore, #default_modalita, #default_tipologia, #default_campoType, #default_view_directions, #default_view_player, #default_view_shot, #default_view_responder, #default_view_cover, #default_view_zones, #default_view_center, #default_view_coordinates');
+                const defaultControls = document.querySelectorAll('#default_gioco, #default_colpitore, #default_modalita, #default_tipologia, #default_campoType, #default_view_directions, #default_view_player, #default_view_shot, #default_view_responder, #default_view_cover, #default_view_zones, #default_view_center, #default_view_coordinates');
                 
                 defaultControls.forEach(control => {
                     control.addEventListener('change', function() {
@@ -3308,6 +3391,13 @@
                                 targetCheckbox.checked = value;
                                 targetCheckbox.dispatchEvent(new Event('change'));
                             }
+                        } else if (key === 'gioco') {
+                            window.__gioco__ = value;
+                            const topRadio = document.querySelector(`input[name="gioco_top"][value="${value}"]`);
+                            if (topRadio) topRadio.checked = true;
+                            const drawerRadio = document.querySelector(`input[name="gioco_drawer"][value="${value}"]`);
+                            if (drawerRadio) drawerRadio.checked = true;
+                            window.dispatchEvent(new Event('giocoChanged'));
                         } else {
                             const targetRadio = document.querySelector(`input[name="${key}"][value="${value}"]`);
                             if (targetRadio) {
@@ -5294,6 +5384,7 @@
             
             // Sincronizzazione default drawer con controlli principali
             const drawerDefaultSelects = {
+                gioco: document.getElementById('default_gioco_drawer'),
                 colpitore: document.getElementById('default_colpitore_drawer'),
                 modalita: document.getElementById('default_modalita_drawer'),
                 tipologia: document.getElementById('default_tipologia_drawer'),
@@ -5301,6 +5392,7 @@
             };
             
             const mainDefaultSelects = {
+                gioco: document.getElementById('default_gioco'),
                 colpitore: document.getElementById('default_colpitore'),
                 modalita: document.getElementById('default_modalita'),
                 tipologia: document.getElementById('default_tipologia'),
@@ -6599,7 +6691,7 @@
             });
             
             // Sync default settings
-            const defaultSelects = ['default_colpitore', 'default_modalita', 'default_tipologia', 'default_campoType'];
+            const defaultSelects = ['default_gioco', 'default_colpitore', 'default_modalita', 'default_tipologia', 'default_campoType'];
             defaultSelects.forEach(selectName => {
                 const topSelect = document.getElementById(`${selectName}_top`);
                 const sidebarSelect = document.getElementById(selectName);
