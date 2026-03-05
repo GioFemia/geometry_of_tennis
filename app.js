@@ -524,6 +524,20 @@
                     dot2b.setAttribute('stroke', '#fff');
                     dot2b.setAttribute('stroke-width', '1.5');
                     svg2.appendChild(dot2b);
+
+                    // Doubles player circles for secondary court (hidden by default)
+                    ['doppioA1_2', 'doppioA2_2', 'doppioB1_2', 'doppioB2_2'].forEach(id => {
+                        const d = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                        d.setAttribute('id', id);
+                        d.setAttribute('cx', '300');
+                        d.setAttribute('cy', '486');
+                        d.setAttribute('r', '12');
+                        d.setAttribute('fill', '#ff5252');
+                        d.setAttribute('stroke', '#fff');
+                        d.setAttribute('stroke-width', '2');
+                        d.style.display = 'none';
+                        svg2.appendChild(d);
+                    });
                     
                     secondary.innerHTML = '';
                     secondary.appendChild(svg2);
@@ -1128,12 +1142,70 @@
                 if (b2) b2.style.display = (window.__viewCenter__ === false) ? 'none' : '';
                 w2.setAttribute('points', `${clampedX},${mainY} ${leftEndX2},${endYSvgR} ${rightEndX2},${endYSvgR}`);
 
-                // Apply visibility toggles
-                if (dot2) dot2.style.display = (window.__viewPlayer__ === false) ? 'none' : '';
-                if (dot2b) dot2b.style.display = (window.__viewPlayer__ === false) ? 'none' : '';
+                const isDoppio2 = window.__gioco__ === 'doppio';
+
+                // Apply visibility toggles — in doubles mode the generic dots are replaced by the 4 player circles
+                if (dot2) dot2.style.display = (window.__viewPlayer__ === false || isDoppio2) ? 'none' : '';
+                if (dot2b) dot2b.style.display = (window.__viewPlayer__ === false || isDoppio2) ? 'none' : '';
                 if (l2) l2.style.display = (window.__viewDirections__ === false) ? 'none' : '';
                 if (r2) r2.style.display = (window.__viewDirections__ === false) ? 'none' : '';
                 if (w2) w2.style.display = (window.__viewDirections__ === false || window.__viewShot__ === false) ? 'none' : '';
+
+                if (isDoppio2) {
+                    const doubleIds = ['doppioA1_2', 'doppioA2_2', 'doppioB1_2', 'doppioB2_2'];
+                    const srcDots  = [doppioA1,    doppioA2,    doppioB1,    doppioB2   ];
+
+                    // Lazy-create circles in case secondary SVG was built before this code ran
+                    doubleIds.forEach(id => {
+                        if (!svg2.querySelector(`#${id}`)) {
+                            const d = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                            d.setAttribute('id', id);
+                            d.setAttribute('cx', '300');
+                            d.setAttribute('cy', '486');
+                            d.setAttribute('r', '12');
+                            d.setAttribute('fill', '#ff5252');
+                            d.setAttribute('stroke', '#fff');
+                            d.setAttribute('stroke-width', '2');
+                            d.style.display = 'none';
+                            svg2.appendChild(d);
+                        }
+                    });
+
+                    // Receiver = player on the opponent's side closest in Y to mainY.
+                    // isPlayerRight=false → shooter is A (bottom), receiver is on B side (Y < NET_Y)
+                    // isPlayerRight=true  → shooter is B (top),    receiver is on A side (Y > NET_Y)
+                    const candidateIdxs = isPlayerRight ? [0, 1] : [2, 3];
+                    let receiverIdx = candidateIdxs[0];
+                    let minDist = Infinity;
+                    candidateIdxs.forEach(i => {
+                        if (!srcDots[i]) return;
+                        const dist = Math.abs(parseFloat(srcDots[i].getAttribute('cy')) - mainY);
+                        if (dist < minDist) { minDist = dist; receiverIdx = i; }
+                    });
+
+                    doubleIds.forEach((id, i) => {
+                        const el2 = svg2.querySelector(`#${id}`);
+                        if (!el2) return;
+                        if (i === receiverIdx) {
+                            // This player received the shot — place at yellow-line endpoint
+                            el2.setAttribute('cx', String(clampedX));
+                            el2.setAttribute('cy', String(mainY));
+                        } else {
+                            const src = srcDots[i];
+                            if (src) {
+                                el2.setAttribute('cx', src.getAttribute('cx'));
+                                el2.setAttribute('cy', src.getAttribute('cy'));
+                            }
+                        }
+                        el2.style.display = (window.__viewPlayer__ === false) ? 'none' : '';
+                    });
+                } else {
+                    // Singles mode — hide doubles circles if they exist
+                    ['doppioA1_2', 'doppioA2_2', 'doppioB1_2', 'doppioB2_2'].forEach(id => {
+                        const el = svg2.querySelector(`#${id}`);
+                        if (el) el.style.display = 'none';
+                    });
+                }
 
                 updateThemeColorsRight();
             }
@@ -1764,9 +1836,19 @@
                     return x >= cx - 60 && x <= cx + 60;
                 }
 
-                // Case 1: both at baseline → stop at Y of the receiver closest to the hitter
+                // Case 1: both at baseline → stop at Y of the receiver whose X is on the same
+                // side as the shot direction at field Y = 50
                 if (!lAtNet && !rAtNet) {
-                    return lFY > rFY ? lCy : rCy;
+                    const svgY50 = isPlayer ? (FIELD_B_ORIGIN_Y + 50) : (FIELD_A_ORIGIN_Y - 50);
+                    const shotFieldX = xAtY(svgY50) - ORIGIN_X;
+                    const lFieldX = lCx - ORIGIN_X;
+                    const rFieldX = rCx - ORIGIN_X;
+                    const lMatch = (shotFieldX >= 0) ? (lFieldX >= 0) : (lFieldX < 0);
+                    const rMatch = (shotFieldX >= 0) ? (rFieldX >= 0) : (rFieldX < 0);
+                    if (rMatch) return rCy;
+                    if (lMatch) return lCy;
+                    // Fallback: receiver with X closest to shot direction
+                    return Math.abs(lFieldX - shotFieldX) <= Math.abs(rFieldX - shotFieldX) ? lCy : rCy;
                 }
 
                 // Case 2: left = baseline, right = net
@@ -1957,19 +2039,19 @@
                 if (!isMobileViewport()) return;
                 if (evt.pointerType === 'mouse') return;
                 if (window.drawingEnabled) return;
-                if (window.__gioco__ === 'doppio') return;
+                const isDoppio = window.__gioco__ === 'doppio';
                 const targetNode = evt.target;
                 if (targetNode === dot || targetNode === intersectionDot || targetNode === yellowLine || targetNode === arrowHtml) {
                     return;
                 }
                 const point = toSvgPoint(evt);
                 let handled = false;
-                if (dot && window.__viewPlayer__ !== false) {
+                // In doppio cursorDot and intersectionDot are hidden — skip those checks
+                if (!isDoppio && dot && window.__viewPlayer__ !== false) {
                     const dotX = parseFloat(dot.getAttribute('cx'));
                     const dotY = parseFloat(dot.getAttribute('cy'));
                     const dotDistance = Math.hypot(point.x - dotX, point.y - dotY);
                     if (dotDistance <= TOUCH_PICK_RADIUS) {
-                        // Mostra l'alert se il movimento è "bloccato" ma permette comunque il movimento
                         if (isColpitoreMovementLocked()) {
                             showColpitoreMovementAlert();
                         }
@@ -1978,7 +2060,7 @@
                         handled = true;
                     }
                 }
-                if (!handled && intersectionDot && intersectionDot.style.display !== 'none') {
+                if (!isDoppio && !handled && intersectionDot && intersectionDot.style.display !== 'none') {
                     const intersectionX = parseFloat(intersectionDot.getAttribute('cx'));
                     const intersectionY = parseFloat(intersectionDot.getAttribute('cy'));
                     const interDistance = Math.hypot(point.x - intersectionX, point.y - intersectionY);
@@ -1993,8 +2075,11 @@
                     const y1 = parseFloat(yellowLine.getAttribute('y1'));
                     const x2 = parseFloat(yellowLine.getAttribute('x2'));
                     const y2 = parseFloat(yellowLine.getAttribute('y2'));
+                    // In doppio use a much larger touch area (4×) since the line is the only
+                    // draggable element on the SVG background (doppio dots have their own listeners)
+                    const threshold = isDoppio ? TOUCH_LINE_THRESHOLD * 4 : TOUCH_LINE_THRESHOLD;
                     const lineDistance = distancePointToSegment(point.x, point.y, x1, y1, x2, y2);
-                    if (lineDistance <= TOUCH_LINE_THRESHOLD) {
+                    if (lineDistance <= threshold) {
                         onYellowPointerDown(evt);
                         onYellowPointerMove(evt);
                         handled = true;
