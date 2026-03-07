@@ -525,6 +525,20 @@
                     dot2b.setAttribute('stroke-width', '1.5');
                     svg2.appendChild(dot2b);
 
+                    // Horizontal lines + ticks for net players in secondary court (drawn below circles)
+                    ['A1', 'A2', 'B1', 'B2'].forEach(lbl => {
+                        ['HL', 'Tick1', 'Tick2'].forEach(part => {
+                            const el = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                            el.setAttribute('id', `doppio${part}_${lbl}_2`);
+                            el.setAttribute('stroke', '#000');
+                            el.setAttribute('stroke-width', '2');
+                            el.setAttribute('stroke-linecap', 'round');
+                            el.style.display = 'none';
+                            el.style.pointerEvents = 'none';
+                            svg2.appendChild(el);
+                        });
+                    });
+
                     // Doubles player circles for secondary court (hidden by default)
                     ['doppioA1_2', 'doppioA2_2', 'doppioB1_2', 'doppioB2_2'].forEach(id => {
                         const d = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -1096,34 +1110,48 @@
                 // Always use normal mode logic for secondary court
                 const endYSvgR = isPlayerRight ? END_Y_TOP : END_Y_BOTTOM;
 
-                const leftTargets = computePassYTargets(leftDotX, leftDotY);
-                const primaryAnchors = getDirectionalAnchorPoints(leftDotX, leftDotY, leftTargets);
-                const xLeftAtY = computeIntersectionX(leftDotX, leftDotY, primaryAnchors.leftX, primaryAnchors.leftY, currentMeasureY);
-                const xRightAtY = computeIntersectionX(leftDotX, leftDotY, primaryAnchors.rightX, primaryAnchors.rightY, currentMeasureY);
-                
-                const minXAtY = Math.min(xLeftAtY, xRightAtY);
-                const maxXAtY = Math.max(xLeftAtY, xRightAtY);
-                let xIntersect;
-                if (yellowEndX == null) {
-                    const bisTargetLeft = window.__shotTypeIsServizio__
-                        ? ((leftTargets.left.y + leftTargets.right.y) / 2)
-                        : ((leftTargets.left + leftTargets.right) / 2);
-                    xIntersect = computeBisectorXAtY(
-                        leftDotX,
-                        leftDotY,
-                        bisTargetLeft,
-                        currentMeasureY,
-                        primaryAnchors.leftX,
-                        primaryAnchors.leftY,
-                        primaryAnchors.rightX,
-                        primaryAnchors.rightY
-                    );
+                let clampedX, mainY;
+                if (window.__gioco__ === 'doppio' && yellowLine) {
+                    // In doubles the yellow line is already snapped to a player's Y or yDeep
+                    // by computeDoppioYellowEndY — read the actual endpoint directly.
+                    const yx2 = parseFloat(yellowLine.getAttribute('x2'));
+                    const yy2 = parseFloat(yellowLine.getAttribute('y2'));
+                    if (!isNaN(yx2) && !isNaN(yy2)) {
+                        clampedX = yx2;
+                        mainY    = yy2;
+                    } else {
+                        clampedX = leftDotX;
+                        mainY    = currentMeasureY;
+                    }
                 } else {
-                    xIntersect = computeIntersectionX(leftDotX, leftDotY, yellowEndX, currentMeasureY, currentMeasureY);
-                }
-                const clampedX = Math.max(minXAtY, Math.min(maxXAtY, xIntersect));
+                    const leftTargets = computePassYTargets(leftDotX, leftDotY);
+                    const primaryAnchors = getDirectionalAnchorPoints(leftDotX, leftDotY, leftTargets);
+                    const xLeftAtY = computeIntersectionX(leftDotX, leftDotY, primaryAnchors.leftX, primaryAnchors.leftY, currentMeasureY);
+                    const xRightAtY = computeIntersectionX(leftDotX, leftDotY, primaryAnchors.rightX, primaryAnchors.rightY, currentMeasureY);
 
-                const mainY = currentMeasureY;
+                    const minXAtY = Math.min(xLeftAtY, xRightAtY);
+                    const maxXAtY = Math.max(xLeftAtY, xRightAtY);
+                    let xIntersect;
+                    if (yellowEndX == null) {
+                        const bisTargetLeft = window.__shotTypeIsServizio__
+                            ? ((leftTargets.left.y + leftTargets.right.y) / 2)
+                            : ((leftTargets.left + leftTargets.right) / 2);
+                        xIntersect = computeBisectorXAtY(
+                            leftDotX,
+                            leftDotY,
+                            bisTargetLeft,
+                            currentMeasureY,
+                            primaryAnchors.leftX,
+                            primaryAnchors.leftY,
+                            primaryAnchors.rightX,
+                            primaryAnchors.rightY
+                        );
+                    } else {
+                        xIntersect = computeIntersectionX(leftDotX, leftDotY, yellowEndX, currentMeasureY, currentMeasureY);
+                    }
+                    clampedX = Math.max(minXAtY, Math.min(maxXAtY, xIntersect));
+                    mainY    = currentMeasureY;
+                }
                 dot2.setAttribute('cx', String(clampedX));
                 dot2.setAttribute('cy', String(mainY));
                 dot2b.setAttribute('cx', String(leftDotX));
@@ -1199,11 +1227,80 @@
                         }
                         el2.style.display = (window.__viewPlayer__ === false) ? 'none' : '';
                     });
+
+                    // Horizontal lines + ticks for net players on opponent's side in secondary court
+                    const TICK_LEN2 = 10;
+                    const lbls2 = ['A1', 'A2', 'B1', 'B2'];
+                    doubleIds.forEach((id, i) => {
+                        const lbl = lbls2[i];
+                        // Lazy-create line elements if secondary SVG was built without them
+                        ['HL', 'Tick1', 'Tick2'].forEach(part => {
+                            const elId = `doppio${part}_${lbl}_2`;
+                            if (!svg2.querySelector(`#${elId}`)) {
+                                const el = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                                el.setAttribute('id', elId);
+                                el.setAttribute('stroke', '#000');
+                                el.setAttribute('stroke-width', '2');
+                                el.setAttribute('stroke-linecap', 'round');
+                                el.style.display = 'none';
+                                el.style.pointerEvents = 'none';
+                                svg2.appendChild(el);
+                            }
+                        });
+                        const hl = svg2.querySelector(`#doppioHL_${lbl}_2`);
+                        const t1 = svg2.querySelector(`#doppioTick1_${lbl}_2`);
+                        const t2 = svg2.querySelector(`#doppioTick2_${lbl}_2`);
+                        const hide2 = () => {
+                            if (hl) hl.style.display = 'none';
+                            if (t1) t1.style.display = 'none';
+                            if (t2) t2.style.display = 'none';
+                        };
+                        // Skip the receiver (now the secondary-court shooter) and hidden players
+                        if (i === receiverIdx) { hide2(); return; }
+                        const el2 = svg2.querySelector(`#${id}`);
+                        if (!el2 || el2.style.display === 'none') { hide2(); return; }
+
+                        const cy = parseFloat(el2.getAttribute('cy'));
+                        const cx = parseFloat(el2.getAttribute('cx'));
+                        // Opponent's side relative to the secondary-court shooter:
+                        // isPlayerRight=false (B shooting): opponent = A side (cy > NET_Y)
+                        // isPlayerRight=true  (A shooting): opponent = B side (cy < NET_Y)
+                        const onOppSide = isPlayerRight ? (cy < NET_Y) : (cy > NET_Y);
+                        const fieldY = (cy < NET_Y)
+                            ? cy - FIELD_B_ORIGIN_Y
+                            : FIELD_A_ORIGIN_Y - cy;
+
+                        if (onOppSide && fieldY > 170) {
+                            hl.setAttribute('x1', String(cx - 60));
+                            hl.setAttribute('y1', String(cy));
+                            hl.setAttribute('x2', String(cx + 60));
+                            hl.setAttribute('y2', String(cy));
+                            hl.style.display = '';
+                            t1.setAttribute('x1', String(cx - 60));
+                            t1.setAttribute('y1', String(cy - TICK_LEN2));
+                            t1.setAttribute('x2', String(cx - 60));
+                            t1.setAttribute('y2', String(cy + TICK_LEN2));
+                            t1.style.display = '';
+                            t2.setAttribute('x1', String(cx + 60));
+                            t2.setAttribute('y1', String(cy - TICK_LEN2));
+                            t2.setAttribute('x2', String(cx + 60));
+                            t2.setAttribute('y2', String(cy + TICK_LEN2));
+                            t2.style.display = '';
+                        } else {
+                            hide2();
+                        }
+                    });
                 } else {
-                    // Singles mode — hide doubles circles if they exist
+                    // Singles mode — hide doubles circles and lines if they exist
                     ['doppioA1_2', 'doppioA2_2', 'doppioB1_2', 'doppioB2_2'].forEach(id => {
                         const el = svg2.querySelector(`#${id}`);
                         if (el) el.style.display = 'none';
+                    });
+                    ['A1', 'A2', 'B1', 'B2'].forEach(lbl => {
+                        ['HL', 'Tick1', 'Tick2'].forEach(part => {
+                            const el = svg2.querySelector(`#doppio${part}_${lbl}_2`);
+                            if (el) el.style.display = 'none';
+                        });
                     });
                 }
 
