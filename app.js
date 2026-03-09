@@ -1746,8 +1746,15 @@
                 const info = getActiveDoppioInfo();
                 isPlayer = info.isPlayer;
                 if (info.dot && dot) {
-                    const x = parseFloat(info.dot.getAttribute('cx'));
-                    const y = parseFloat(info.dot.getAttribute('cy'));
+                    let x = parseFloat(info.dot.getAttribute('cx'));
+                    let y = parseFloat(info.dot.getAttribute('cy'));
+                    // Servizio: server must stay on the baseline
+                    if (window.__shotTypeIsServizio__) {
+                        y = isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
+                        x = isPlayer ? ORIGIN_X + 20 : ORIGIN_X - 20;
+                        info.dot.setAttribute('cx', String(x));
+                        info.dot.setAttribute('cy', String(y));
+                    }
                     dot.setAttribute('cx', x);
                     dot.setAttribute('cy', y);
                 }
@@ -1817,16 +1824,43 @@
             function onDoppioPointerMove(evt) {
                 if (!draggingDoppioDot) return;
                 const p = toSvgPoint(evt);
-                const clampedX = Math.max(SVG_X_MIN, Math.min(SVG_X_MAX, p.x));
-                // Each dot is confined to its own half: A-dots stay below NET_Y, B-dots stay above
                 const isADot = draggingDoppioDot === doppioA1 || draggingDoppioDot === doppioA2;
-                const minY = isADot ? NET_Y : SVG_Y_MIN;
-                const maxY = isADot ? SVG_Y_MAX : NET_Y;
-                const clampedY = Math.max(minY, Math.min(maxY, p.y));
+                const info = getActiveDoppioInfo();
+                const isActiveDot = draggingDoppioDot === info.dot;
+                let clampedX, clampedY;
+                // Servizio: server (active dot) is locked to the baseline
+                if (window.__shotTypeIsServizio__ && isActiveDot) {
+                    clampedX = Math.max(ORIGIN_X - 115, Math.min(ORIGIN_X + 115, p.x));
+                    clampedY = isADot ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
+                } else {
+                    // Each dot is confined to its own half: A-dots stay below NET_Y, B-dots stay above
+                    clampedX = Math.max(SVG_X_MIN, Math.min(SVG_X_MAX, p.x));
+                    const minY = isADot ? NET_Y : SVG_Y_MIN;
+                    const maxY = isADot ? SVG_Y_MAX : NET_Y;
+                    clampedY = Math.max(minY, Math.min(maxY, p.y));
+                    // Servizio: the two receivers must stay on opposite X sides of center
+                    if (window.__shotTypeIsServizio__) {
+                        const isReceiverDot = isPlayer ? !isADot : isADot;
+                        if (isReceiverDot) {
+                            const otherReceiver = doppioDots.find(d => {
+                                if (!d || d === draggingDoppioDot) return false;
+                                const cy = parseFloat(d.getAttribute('cy'));
+                                return isPlayer ? (cy < NET_Y) : (cy > NET_Y);
+                            });
+                            if (otherReceiver) {
+                                const otherFieldX = parseFloat(otherReceiver.getAttribute('cx')) - ORIGIN_X;
+                                if (otherFieldX >= 0) {
+                                    clampedX = Math.min(clampedX, ORIGIN_X - 1);
+                                } else {
+                                    clampedX = Math.max(clampedX, ORIGIN_X + 1);
+                                }
+                            }
+                        }
+                    }
+                }
                 draggingDoppioDot.setAttribute('cx', clampedX);
                 draggingDoppioDot.setAttribute('cy', clampedY);
-                const info = getActiveDoppioInfo();
-                if (draggingDoppioDot === info.dot) {
+                if (isActiveDot) {
                     if (dot) {
                         dot.setAttribute('cx', clampedX);
                         dot.setAttribute('cy', clampedY);
@@ -1910,6 +1944,19 @@
                 });
                 if (receivers.length < 2) return currentMeasureY;
 
+                // Servizio: yellow line always targets the receiver on the OPPOSITE X side from the server
+                if (window.__shotTypeIsServizio__) {
+                    const serverInfo = getActiveDoppioInfo();
+                    const serverFieldX = serverInfo.dot
+                        ? parseFloat(serverInfo.dot.getAttribute('cx')) - ORIGIN_X
+                        : dotX - ORIGIN_X;
+                    const target = receivers.find(d => {
+                        const rfx = parseFloat(d.getAttribute('cx')) - ORIGIN_X;
+                        return serverFieldX >= 0 ? rfx < 0 : rfx >= 0;
+                    }) || receivers[0];
+                    return parseFloat(target.getAttribute('cy'));
+                }
+
                 // Sort left → right by SVG x
                 receivers.sort((a, b) => parseFloat(a.getAttribute('cx')) - parseFloat(b.getAttribute('cx')));
                 const lDot = receivers[0], rDot = receivers[1];
@@ -1974,6 +2021,8 @@
             // Listen for gioco changes
             window.addEventListener('giocoChanged', () => {
                 applyDoppioMode(window.__gioco__ === 'doppio');
+                const _giocoIcon = document.getElementById('topBarGiocoIcon');
+                if (_giocoIcon) _giocoIcon.textContent = window.__gioco__ === 'doppio' ? 'D' : 'S';
             });
 
             (function initGraphics() {
@@ -2323,15 +2372,20 @@
                             window.__leftForceRed__ = false; // rimuovi override colore
                         }
                         
-                        // Servizio mode: position dot on horizontal line
+                        // Servizio mode: position dot on baseline
                         if (window.__shotTypeIsServizio__) {
+                            const originY = isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
+                            const servizioOffsetX = 20;
+                            const dotXServizio = isPlayer ? ORIGIN_X + servizioOffsetX : ORIGIN_X - servizioOffsetX;
+                            // In doubles also move the active doppio dot
+                            if (window.__gioco__ === 'doppio') {
+                                const info = getActiveDoppioInfo();
+                                if (info.dot) {
+                                    info.dot.setAttribute('cx', String(dotXServizio));
+                                    info.dot.setAttribute('cy', String(originY));
+                                }
+                            }
                             if (dot) {
-                                const originY = isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
-                                // Posiziona il pallino a coordinate (20; 0) nel sistema di coordinate del campo
-                                // Per Campo A (Tu): X = 20 significa 20 unità a destra del centro, Y = 0 sulla linea di fondo
-                                // SVG: X = ORIGIN_X + 20 = 320, Y = ORIGIN_BOTTOM_Y (822) per Tu, ORIGIN_TOP_Y (150) per Avversario
-                                const servizioOffsetX = 20; // Offset di 20 unità dal centro
-                                const dotXServizio = isPlayer ? ORIGIN_X + servizioOffsetX : ORIGIN_X - servizioOffsetX;
                                 dot.setAttribute('cx', String(dotXServizio));
                                 dot.setAttribute('cy', String(originY));
                             }
