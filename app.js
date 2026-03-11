@@ -1499,20 +1499,26 @@
                         const minXAtH = Math.min(xLeftAtH, xRightAtH);
                         const maxXAtH = Math.max(xLeftAtH, xRightAtH);
                         
+                        let yellowX2Srv, yellowY2Srv;
                         if (yellowEndX == null) {
                             // Position yellow line at the bisector of the blue lines
                             const bisectorX = (leftEndX + rightEndX) / 2;
                             const bisectorY = (leftEndY + rightEndY) / 2;
                             const xOnBis = computeIntersectionX(dotX, dotY, bisectorX, bisectorY, currentMeasureY);
-                            const clamped = Math.max(minXAtH, Math.min(maxXAtH, xOnBis));
-                            yellowLine.setAttribute('x2', String(clamped));
-                            yellowLine.setAttribute('y2', String(currentMeasureY));
+                            yellowX2Srv = Math.max(minXAtH, Math.min(maxXAtH, xOnBis));
                         } else {
                             // Clamp yellow line within the blue lines
-                            const clamped = Math.max(minXAtH, Math.min(maxXAtH, yellowEndX));
-                            yellowLine.setAttribute('x2', String(clamped));
-                            yellowLine.setAttribute('y2', String(currentMeasureY));
+                            yellowX2Srv = Math.max(minXAtH, Math.min(maxXAtH, yellowEndX));
                         }
+                        yellowY2Srv = currentMeasureY;
+                        // In doubles serve, snap yellow endpoint to the receiver's Y
+                        if (window.__gioco__ === 'doppio' && currentMeasureY !== dotY) {
+                            const receiverY = computeDoppioYellowEndY(dotX, dotY, yellowX2Srv);
+                            yellowX2Srv = dotX + (receiverY - dotY) / (currentMeasureY - dotY) * (yellowX2Srv - dotX);
+                            yellowY2Srv = receiverY;
+                        }
+                        yellowLine.setAttribute('x2', String(yellowX2Srv));
+                        yellowLine.setAttribute('y2', String(yellowY2Srv));
                     }
                 } else {
                     // Normal mode
@@ -1613,14 +1619,17 @@
                 
                 // Servizio mode: restrict to horizontal line only
                 if (window.__shotTypeIsServizio__) {
+                    const isDoppioServe = window.__gioco__ === 'doppio';
+                    const serveXMin = isDoppioServe ? COURT_X_MIN : ORIGIN_X - 115;
+                    const serveXMax = isDoppioServe ? COURT_X_MAX : ORIGIN_X + 115;
                     if (isPlayer) {
-                        // Campo A: y = 0 (ORIGIN_BOTTOM_Y = 822), x between -115 and 115
+                        // Campo A: y = 0 (ORIGIN_BOTTOM_Y = 822)
                         clampedY = ORIGIN_BOTTOM_Y;
-                        clampedX = Math.max(ORIGIN_X - 115, Math.min(ORIGIN_X + 115, p.x));
+                        clampedX = Math.max(serveXMin, Math.min(serveXMax, p.x));
                     } else {
-                        // Campo B: y = 0 (ORIGIN_TOP_Y = 150), x between -115 and 115
+                        // Campo B: y = 0 (ORIGIN_TOP_Y = 150)
                         clampedY = ORIGIN_TOP_Y;
-                        clampedX = Math.max(ORIGIN_X - 115, Math.min(ORIGIN_X + 115, p.x));
+                        clampedX = Math.max(serveXMin, Math.min(serveXMax, p.x));
                     }
                 } else {
                     // Normal mode constraints
@@ -1751,7 +1760,7 @@
                     // Servizio: server must stay on the baseline
                     if (window.__shotTypeIsServizio__) {
                         y = isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
-                        x = isPlayer ? ORIGIN_X + 20 : ORIGIN_X - 20;
+                        x = isPlayer ? ORIGIN_X + 65 : ORIGIN_X - 65;
                         info.dot.setAttribute('cx', String(x));
                         info.dot.setAttribute('cy', String(y));
                     }
@@ -1830,7 +1839,7 @@
                 let clampedX, clampedY;
                 // Servizio: server (active dot) is locked to the baseline
                 if (window.__shotTypeIsServizio__ && isActiveDot) {
-                    clampedX = Math.max(ORIGIN_X - 115, Math.min(ORIGIN_X + 115, p.x));
+                    clampedX = Math.max(COURT_X_MIN, Math.min(COURT_X_MAX, p.x));
                     clampedY = isADot ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
                 } else {
                     // Each dot is confined to its own half: A-dots stay below NET_Y, B-dots stay above
@@ -2375,7 +2384,7 @@
                         // Servizio mode: position dot on baseline
                         if (window.__shotTypeIsServizio__) {
                             const originY = isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
-                            const servizioOffsetX = 20;
+                            const servizioOffsetX = 65;
                             const dotXServizio = isPlayer ? ORIGIN_X + servizioOffsetX : ORIGIN_X - servizioOffsetX;
                             // In doubles also move the active doppio dot
                             if (window.__gioco__ === 'doppio') {
