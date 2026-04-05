@@ -3667,6 +3667,7 @@
                     intersectionX: parseFloat(intersectionDot.getAttribute('cx')),
                     intersectionY: parseFloat(intersectionDot.getAttribute('cy')),
                     isPlayer: isPlayer,
+                    doppioColpitore: window.__doppioColpitore__,
                     tipologia: currentTipologia ? currentTipologia.value : 'palleggio',
                     currentMeasureY: currentMeasureY,
                     yellowEndX: yellowEndX,
@@ -3698,10 +3699,21 @@
                 
                 // Ripristina il colpitore
                 isPlayer = state.isPlayer;
-                const colpitoreValue = isPlayer ? 'tuo' : 'avversario';
-                const colpitoreRadio = document.querySelector(`input[name="colpitore"][value="${colpitoreValue}"]`);
-                if (colpitoreRadio) {
-                    colpitoreRadio.checked = true;
+                if (window.__gioco__ === 'doppio' && state.doppioColpitore) {
+                    // Modalità doppio: ripristina il colpitore specifico e la sua posizione
+                    window.__doppioColpitore__ = state.doppioColpitore;
+                    const colpitoreRadioDoppio = document.querySelector(`input[name="colpitore"][value="${state.doppioColpitore}"]`);
+                    if (colpitoreRadioDoppio) colpitoreRadioDoppio.checked = true;
+                    // Ripristina la posizione del dot attivo del doppio
+                    const restoredInfo = getDoppioColpitoreInfo(state.doppioColpitore);
+                    if (restoredInfo.dot) {
+                        restoredInfo.dot.setAttribute('cx', String(state.dotX));
+                        restoredInfo.dot.setAttribute('cy', String(state.dotY));
+                    }
+                } else {
+                    const colpitoreValue = isPlayer ? 'tuo' : 'avversario';
+                    const colpitoreRadio = document.querySelector(`input[name="colpitore"][value="${colpitoreValue}"]`);
+                    if (colpitoreRadio) colpitoreRadio.checked = true;
                 }
                 
                 // Ripristina la tipologia
@@ -4449,6 +4461,7 @@
                     
                     // Salva lo stato corrente del colpitore e della tipologia
                     const currentIsPlayer = isPlayer;
+                    const currentDoppioColpitore = window.__doppioColpitore__;
                     const currentTipologia = document.querySelector('input[name="tipologia"]:checked');
                     const isCurrentAttacco = currentTipologia && currentTipologia.value === 'attacco';
                     const isCurrentPassante = currentTipologia && currentTipologia.value === 'passante';
@@ -4595,15 +4608,43 @@
                                     updateVisualizationCheckboxes();
                                 }
                                 
-                                // 3. Cambia il colpitore (TUO <-> AVVERSARIO)
-                                // Anche per l'ultimo colpo, il colpitore deve cambiare (diventa chi riceve la pallina)
-                                isPlayer = !currentIsPlayer;
-                                
-                                // Aggiorna il radio button del colpitore
-                                const newColpitoreValue = isPlayer ? 'tuo' : 'avversario';
-                                const colpitoreRadio = document.querySelector(`input[name="colpitore"][value="${newColpitoreValue}"]`);
-                                if (colpitoreRadio) {
-                                    colpitoreRadio.checked = true;
+                                // 3. Cambia il colpitore
+                                // In modalità doppio: seleziona il giocatore della squadra opposta
+                                // con la Y più vicina al punto di arrivo del colpo.
+                                // In modalità singolare: alterna TUO <-> AVVERSARIO.
+                                if (window.__gioco__ === 'doppio') {
+                                    const currentInfo = getDoppioColpitoreInfo(currentDoppioColpitore);
+                                    const nextIsPlayer = !currentInfo.isPlayer;
+                                    // Candidati: giocatori della squadra opposta
+                                    const candidates = nextIsPlayer
+                                        ? [{ id: 'giocatore1', dot: doppioA1 }, { id: 'giocatore2', dot: doppioA2 }]
+                                        : [{ id: 'avversario1', dot: doppioB1 }, { id: 'avversario2', dot: doppioB2 }];
+                                    // Trova il candidato con la Y più vicina a endY
+                                    let closest = candidates[0];
+                                    let minDist = Infinity;
+                                    candidates.forEach(c => {
+                                        if (c.dot) {
+                                            const dist = Math.abs(parseFloat(c.dot.getAttribute('cy')) - endY);
+                                            if (dist < minDist) { minDist = dist; closest = c; }
+                                        }
+                                    });
+                                    // Aggiorna il colpitore attivo
+                                    window.__doppioColpitore__ = closest.id;
+                                    isPlayer = nextIsPlayer;
+                                    // Aggiorna il radio button
+                                    const colpitoreRadioDoppio = document.querySelector(`input[name="colpitore"][value="${closest.id}"]`);
+                                    if (colpitoreRadioDoppio) colpitoreRadioDoppio.checked = true;
+                                    // Sposta il dot del nuovo colpitore al punto di arrivo del colpo
+                                    if (closest.dot) {
+                                        closest.dot.setAttribute('cx', String(endX));
+                                        closest.dot.setAttribute('cy', String(endY));
+                                    }
+                                } else {
+                                    // Singolare: alterna TUO <-> AVVERSARIO
+                                    isPlayer = !currentIsPlayer;
+                                    const newColpitoreValue = isPlayer ? 'tuo' : 'avversario';
+                                    const colpitoreRadio = document.querySelector(`input[name="colpitore"][value="${newColpitoreValue}"]`);
+                                    if (colpitoreRadio) colpitoreRadio.checked = true;
                                 }
                                 
                                 // 4. Posiziona il cerchietto rosso grande dove è arrivata la pallina gialla
