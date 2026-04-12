@@ -149,6 +149,7 @@
             window.__viewCoordinates__ = false;
             window.__modalita__ = '2colpi';
             window.__gioco__ = 'singolare';
+            const MODALITA_DOPPIO_FALLBACK = '2colpi';
             window.__doppioColpitore__ = 'giocatore1';
             window.__numeroColpo__ = 1;
             let isMobileLayout = false;
@@ -2029,6 +2030,7 @@
 
             // Listen for gioco changes
             window.addEventListener('giocoChanged', () => {
+                syncDinamicoAvailabilityForGame();
                 applyDoppioMode(window.__gioco__ === 'doppio');
                 const _giocoIcon = document.getElementById('topBarGiocoIcon');
                 if (_giocoIcon) _giocoIcon.textContent = window.__gioco__ === 'doppio' ? 'D' : 'S';
@@ -2045,6 +2047,7 @@
                 applyViewToggles();
                 updateTipologiaAvailability();
                 updateVisualizationCheckboxes();
+                syncDinamicoAvailabilityForGame();
                 if (window.__gioco__ === 'doppio') applyDoppioMode(true);
             })();
 
@@ -2436,7 +2439,24 @@
             if (modalitaInputs && modalitaInputs.length) {
                 modalitaInputs.forEach((inp) => {
                     inp.addEventListener('change', (e) => {
-                        const val = e.target && e.target.value ? e.target.value : '1colpo';
+                        const requestedVal = e.target && e.target.value ? e.target.value : '1colpo';
+                        const val = window.__gioco__ === 'doppio' && requestedVal === 'dinamico'
+                            ? MODALITA_DOPPIO_FALLBACK
+                            : requestedVal;
+
+                        if (val !== requestedVal) {
+                            const fallbackTopRadio = document.querySelector(`input[name="modalita_top"][value="${val}"]`);
+                            const fallbackSidebarRadio = document.querySelector(`input[name="modalita"][value="${val}"]`);
+                            if (fallbackTopRadio) fallbackTopRadio.checked = true;
+                            if (fallbackSidebarRadio) {
+                                fallbackSidebarRadio.checked = true;
+                                if (fallbackSidebarRadio !== e.target) {
+                                    fallbackSidebarRadio.dispatchEvent(new Event('change', { bubbles: true }));
+                                }
+                            }
+                            return;
+                        }
+
                         window.__modalita__ = val;
                         
                         // Reset flag alert quando si cambia modalità
@@ -2881,6 +2901,55 @@
                 
                 // Show/hide download button based on mode
                 updateDownloadButtonVisibility(mode);
+            }
+
+            function syncDinamicoAvailabilityForGame() {
+                const isDoppio = window.__gioco__ === 'doppio';
+                const dinamicoInputs = document.querySelectorAll('input[name="modalita"][value="dinamico"], input[name="modalita_top"][value="dinamico"]');
+
+                dinamicoInputs.forEach((input) => {
+                    input.disabled = isDoppio;
+                    const option = input.closest('.mode-option');
+                    if (!option) return;
+                    option.classList.toggle('disabled-option', isDoppio);
+                    option.setAttribute('aria-disabled', isDoppio ? 'true' : 'false');
+                    if (isDoppio) {
+                        option.title = 'La modalita Dinamico non e disponibile in doppio';
+                    } else {
+                        option.removeAttribute('title');
+                    }
+                });
+
+                ['default_modalita', 'default_modalita_top', 'default_modalita_drawer'].forEach((selectId) => {
+                    const select = document.getElementById(selectId);
+                    if (!select) return;
+                    const dinamicoOption = select.querySelector('option[value="dinamico"]');
+                    if (dinamicoOption) {
+                        dinamicoOption.disabled = isDoppio;
+                    }
+                    if (isDoppio && select.value === 'dinamico') {
+                        select.value = MODALITA_DOPPIO_FALLBACK;
+                    }
+                });
+
+                if (isDoppio) {
+                    localStorage.setItem('default_modalita', MODALITA_DOPPIO_FALLBACK);
+                }
+
+                if (isDoppio && window.__modalita__ === 'dinamico') {
+                    const fallbackTopRadio = document.querySelector(`input[name="modalita_top"][value="${MODALITA_DOPPIO_FALLBACK}"]`);
+                    const fallbackSidebarRadio = document.querySelector(`input[name="modalita"][value="${MODALITA_DOPPIO_FALLBACK}"]`);
+                    if (fallbackTopRadio) fallbackTopRadio.checked = true;
+                    if (fallbackSidebarRadio) {
+                        fallbackSidebarRadio.checked = true;
+                        fallbackSidebarRadio.dispatchEvent(new Event('change', { bubbles: true }));
+                    } else {
+                        window.__modalita__ = MODALITA_DOPPIO_FALLBACK;
+                        updateModeIndicator(MODALITA_DOPPIO_FALLBACK);
+                        updateDinamicoPanel();
+                        updateSecondaryCourtLock();
+                    }
+                }
             }
             
             // Update download button visibility based on mode
