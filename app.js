@@ -5906,8 +5906,9 @@
                 let currentStep = 0;
                 let currentHighlightOverlay = null;
                 
-                // Variabile per salvare la modalità originale
+                // Variabili per salvare lo stato originale
                 let savedModalita = null;
+                let savedGioco = null;
                 
                 // Crea i dots di navigazione
                 function createDots() {
@@ -6263,9 +6264,11 @@
                         dot.classList.toggle('active', index === currentStep);
                     });
                     
-                    // Cambia modalità in base allo step
+                    // Cambia gioco e modalità in base allo step
                     if (tutorialOverlay.classList.contains('active')) {
+                        const newGioco = getGiocoForStep(currentStep);
                         const newModalita = getModalitaForStep(currentStep);
+                        setGiocoSilently(newGioco);
                         setModalitaSilently(newModalita);
                     }
                     
@@ -6300,7 +6303,7 @@
                 function updateTutorialFieldLabels() {
                     const labelTu = document.getElementById('tutorialFieldLabelTu');
                     const labelAvversario = document.getElementById('tutorialFieldLabelAvversario');
-                    const show = tutorialOverlay.classList.contains('active') && (currentStep === 1 || currentStep === 9);
+                    const show = tutorialOverlay.classList.contains('active') && (currentStep === 1 || currentStep === 8);
                     if (labelTu) labelTu.style.display = show ? '' : 'none';
                     if (labelAvversario) labelAvversario.style.display = show ? '' : 'none';
                 }
@@ -6335,6 +6338,10 @@
                         // Pagine successive: modalità 1 colpo
                         return '1colpo';
                     }
+                }
+
+                function getGiocoForStep(step) {
+                    return step === 6 ? 'doppio' : 'singolare';
                 }
                 
                 // Funzione per determinare se la guida deve essere sidebar o sostituire il campo principale
@@ -6418,12 +6425,38 @@
                         updateIntersectionDot();
                     }
                 }
+
+                function setGiocoSilently(newGioco) {
+                    const giocoInputs = document.querySelectorAll('input[name="gioco_top"], input[name="gioco_drawer"]');
+                    if (giocoInputs && giocoInputs.length) {
+                        giocoInputs.forEach((inp) => {
+                            inp.checked = inp.value === newGioco;
+                        });
+                    }
+
+                    window.__gioco__ = newGioco;
+
+                    if (typeof updateGiocoIcon === 'function') {
+                        updateGiocoIcon(newGioco);
+                    }
+
+                    window.dispatchEvent(new Event('giocoChanged'));
+                }
                 
                 // Funzione per abilitare/disabilitare i radio button della modalità
                 function setModalitaInputsEnabled(enabled) {
                     const modalitaInputs = document.querySelectorAll('input[name="modalita"]');
                     if (modalitaInputs && modalitaInputs.length) {
                         modalitaInputs.forEach((inp) => {
+                            inp.disabled = !enabled;
+                        });
+                    }
+                }
+
+                function setGiocoInputsEnabled(enabled) {
+                    const giocoInputs = document.querySelectorAll('input[name="gioco_top"], input[name="gioco_drawer"]');
+                    if (giocoInputs && giocoInputs.length) {
+                        giocoInputs.forEach((inp) => {
                             inp.disabled = !enabled;
                         });
                     }
@@ -6679,11 +6712,13 @@
                     // Salva lo stato corrente delle opzioni di visualizzazione PRIMA di aprire la guida
                     savedViewState = saveViewState();
                     
-                    // Salva la modalità corrente
+                    // Salva modalità e tipo di gioco correnti
                     savedModalita = window.__modalita__;
+                    savedGioco = window.__gioco__;
                     
                     // Disabilita i radio button della modalità
                     setModalitaInputsEnabled(false);
+                    setGiocoInputsEnabled(false);
                     
                     currentStep = 0;
                     tutorialOverlay.classList.add('active', 'fade-in');
@@ -6717,7 +6752,12 @@
                     // Ripristina lo stato delle opzioni di visualizzazione
                     restoreViewState();
                     
-                    // Ripristina la modalità originale
+                    // Ripristina tipo di gioco e modalità originali
+                    if (savedGioco) {
+                        setGiocoSilently(savedGioco);
+                        savedGioco = null;
+                    }
+
                     if (savedModalita) {
                         setModalitaSilently(savedModalita);
                         savedModalita = null;
@@ -6725,6 +6765,7 @@
                     
                     // Riabilita i radio button della modalità
                     setModalitaInputsEnabled(true);
+                    setGiocoInputsEnabled(true);
                     
                     // Rimuovi le classi e ripristina la posizione originale
                     document.body.classList.remove('desktop-tutorial-sidebar', 'desktop-tutorial-replace-primary', 'desktop-tutorial-over-sidebar', 'tutorial-step-7');
