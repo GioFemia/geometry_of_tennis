@@ -6269,8 +6269,8 @@
                         setModalitaSilently(newModalita);
                     }
                     
-                    // Chiudi la sezione modalità quando si arriva alle schede 8 e 9
-                    if (tutorialOverlay.classList.contains('active') && (currentStep === 8 || currentStep === 9)) {
+                    // Chiudi la sezione modalità quando si arriva alle schede Scelta Colpitore e Scelta Colpo
+                    if (tutorialOverlay.classList.contains('active') && (currentStep === 9 || currentStep === 10)) {
                         const panelModalita = document.getElementById('panelModalita');
                         if (panelModalita) {
                             const content = panelModalita.querySelector('.panel-section-content');
@@ -6300,7 +6300,7 @@
                 function updateTutorialFieldLabels() {
                     const labelTu = document.getElementById('tutorialFieldLabelTu');
                     const labelAvversario = document.getElementById('tutorialFieldLabelAvversario');
-                    const show = tutorialOverlay.classList.contains('active') && (currentStep === 1 || currentStep === 8);
+                    const show = tutorialOverlay.classList.contains('active') && (currentStep === 1 || currentStep === 9);
                     if (labelTu) labelTu.style.display = show ? '' : 'none';
                     if (labelAvversario) labelAvversario.style.display = show ? '' : 'none';
                 }
@@ -6322,29 +6322,29 @@
                 
                 // Funzione per determinare la modalità in base allo step
                 function getModalitaForStep(step) {
-                    if (step >= 0 && step <= 5) {
-                        // Pagine 1-6: modalità 1 colpo
+                    if (step >= 0 && step <= 6) {
+                        // Pagine 1-7: modalità 1 colpo
                         return '1colpo';
-                    } else if (step === 6) {
-                        // Pagina 7: modalità 2 colpi
-                        return '2colpi';
                     } else if (step === 7) {
-                        // Pagina 8: modalità dinamico
+                        // Pagina 8: modalità 2 colpi
+                        return '2colpi';
+                    } else if (step === 8) {
+                        // Pagina 9: modalità dinamico
                         return 'dinamico';
                     } else {
-                        // Pagine 9-13: modalità 1 colpo
+                        // Pagine successive: modalità 1 colpo
                         return '1colpo';
                     }
                 }
                 
                 // Funzione per determinare se la guida deve essere sidebar o sostituire il campo principale
                 function shouldShowSidebar(step) {
-                    // Pagine in overlay: 1 (step 0), 12 (step 11), 13 (step 12), 14 (step 13)
-                    if (step === 0 || step === 11 || step === 12 || step === 13) {
+                    // Pagine in overlay: introduzione e ultime tre pagine
+                    if (step === 0 || step === 12 || step === 13 || step === 14) {
                         return false; // Overlay per queste pagine
                     }
-                    // Sidebar per step 1-5, 6-7 (sopra la sidebar), e 8-10
-                    return (step >= 1 && step <= 10);
+                    // Sidebar per le pagine centrali del tutorial
+                    return (step >= 1 && step <= 11);
                 }
                 
                 // Funzione per determinare se la guida deve sostituire il campo principale
@@ -6355,7 +6355,7 @@
                 
                 // Funzione per determinare se la guida deve essere sopra la sidebar (step 6-7)
                 function shouldShowOverSidebar(step) {
-                    return step === 6 || step === 7;
+                    return step === 7 || step === 8;
                 }
                 
                 // Funzione per cambiare modalità programmaticamente (senza triggerare eventi)
@@ -6511,9 +6511,9 @@
                     
                     // Se la guida è aperta su desktop
                     if (isTutorialOpen && isDesktop) {
-                        // Mostra la freccia solo se siamo nello step 7 (Modalità 2 Colpi)
-                        if (currentStep === 6) {
-                            // Aggiungi classe CSS per mostrare la freccia nello step 6
+                        // Mostra la freccia solo nello step Modalità 2 Colpi
+                        if (currentStep === 7) {
+                            // Aggiungi classe CSS per mostrare la freccia nello step corretto
                             document.body.classList.add('tutorial-step-7');
                         } else {
                             // Rimuovi la classe per nascondere la freccia
