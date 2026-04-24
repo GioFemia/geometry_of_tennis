@@ -1982,6 +1982,11 @@ body {
     padding: 14px 16px 4px;
     border-top: 1px solid #e0e0e0;
     text-align: center;
+    display: none;
+}
+
+.mobile-side-drawer[data-view="impostazioni"] .mobile-drawer-footer {
+    display: block;
 }
 
 .mobile-drawer-footer-text {
@@ -4297,5 +4302,660 @@ body {
     .colpitore-alert-button {
         padding: 12px 24px;
         font-size: 14px;
+    }
+}
+
+/* ==========================================
+   UI POLISH (Universal - Desktop + Mobile)
+   Migliorie grafiche e UX condivise tra desktop e mobile.
+   - Non altera i colori principali della palette
+   - Non tocca i campi SVG e la relativa logica
+   - Non tocca la guida (tutorial) né le sue animazioni
+   ========================================== */
+
+/* ----- Background pagina con profondità decorativa ----- */
+body {
+    background:
+        radial-gradient(ellipse 70% 60% at 12% 8%, rgba(25, 118, 210, 0.06) 0%, transparent 60%),
+        radial-gradient(ellipse 70% 60% at 88% 92%, rgba(66, 165, 245, 0.07) 0%, transparent 60%),
+        linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
+    background-attachment: fixed;
+}
+
+/* ----- Section titles compatti: accent verticale + sottolineato gradient ----- */
+.controls-sidebar .control-section-title.compact-title {
+    position: relative;
+    padding-left: 12px;
+    color: #1565c0;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+    border-bottom: 1px solid;
+    border-image: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(25, 118, 210, 0.45) 50%,
+        transparent 100%
+    ) 1;
+}
+
+.controls-sidebar .control-section-title.compact-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 25%;
+    bottom: 25%;
+    width: 3px;
+    border-radius: 3px;
+    background: linear-gradient(180deg, #1565c0 0%, #42a5f5 100%);
+    box-shadow: 0 1px 4px rgba(25, 118, 210, 0.35);
+}
+
+/* ----- Compact options: depth su hover/checked (size mobile preservata) ----- */
+.controls-sidebar .control-option.compact-option {
+    background: rgba(245, 248, 252, 0.55);
+    border: 1.5px solid rgba(207, 216, 220, 0.55);
+    color: #37474f;
+    transition:
+        background 0.22s ease,
+        border-color 0.22s ease,
+        color 0.22s ease,
+        transform 0.18s ease,
+        box-shadow 0.22s ease;
+}
+
+.controls-sidebar .control-option.compact-option:hover {
+    background: linear-gradient(135deg, #e9f3fd 0%, #f5faff 100%);
+    border-color: rgba(25, 118, 210, 0.32);
+    color: #1565c0;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.10);
+}
+
+.controls-sidebar .control-option.compact-option:has(input:checked) {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-color: #1976d2;
+    color: #0d47a1;
+    font-weight: 700;
+    box-shadow:
+        0 3px 10px rgba(25, 118, 210, 0.20),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+}
+
+.controls-sidebar .control-option.compact-option:has(input:focus-visible) {
+    outline: 2px solid #1976d2;
+    outline-offset: 2px;
+}
+
+.controls-sidebar .control-option.compact-option:has(input:checked) input[type="radio"],
+.controls-sidebar .control-option.compact-option:has(input:checked) input[type="checkbox"] {
+    border-color: #0d47a1;
+    background-color: #1976d2;
+}
+
+/* ----- Draw tool buttons: hover lift + active state ----- */
+.controls-sidebar .draw-tool-button.compact {
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.22s ease,
+        background 0.22s ease,
+        border-color 0.22s ease,
+        color 0.22s ease;
+}
+
+.controls-sidebar .draw-tool-button.compact:hover {
+    background: #e9f3fd;
+    border-color: #1976d2;
+    color: #1565c0;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(25, 118, 210, 0.18);
+}
+
+.controls-sidebar .draw-tool-button.compact.active {
+    background: linear-gradient(135deg, #1565c0 0%, #1976d2 50%, #42a5f5 100%);
+    border-color: #1565c0;
+    color: #ffffff;
+    box-shadow:
+        0 4px 12px rgba(13, 71, 161, 0.32),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+
+.controls-sidebar .draw-tool-button.compact:focus-visible {
+    outline: 2px solid #1976d2;
+    outline-offset: 2px;
+}
+
+/* ----- Draw controls hover panels ----- */
+.controls-sidebar .draw-controls-hover,
+.controls-sidebar .draw-font-size-picker-hover {
+    background: linear-gradient(180deg, #ffffff 0%, #f5faff 100%);
+    border: 1px solid rgba(25, 118, 210, 0.18);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(13, 71, 161, 0.08);
+}
+
+/* ----- Range sliders custom thumb ----- */
+.controls-sidebar input[type="range"].compact-range,
+.controls-sidebar #draw_width,
+.controls-sidebar #draw_font_size {
+    appearance: none;
+    -webkit-appearance: none;
+    height: 4px;
+    background: linear-gradient(90deg, #1976d2, #42a5f5);
+    border-radius: 4px;
+    outline: none;
+}
+
+.controls-sidebar input[type="range"]::-webkit-slider-thumb {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #1976d2;
+    box-shadow: 0 2px 6px rgba(25, 118, 210, 0.35);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.controls-sidebar input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.18);
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.45);
+}
+
+.controls-sidebar input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #1976d2;
+    box-shadow: 0 2px 6px rgba(25, 118, 210, 0.35);
+    cursor: pointer;
+}
+
+/* ----- Color picker raffinato ----- */
+.controls-sidebar #draw_color {
+    border: 2px solid #cfd8dc;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.18s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 1px 4px rgba(13, 71, 161, 0.10);
+}
+
+.controls-sidebar #draw_color:hover {
+    border-color: #1976d2;
+    transform: scale(1.04);
+    box-shadow: 0 3px 10px rgba(25, 118, 210, 0.22);
+}
+
+/* ----- Download button: più premium ----- */
+.download-court-button {
+    background: linear-gradient(135deg, #1565c0 0%, #1976d2 50%, #42a5f5 100%);
+    border: none;
+    border-radius: 10px;
+    box-shadow:
+        0 4px 14px rgba(13, 71, 161, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    transition:
+        transform 0.18s ease,
+        box-shadow 0.22s ease,
+        background 0.22s ease;
+}
+
+.download-court-button:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 22px rgba(13, 71, 161, 0.38),
+        inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    background: linear-gradient(135deg, #0d47a1 0%, #1565c0 50%, #1976d2 100%);
+}
+
+.download-court-button:active {
+    transform: translateY(0);
+    box-shadow:
+        0 4px 12px rgba(13, 71, 161, 0.30),
+        inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+/* ----- Tooltip coordinate: glassmorphism ----- */
+.coordinate-tooltip {
+    background: rgba(255, 255, 255, 0.96);
+    border-radius: 14px;
+    border: 1px solid rgba(25, 118, 210, 0.14);
+    box-shadow:
+        0 10px 28px rgba(13, 71, 161, 0.18),
+        0 2px 6px rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* ----- Lock overlay: backdrop più curato ----- */
+.court-lock-overlay {
+    background: rgba(13, 71, 161, 0.50);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+}
+
+.lock-icon-wrapper {
+    background: linear-gradient(135deg, #ffffff 0%, #f0f8ff 100%);
+    box-shadow:
+        0 8px 20px rgba(13, 71, 161, 0.45),
+        inset 0 0 0 1px rgba(25, 118, 210, 0.12);
+}
+
+/* ----- Pannello dinamico: ombra rifinita ----- */
+.dinamico-panel {
+    background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+    border: 1px solid rgba(25, 118, 210, 0.10);
+    box-shadow:
+        0 12px 32px rgba(13, 71, 161, 0.14),
+        0 2px 8px rgba(13, 71, 161, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+/* ----- Focus-visible globale (accessibilità) ----- */
+.controls-sidebar .download-court-button:focus-visible,
+.top-bar-modal-close:focus-visible,
+.top-bar-item:focus-visible,
+.nav-arrow:focus-visible {
+    outline: 2px solid #1976d2;
+    outline-offset: 2px;
+}
+
+/* ==========================================
+   DESKTOP-ONLY UI POLISH (>= 901px)
+   Stili specifici per desktop (top-bar, sidebar fissa, hover, ecc.)
+   ========================================== */
+@media (min-width: 901px) {
+
+    /* ----- Top bar: gradient più ricco + bordo luminoso ----- */
+    .top-bar {
+        background:
+            linear-gradient(135deg, #0d47a1 0%, #1565c0 35%, #1976d2 70%, #1e88e5 100%);
+        box-shadow:
+            0 4px 22px rgba(13, 71, 161, 0.28),
+            0 1px 0 rgba(255, 255, 255, 0.08) inset;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        position: fixed;
+    }
+
+    .top-bar::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+        pointer-events: none;
+    }
+
+    .top-bar-title {
+        letter-spacing: 2.6px;
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.22));
+    }
+
+    .top-bar-left {
+        gap: 14px;
+    }
+
+    /* Pulsanti top bar: hover/active raffinati + indicatore attivo */
+    .top-bar-item {
+        position: relative;
+        padding: 10px 18px;
+        background: rgba(255, 255, 255, 0.10);
+        border: 1px solid rgba(255, 255, 255, 0.0);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        transition:
+            background 0.25s ease,
+            color 0.25s ease,
+            transform 0.18s ease,
+            box-shadow 0.25s ease,
+            border-color 0.2s ease;
+    }
+
+    .top-bar-item:hover {
+        background: rgba(255, 255, 255, 0.22);
+        border-color: rgba(255, 255, 255, 0.18);
+        color: #ffffff;
+        transform: translateY(-1px);
+        box-shadow:
+            0 4px 14px rgba(0, 0, 0, 0.22),
+            inset 0 1px 0 rgba(255, 255, 255, 0.20);
+    }
+
+    .top-bar-item:active {
+        transform: translateY(0);
+    }
+
+    .top-bar-item:focus-visible {
+        outline: 2px solid #ffffff;
+        outline-offset: 2px;
+    }
+
+    .top-bar-item.active {
+        background: #ffffff;
+        color: #0d47a1;
+        box-shadow:
+            0 6px 18px rgba(0, 0, 0, 0.22),
+            0 0 0 1px rgba(13, 71, 161, 0.10);
+    }
+
+    .top-bar-item.active::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: -6px;
+        transform: translateX(-50%);
+        width: 18px;
+        height: 3px;
+        border-radius: 3px;
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.55);
+    }
+
+    /* ----- Top bar modals: ombre raffinate + scrollbar ----- */
+    .top-bar-modal {
+        border-radius: 20px;
+        box-shadow:
+            0 24px 60px rgba(13, 71, 161, 0.30),
+            0 8px 24px rgba(0, 0, 0, 0.10),
+            inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+    }
+
+    .top-bar-modal-header {
+        padding: 18px 22px;
+        background: linear-gradient(135deg, #0d47a1 0%, #1565c0 50%, #1976d2 100%);
+        position: relative;
+    }
+
+    .top-bar-modal-header::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+    }
+
+    .top-bar-modal-content {
+        padding: 22px 24px 24px;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(25, 118, 210, 0.35) transparent;
+    }
+
+    .top-bar-modal-content::-webkit-scrollbar {
+        width: 6px;
+    }
+    .top-bar-modal-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .top-bar-modal-content::-webkit-scrollbar-thumb {
+        background: rgba(25, 118, 210, 0.25);
+        border-radius: 3px;
+    }
+    .top-bar-modal-content::-webkit-scrollbar-thumb:hover {
+        background: rgba(25, 118, 210, 0.45);
+    }
+
+    /* ----- Sidebar: profondità, ombre raffinate, accent superiore ----- */
+    .controls-sidebar {
+        background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+        border: 1px solid rgba(25, 118, 210, 0.10);
+        border-radius: 18px;
+        box-shadow:
+            0 12px 32px rgba(13, 71, 161, 0.12),
+            0 2px 8px rgba(13, 71, 161, 0.06),
+            inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+
+    .controls-sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .controls-sidebar::-webkit-scrollbar-thumb {
+        background: rgba(25, 118, 210, 0.22);
+        border-radius: 3px;
+    }
+    .controls-sidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(25, 118, 210, 0.42);
+    }
+
+    /* ----- Menu header: separatore raffinato ----- */
+    .menu-header {
+        border-bottom: none;
+        padding: 8px 0 10px;
+        margin-bottom: 6px;
+    }
+
+    .menu-header::after {
+        bottom: 0;
+        left: 14%;
+        right: 14%;
+        height: 1.5px;
+        background: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(25, 118, 210, 0.18) 25%,
+            rgba(25, 118, 210, 0.55) 50%,
+            rgba(25, 118, 210, 0.18) 75%,
+            transparent 100%
+        );
+        opacity: 1;
+    }
+
+    .menu-title {
+        font-size: 17px;
+        letter-spacing: 4px;
+        filter: drop-shadow(0 1px 1px rgba(25, 118, 210, 0.18));
+    }
+
+    /* ----- Compact options: dimensioni desktop (size/padding/font) ----- */
+    .controls-sidebar .control-option.compact-option {
+        border-radius: 9px;
+        padding: 6px 10px;
+        font-size: 12.5px;
+        font-weight: 500;
+    }
+
+    .controls-sidebar .control-option.compact-option input[type="radio"],
+    .controls-sidebar .control-option.compact-option input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        border: 2px solid #90a4ae;
+        transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+
+    .controls-sidebar .control-option.compact-option:has(input:checked) input[type="radio"]::after,
+    .controls-sidebar .control-option.compact-option:has(input:checked) input[type="checkbox"]::after {
+        width: 4px;
+        height: 8px;
+    }
+
+    /* ----- Draw tool buttons: stato base desktop ----- */
+    .controls-sidebar .draw-tool-button.compact {
+        background: #ffffff;
+        border: 1.5px solid #cfd8dc;
+        color: #455a64;
+    }
+
+    /* ----- Section title compatto: padding/margin desktop ----- */
+    .controls-sidebar .control-section-title.compact-title {
+        padding: 9px 0 6px 12px;
+        font-size: 11px;
+        margin-bottom: 6px;
+    }
+
+    .controls-sidebar .control-section-title.compact-title span:not(.menu-icon) {
+        font-size: 11px;
+    }
+
+    /* ----- Color picker: altezza desktop ----- */
+    .controls-sidebar #draw_color {
+        height: 30px;
+    }
+
+    /* ----- Default subsection (selects nei modal): freccia personalizzata ----- */
+    .top-bar-modal-content .default-subsection select,
+    .top-bar-modal-content select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding: 7px 32px 7px 12px;
+        background-color: #ffffff;
+        background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%231976d2' d='M0 0l5 6 5-6z'/></svg>");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 10px 6px;
+        border: 1.5px solid #cfd8dc;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #1565c0;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .top-bar-modal-content .default-subsection select:hover {
+        border-color: #1976d2;
+    }
+
+    .top-bar-modal-content .default-subsection select:focus {
+        border-color: #1976d2;
+        box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.18);
+        outline: none;
+    }
+
+    /* ----- Sezioni nei modal del top-bar: titoli più puliti ----- */
+    .top-bar-modal-content .control-section {
+        padding: 14px 16px;
+        background: linear-gradient(180deg, #fafcff 0%, #ffffff 100%);
+        border: 1px solid rgba(25, 118, 210, 0.10);
+        border-radius: 12px;
+        margin-bottom: 14px;
+    }
+
+    .top-bar-modal-content .control-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .top-bar-modal-content .control-section-title {
+        font-size: 11px;
+        letter-spacing: 1.4px;
+        color: #1565c0;
+        font-weight: 800;
+        text-transform: uppercase;
+        border-bottom: 1px solid;
+        border-image: linear-gradient(
+            90deg,
+            transparent 0%,
+            rgba(25, 118, 210, 0.35) 50%,
+            transparent 100%
+        ) 1;
+        padding: 6px 0 8px;
+        margin: 0 0 10px;
+    }
+
+    .top-bar-modal-content .default-subsection {
+        margin-bottom: 6px;
+        padding-bottom: 6px;
+    }
+
+    /* Mode options dentro i modal: ombre più morbide */
+    .top-bar-modal-content .mode-option-content {
+        background: #f8fbff;
+        border: 1.5px solid #cfd8dc;
+        transition: all 0.22s ease;
+    }
+
+    .top-bar-modal-content .mode-option:hover .mode-option-content {
+        border-color: #42a5f5;
+        background: linear-gradient(135deg, #e9f3fd 0%, #ffffff 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(25, 118, 210, 0.14);
+    }
+
+    .top-bar-modal-content .mode-option input[type="radio"]:checked + .mode-option-content {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        border-color: #1976d2;
+        box-shadow:
+            0 4px 14px rgba(25, 118, 210, 0.22),
+            inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+    }
+
+    /* ----- Download button: dimensioni/typografia desktop ----- */
+    .download-court-button {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.7px;
+        padding: 11px 14px;
+    }
+
+    /* ----- Sidebar footer: raffinato ----- */
+    .controls-sidebar .sidebar-footer {
+        background: linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.55) 0%,
+            rgba(248, 250, 253, 0.96) 60%,
+            rgba(245, 248, 252, 1) 100%
+        );
+        border-top: 1px solid rgba(25, 118, 210, 0.16);
+    }
+
+    .controls-sidebar .sidebar-footer-text {
+        font-size: 10.5px;
+        letter-spacing: 0.4px;
+    }
+
+    /* ----- Freccia tra i due campi (solo desktop) ----- */
+    .courts-arrow {
+        background: linear-gradient(135deg, #0d47a1 0%, #1565c0 45%, #1976d2 100%);
+        box-shadow:
+            0 6px 20px rgba(13, 71, 161, 0.40),
+            inset 0 1px 0 rgba(255, 255, 255, 0.20);
+    }
+
+    /* ----- Scrollbar modal top-bar (solo desktop) ----- */
+    .top-bar-modal::-webkit-scrollbar,
+    .top-bar-modal-content::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    /* ----- Top-bar modal close: hover più elegante ----- */
+    .top-bar-modal-close {
+        transition:
+            background 0.2s ease,
+            transform 0.3s ease,
+            color 0.2s ease;
+    }
+
+    .top-bar-modal-close:hover {
+        background: rgba(255, 255, 255, 0.32);
+        transform: rotate(90deg) scale(1.05);
+    }
+}
+
+/* ==========================================
+   DESKTOP UI POLISH - Schermi larghi (>= 1700px)
+   Più respiro tipografico/spaziale dove c'è spazio.
+   ========================================== */
+@media (min-width: 1700px) {
+    .controls-sidebar {
+        gap: 8px;
+        padding: 14px;
+    }
+
+    .controls-sidebar .control-section.compact {
+        margin-bottom: 12px;
+    }
+
+    .controls-sidebar .control-option.compact-option {
+        padding: 7px 10px;
+    }
+
+    .top-bar-title {
+        font-size: 28px;
     }
 }
