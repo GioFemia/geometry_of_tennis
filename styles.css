@@ -305,11 +305,27 @@ body {
         max-height: calc(100vh - var(--top-bar-height) - 1.6em);
         gap: 6px;
         padding: 10px;
-        overflow-y: hidden; /* No scroll on desktop */
+        padding-bottom: 0; /* il footer sticky fornisce il padding inferiore */
+        overflow-y: auto;  /* scroll interno se il contenuto eccede */
         overflow-x: hidden;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
+    }
+
+    /* Scrollbar sottile e discreta */
+    .controls-sidebar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .controls-sidebar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .controls-sidebar::-webkit-scrollbar-thumb {
+        background: rgba(25, 118, 210, 0.22);
+        border-radius: 3px;
+    }
+    .controls-sidebar::-webkit-scrollbar-thumb:hover {
+        background: rgba(25, 118, 210, 0.4);
     }
     
     /* Ensure menu header doesn't take too much space */
@@ -327,6 +343,26 @@ body {
     /* Ensure sections fit without scroll */
     .controls-sidebar .control-section:last-child {
         margin-bottom: 0;
+    }
+
+    /* Hide SCARICA section on desktop: accessible via top-bar */
+    .controls-sidebar #panelDownload {
+        display: none !important;
+    }
+
+    /* Footer crediti ancorato in basso: sempre visibile, anche se la sidebar scrolla */
+    .controls-sidebar .sidebar-footer {
+        position: sticky;
+        bottom: 0;
+        margin: 8px -10px 0; /* annulla il padding orizzontale del sidebar per full-bleed */
+        padding: 10px 12px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(248, 249, 250, 0.98) 60%, rgba(248, 249, 250, 1) 100%);
+        -webkit-backdrop-filter: blur(6px);
+        backdrop-filter: blur(6px);
+        border-top: 1px solid rgba(25, 118, 210, 0.18);
+        border-radius: 0 0 15px 15px;
+        z-index: 2;
+        flex-shrink: 0;
     }
 }
 
@@ -376,9 +412,6 @@ body {
 }
 
 .sidebar-footer {
-    margin-top: auto;
-    padding-top: 12px;
-    border-top: 1px solid #e0e0e0;
     text-align: center;
 }
 
@@ -388,6 +421,11 @@ body {
     font-weight: 500;
     letter-spacing: 0.3px;
     display: block;
+}
+
+.sidebar-footer-text strong {
+    color: #1976d2;
+    font-weight: 700;
 }
         
 .control-section {
@@ -1898,6 +1936,26 @@ body {
     flex: 1;
     padding: 16px;
     overflow-y: auto;
+}
+
+.mobile-drawer-footer {
+    margin-top: 20px;
+    padding: 14px 16px 4px;
+    border-top: 1px solid #e0e0e0;
+    text-align: center;
+}
+
+.mobile-drawer-footer-text {
+    font-size: 11px;
+    color: #90a4ae;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    display: block;
+}
+
+.mobile-drawer-footer-text strong {
+    color: #1976d2;
+    font-weight: 700;
 }
 
 .mobile-drawer-item {
