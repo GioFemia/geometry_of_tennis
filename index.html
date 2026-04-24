@@ -1115,12 +1115,12 @@
         </div>
     </div>
 
-    <!-- Mobile Side Drawer (Guida e Impostazioni) -->
-    <div id="mobileSideDrawer" class="mobile-side-drawer">
+    <!-- Mobile Side Drawer (Modalità, Menu, Impostazioni) -->
+    <div id="mobileSideDrawer" class="mobile-side-drawer" data-view="impostazioni">
         <div class="mobile-drawer-overlay" id="mobileDrawerOverlay"></div>
         <div class="mobile-drawer-content">
             <div class="mobile-drawer-header">
-                <h3 class="mobile-drawer-title">Impostazioni</h3>
+                <h3 class="mobile-drawer-title" id="mobileDrawerTitle">Impostazioni</h3>
                 <button id="mobileDrawerClose" class="mobile-drawer-close">
                     <svg viewBox="0 0 24 24" width="24" height="24">
                         <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>
@@ -1128,6 +1128,241 @@
                 </button>
             </div>
             <div class="mobile-drawer-body">
+                <!-- ============ MODALITÀ VIEW ============ -->
+                <div class="mobile-drawer-view" data-view="modalita">
+                    <div class="mobile-drawer-settings-group">
+                        <h4 class="mobile-drawer-settings-title">Modalità</h4>
+                        <div class="mobile-drawer-mode-group">
+                            <label class="mobile-drawer-mode-option" for="modo_1colpo_drawer">
+                                <input id="modo_1colpo_drawer" type="radio" name="modalita_drawer" value="1colpo" />
+                                <span class="mobile-drawer-mode-content">
+                                    <span class="mobile-drawer-mode-icon">1</span>
+                                    <span class="mobile-drawer-mode-label">1 Colpo</span>
+                                </span>
+                            </label>
+                            <label class="mobile-drawer-mode-option" for="modo_2colpi_drawer">
+                                <input id="modo_2colpi_drawer" type="radio" name="modalita_drawer" value="2colpi" checked />
+                                <span class="mobile-drawer-mode-content">
+                                    <span class="mobile-drawer-mode-icon">2</span>
+                                    <span class="mobile-drawer-mode-label">2 Colpi</span>
+                                </span>
+                            </label>
+                            <label class="mobile-drawer-mode-option" for="modo_dinamico_drawer">
+                                <input id="modo_dinamico_drawer" type="radio" name="modalita_drawer" value="dinamico" />
+                                <span class="mobile-drawer-mode-content">
+                                    <span class="mobile-drawer-mode-icon">D</span>
+                                    <span class="mobile-drawer-mode-label">Dinamico</span>
+                                </span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ============ MENU VIEW ============ -->
+                <div class="mobile-drawer-view" data-view="menu">
+                    <!-- Colpitore -->
+                    <div class="mobile-drawer-settings-group">
+                        <h4 class="mobile-drawer-settings-title">Colpitore</h4>
+                        <div class="mobile-drawer-radio-group">
+                            <label class="mobile-drawer-radio singolare-colpitore">
+                                <input type="radio" name="colpitore_drawer" value="tuo" checked />
+                                <span>Tu</span>
+                            </label>
+                            <label class="mobile-drawer-radio singolare-colpitore">
+                                <input type="radio" name="colpitore_drawer" value="avversario" />
+                                <span>Avversario</span>
+                            </label>
+                            <label class="mobile-drawer-radio doppio-colpitore" style="display:none">
+                                <input type="radio" name="colpitore_drawer" value="giocatore1" />
+                                <span>Giocatore 1</span>
+                            </label>
+                            <label class="mobile-drawer-radio doppio-colpitore" style="display:none">
+                                <input type="radio" name="colpitore_drawer" value="giocatore2" />
+                                <span>Giocatore 2</span>
+                            </label>
+                            <label class="mobile-drawer-radio doppio-colpitore" style="display:none">
+                                <input type="radio" name="colpitore_drawer" value="avversario1" />
+                                <span>Avversario 1</span>
+                            </label>
+                            <label class="mobile-drawer-radio doppio-colpitore" style="display:none">
+                                <input type="radio" name="colpitore_drawer" value="avversario2" />
+                                <span>Avversario 2</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Colpo -->
+                    <div class="mobile-drawer-settings-group">
+                        <h4 class="mobile-drawer-settings-title">Colpo</h4>
+                        <div class="mobile-drawer-radio-group">
+                            <label class="mobile-drawer-radio">
+                                <input type="radio" name="tipologia_drawer" value="palleggio" checked />
+                                <span>Palleggio</span>
+                            </label>
+                            <label class="mobile-drawer-radio">
+                                <input type="radio" name="tipologia_drawer" value="passante" />
+                                <span>Passante</span>
+                            </label>
+                            <label class="mobile-drawer-radio">
+                                <input type="radio" name="tipologia_drawer" value="attacco" />
+                                <span>Attacco</span>
+                            </label>
+                            <label class="mobile-drawer-radio">
+                                <input type="radio" name="tipologia_drawer" value="servizio" />
+                                <span>Servizio</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Visualizza -->
+                    <div class="mobile-drawer-settings-group">
+                        <h4 class="mobile-drawer-settings-title">Visualizza</h4>
+                        <div class="mobile-drawer-checkbox-group mobile-drawer-checkbox-group-plain">
+                            <label class="mobile-drawer-checkbox">
+                                <input type="checkbox" id="view_player_drawer" checked />
+                                <span>Colpitore</span>
+                            </label>
+                            <label class="mobile-drawer-checkbox">
+                                <input type="checkbox" id="view_responder_drawer" checked />
+                                <span>Ricevitore</span>
+                            </label>
+                            <label class="mobile-drawer-checkbox">
+                                <input type="checkbox" id="view_directions_drawer" checked />
+                                <span>Direzioni</span>
+                            </label>
+                            <label class="mobile-drawer-checkbox">
+                                <input type="checkbox" id="view_shot_drawer" checked />
+                                <span>Colpo</span>
+                            </label>
+                            <label class="mobile-drawer-checkbox">
+                                <input type="checkbox" id="view_center_drawer" checked />
+                                <span>Centro</span>
+                            </label>
+                            <label class="mobile-drawer-checkbox">
+                                <input type="checkbox" id="view_cover_drawer" />
+                                <span>Campo da Coprire</span>
+                            </label>
+                            <label class="mobile-drawer-checkbox">
+                                <input type="checkbox" id="view_zones_drawer" />
+                                <span>Zone del Campo</span>
+                            </label>
+                            <label class="mobile-drawer-checkbox">
+                                <input type="checkbox" id="view_coordinates_drawer" />
+                                <span>Coordinate</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Disegna -->
+                    <div class="mobile-drawer-settings-group">
+                        <h4 class="mobile-drawer-settings-title">Disegna</h4>
+                        <div class="mobile-drawer-draw-tools">
+                            <button type="button" class="mobile-drawer-draw-tool" data-target="draw_pen_btn" title="Matita" aria-label="Matita">
+                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
+                                </svg>
+                            </button>
+                            <button type="button" class="mobile-drawer-draw-tool" data-target="draw_arrow_btn" title="Freccia" aria-label="Freccia">
+                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path fill="currentColor" d="M4,12 L18,12 M18,12 L13,7 M18,12 L13,17" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="mobile-drawer-draw-tool" data-target="draw_line_btn" title="Linea" aria-label="Linea">
+                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M4,20 L20,4"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="mobile-drawer-draw-tool" data-target="draw_text_btn" title="Testo" aria-label="Testo">
+                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path fill="currentColor" d="M9.6,14L12,7.7L14.4,14M11,5L5.5,19H7.7L8.8,16H15.2L16.3,19H18.5L13,5H11Z"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="mobile-drawer-draw-tool" data-target="draw_ruler_btn" title="Righello" aria-label="Righello">
+                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path fill="currentColor" d="M1.39,18.36L3.16,16.6L4.58,18L5.64,16.95L4.22,15.54L5.64,14.12L8.11,16.6L9.17,15.54L6.7,13.06L8.11,11.65L9.53,13.06L10.59,12L9.17,10.59L10.59,9.17L13.06,11.65L14.12,10.59L11.65,8.11L13.06,6.7L14.47,8.11L15.54,7.05L14.12,5.64L15.54,4.22L18,6.7L19.07,5.64L16.6,3.16L18.36,1.39L22.61,5.64L5.64,22.61L1.39,18.36Z"/>
+                                </svg>
+                            </button>
+                            <button type="button" class="mobile-drawer-draw-tool" data-target="draw_eraser_btn" title="Gomma" aria-label="Gomma">
+                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path fill="currentColor" d="M16.24,3.56L21.19,8.5C21.97,9.29 21.97,10.55 21.19,11.34L12,20.53C10.44,22.09 7.91,22.09 6.34,20.53L2.81,17C2.03,16.21 2.03,14.95 2.81,14.16L13.41,3.56C14.2,2.78 15.46,2.78 16.24,3.56M4.22,15.58L7.76,19.11C8.54,19.9 9.8,19.9 10.59,19.11L14.12,15.58L9.17,10.63L4.22,15.58Z" />
+                                </svg>
+                            </button>
+                            <button type="button" class="mobile-drawer-draw-tool mobile-drawer-draw-tool-danger" data-target="draw_clear_btn" title="Cancella tutto" aria-label="Cancella tutto">
+                                <svg viewBox="0 0 24 24" width="20" height="20">
+                                    <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="mobile-drawer-draw-options" id="drawer_draw_options" style="display: none;">
+                            <div class="mobile-drawer-draw-row">
+                                <label class="mobile-drawer-draw-label">Colore</label>
+                                <input type="color" id="draw_color_drawer" value="#000000" class="mobile-drawer-color-input" />
+                            </div>
+                            <div class="mobile-drawer-draw-row">
+                                <label class="mobile-drawer-draw-label">Spessore</label>
+                                <input type="range" id="draw_width_drawer" min="1" max="10" value="3" class="mobile-drawer-range" />
+                                <span id="draw_width_value_drawer" class="mobile-drawer-range-value">3</span>
+                            </div>
+                        </div>
+                        <div class="mobile-drawer-draw-options" id="drawer_font_size_options" style="display: none;">
+                            <div class="mobile-drawer-draw-row">
+                                <label class="mobile-drawer-draw-label">Dimensione</label>
+                                <input type="range" id="draw_font_size_drawer" min="12" max="48" value="16" class="mobile-drawer-range" />
+                                <span id="draw_font_size_value_drawer" class="mobile-drawer-range-value">16</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scarica -->
+                    <div class="mobile-drawer-settings-group">
+                        <h4 class="mobile-drawer-settings-title">Scarica</h4>
+                        <div id="drawer_downloadOptions" class="mobile-drawer-download-options" style="display: none;">
+                            <div id="drawer_downloadOptions2Colpi" style="display: none;">
+                                <div class="mobile-drawer-download-subgroup">
+                                    <span class="mobile-drawer-download-label">Cosa vuoi scaricare?</span>
+                                    <div class="mobile-drawer-radio-group">
+                                        <label class="mobile-drawer-radio">
+                                            <input type="radio" name="downloadType_drawer" value="both" checked />
+                                            <span>Entrambi i Campi</span>
+                                        </label>
+                                        <label class="mobile-drawer-radio">
+                                            <input type="radio" name="downloadType_drawer" value="single" />
+                                            <span>Solo un Campo</span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div id="drawer_singleCourtOptions" class="mobile-drawer-download-subgroup" style="display: none;">
+                                    <span class="mobile-drawer-download-label">Quale campo?</span>
+                                    <div class="mobile-drawer-radio-group">
+                                        <label class="mobile-drawer-radio">
+                                            <input type="radio" name="downloadCourt_drawer" value="primary" checked />
+                                            <span>Primo Colpo</span>
+                                        </label>
+                                        <label class="mobile-drawer-radio">
+                                            <input type="radio" name="downloadCourt_drawer" value="secondary" />
+                                            <span>Secondo Colpo</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div id="drawer_downloadOptionsDinamico" style="display: none;">
+                                <div class="mobile-drawer-download-subgroup">
+                                    <span class="mobile-drawer-download-label">Numero Colpo</span>
+                                    <input type="number" id="drawer_download_shot_number" min="1" value="1" class="mobile-drawer-number-input" />
+                                </div>
+                            </div>
+                        </div>
+                        <button id="drawer_downloadCourtImage" class="mobile-drawer-download-btn" type="button" style="display: none;">
+                            <svg viewBox="0 0 24 24" width="18" height="18">
+                                <path fill="currentColor" d="M19,12V19H5V12H3V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19M13,12.67L15.59,10.08L17,11.5L12,16.5L7,11.5L8.41,10.08L11,12.67V3H13V12.67Z" />
+                            </svg>
+                            <span>Scarica Immagine</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ============ IMPOSTAZIONI VIEW ============ -->
+                <div class="mobile-drawer-view active" data-view="impostazioni">
                 <!-- Guida Button -->
                 <button id="mobileDrawerGuida" class="mobile-drawer-item">
                     <svg viewBox="0 0 24 24" width="24" height="24">
@@ -1249,8 +1484,10 @@
                         </label>
                     </div>
                 </div>
-                
-                <!-- Footer crediti (solo mobile) -->
+                </div>
+                <!-- ============ END IMPOSTAZIONI VIEW ============ -->
+
+                <!-- Footer crediti (solo mobile, condiviso tra le view) -->
                 <div class="mobile-drawer-footer">
                     <span class="mobile-drawer-footer-text">Web app creata da <strong>Giovanni Femia</strong></span>
                 </div>
