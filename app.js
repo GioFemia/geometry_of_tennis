@@ -5678,25 +5678,159 @@
             const mobileDrawerClose = document.getElementById('mobileDrawerClose');
             const mobileDrawerGuida = document.getElementById('mobileDrawerGuida');
             
-            // Mobile drawer functions
-            function openMobileDrawer() {
-                if (mobileSideDrawer) {
-                    mobileSideDrawer.classList.add('open');
-                    document.body.style.overflow = 'hidden';
+            // Mobile drawer elements (title + views)
+            const mobileDrawerTitle = document.getElementById('mobileDrawerTitle');
+            const mobileDrawerViews = mobileSideDrawer ? mobileSideDrawer.querySelectorAll('.mobile-drawer-view') : [];
+            const DRAWER_VIEW_TITLES = {
+                modalita: 'Modalità',
+                menu: 'Menu',
+                impostazioni: 'Impostazioni'
+            };
+
+            // Misura l'altezza della topbar mobile e la espone al drawer come
+            // CSS var, così il drawer in modalità "top" parte sotto la topbar.
+            function updateMobileDrawerTopOffset() {
+                if (!mobileSideDrawer) return;
+                const navBar = document.querySelector('.controls-sidebar.mobile-enabled .mobile-nav-bar');
+                if (!navBar) {
+                    mobileSideDrawer.style.removeProperty('--mobile-drawer-top');
+                    return;
+                }
+                const rect = navBar.getBoundingClientRect();
+                const offset = Math.max(0, Math.round(rect.bottom));
+                mobileSideDrawer.style.setProperty('--mobile-drawer-top', offset + 'px');
+            }
+
+            // Evidenzia il pill della topbar corrispondente alla view aperta.
+            function setMobileNavPillActive(view) {
+                const map = {
+                    modalita: mobileNavModalita,
+                    menu: mobileNavMenu
+                };
+                [mobileNavModalita, mobileNavMenu].forEach((pill) => {
+                    if (!pill) return;
+                    pill.classList.toggle('active', pill === map[view]);
+                });
+            }
+
+            function setMobileDrawerView(view) {
+                if (!mobileSideDrawer) return;
+                const normalized = DRAWER_VIEW_TITLES[view] ? view : 'impostazioni';
+                mobileSideDrawer.setAttribute('data-view', normalized);
+                // Modalità e Menu scendono dall'alto a tutta larghezza,
+                // Impostazioni resta un drawer laterale.
+                const wasTopVariant = mobileSideDrawer.classList.contains('mobile-side-drawer--top');
+                const isTopVariant = normalized === 'modalita' || normalized === 'menu';
+
+                if (isTopVariant) {
+                    updateMobileDrawerTopOffset();
+                }
+
+                // Quando cambia la variante (laterale ↔ top) disabilitiamo
+                // temporaneamente la transizione del contenuto e forziamo un
+                // reflow. Senza questo, il browser interpolerebbe il transform
+                // dallo stato "chiuso" della variante precedente (es.
+                // translateX(100%)) a quello della nuova (es. translateY(-100%)),
+                // mostrando un movimento obliquo nella viewport.
+                if (wasTopVariant !== isTopVariant) {
+                    const drawerContent = mobileSideDrawer.querySelector('.mobile-drawer-content');
+                    if (drawerContent) {
+                        const prev = drawerContent.style.transition;
+                        drawerContent.style.transition = 'none';
+                        mobileSideDrawer.classList.toggle('mobile-side-drawer--top', isTopVariant);
+                        // eslint-disable-next-line no-unused-expressions
+                        drawerContent.offsetHeight;
+                        drawerContent.style.transition = prev;
+                    } else {
+                        mobileSideDrawer.classList.toggle('mobile-side-drawer--top', isTopVariant);
+                    }
+                } else {
+                    mobileSideDrawer.classList.toggle('mobile-side-drawer--top', isTopVariant);
+                }
+
+                setMobileNavPillActive(isTopVariant ? normalized : null);
+                mobileDrawerViews.forEach((viewEl) => {
+                    viewEl.classList.toggle('active', viewEl.dataset.view === normalized);
+                });
+                if (mobileDrawerTitle) {
+                    mobileDrawerTitle.textContent = DRAWER_VIEW_TITLES[normalized];
+                }
+                const drawerBody = mobileSideDrawer.querySelector('.mobile-drawer-body');
+                if (drawerBody) drawerBody.scrollTop = 0;
+                if (normalized === 'menu') {
+                    syncDrawerMenuFromMain();
+                    if (typeof updateDownloadButtonVisibility === 'function') {
+                        updateDownloadButtonVisibility(window.__modalita__ || '2colpi');
+                    }
+                } else if (normalized === 'modalita') {
+                    syncDrawerModalitaFromMain();
+                } else if (normalized === 'impostazioni') {
+                    syncDrawerImpostazioniFromMain();
                 }
             }
-            
+
+            // Mobile drawer functions
+            function openMobileDrawer(view) {
+                if (!mobileSideDrawer) return;
+                const targetView = view || mobileSideDrawer.getAttribute('data-view') || 'impostazioni';
+                const currentView = mobileSideDrawer.getAttribute('data-view');
+                const isOpen = mobileSideDrawer.classList.contains('open');
+                const targetIsTop = targetView === 'modalita' || targetView === 'menu';
+                const currentIsTop = currentView === 'modalita' || currentView === 'menu';
+
+                // Se il drawer è già aperto ma stiamo passando tra varianti
+                // diverse (laterale ↔ top), chiudi prima con animazione e
+                // riapri dopo: così la transizione da Impostazioni a Modalità
+                // (o viceversa) non mostra salti di layout dovuti al cambio
+                // di origine del transform (translateX vs translateY).
+                if (isOpen && targetIsTop !== currentIsTop) {
+                    mobileSideDrawer.classList.remove('open');
+                    setMobileNavPillActive(null);
+                    setTimeout(() => {
+                        setMobileDrawerView(targetView);
+                        mobileSideDrawer.classList.add('open');
+                        document.body.style.overflow = 'hidden';
+                    }, 320);
+                    return;
+                }
+
+                setMobileDrawerView(targetView);
+                mobileSideDrawer.classList.add('open');
+                document.body.style.overflow = 'hidden';
+            }
+
             function closeMobileDrawer() {
                 if (mobileSideDrawer) {
                     mobileSideDrawer.classList.remove('open');
                     document.body.style.overflow = '';
+                    setMobileNavPillActive(null);
                 }
             }
+
+            // Click su un pill che apre la stessa view già aperta -> chiude.
+            function toggleMobileDrawerView(view) {
+                if (!mobileSideDrawer) return;
+                const isOpen = mobileSideDrawer.classList.contains('open');
+                const currentView = mobileSideDrawer.getAttribute('data-view');
+                if (isOpen && currentView === view) {
+                    closeMobileDrawer();
+                } else {
+                    openMobileDrawer(view);
+                }
+            }
+
+            window.addEventListener('resize', () => {
+                if (!mobileSideDrawer) return;
+                if (mobileSideDrawer.classList.contains('open') &&
+                    mobileSideDrawer.classList.contains('mobile-side-drawer--top')) {
+                    updateMobileDrawerTopOffset();
+                }
+            });
             
             // Mobile drawer event listeners
             if (mobileNavDots) {
                 mobileNavDots.addEventListener('click', () => {
-                    openMobileDrawer();
+                    openMobileDrawer('impostazioni');
                 });
             }
             
@@ -5798,7 +5932,310 @@
                     });
                 }
             });
-            
+
+            // ==========================================
+            // DRAWER MODALITÀ / MENU VIEW SYNC
+            // ==========================================
+            // Helper: propaga la modifica di un radio drawer sul radio principale corrispondente
+            function syncRadioFromDrawer(drawerName, mainName) {
+                const drawerInputs = document.querySelectorAll(`input[name="${drawerName}"]`);
+                const mainInputs = document.querySelectorAll(`input[name="${mainName}"]`);
+                drawerInputs.forEach((input) => {
+                    input.addEventListener('change', (e) => {
+                        if (!e.target.checked) return;
+                        mainInputs.forEach((mainInput) => {
+                            if (mainInput.value === e.target.value && !mainInput.disabled) {
+                                mainInput.checked = true;
+                                mainInput.dispatchEvent(new Event('change', { bubbles: true }));
+                            }
+                        });
+                    });
+                });
+            }
+
+            syncRadioFromDrawer('modalita_drawer', 'modalita');
+            syncRadioFromDrawer('colpitore_drawer', 'colpitore');
+            syncRadioFromDrawer('tipologia_drawer', 'tipologia');
+
+            // Sincronizzazione checkbox Visualizza del drawer (Menu view) con i controlli principali
+            const drawerMenuViewCheckboxes = [
+                { drawer: 'view_player_drawer', main: 'view_player' },
+                { drawer: 'view_responder_drawer', main: 'view_responder' },
+                { drawer: 'view_directions_drawer', main: 'view_directions' },
+                { drawer: 'view_shot_drawer', main: 'view_shot' },
+                { drawer: 'view_center_drawer', main: 'view_center' },
+                { drawer: 'view_cover_drawer', main: 'view_cover' },
+                { drawer: 'view_zones_drawer', main: 'view_zones' },
+                { drawer: 'view_coordinates_drawer', main: 'view_coordinates' }
+            ];
+            drawerMenuViewCheckboxes.forEach(({ drawer, main }) => {
+                const drawerEl = document.getElementById(drawer);
+                const mainEl = document.getElementById(main);
+                if (drawerEl && mainEl) {
+                    drawerEl.addEventListener('change', () => {
+                        mainEl.checked = drawerEl.checked;
+                        mainEl.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+                }
+            });
+
+            // Disegna: i bottoni nel drawer delegano al corrispondente bottone principale
+            const drawerDrawButtons = document.querySelectorAll('.mobile-drawer-draw-tool[data-target]');
+            drawerDrawButtons.forEach((btn) => {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = btn.getAttribute('data-target');
+                    const mainBtn = targetId ? document.getElementById(targetId) : null;
+                    if (mainBtn) mainBtn.click();
+                });
+            });
+
+            // Sync colore, spessore e dimensione testo tra drawer e controlli principali
+            const drawColorInput = document.getElementById('draw_color');
+            const drawColorDrawer = document.getElementById('draw_color_drawer');
+            if (drawColorInput && drawColorDrawer) {
+                drawColorDrawer.addEventListener('input', () => {
+                    drawColorInput.value = drawColorDrawer.value;
+                    drawColorInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    drawColorInput.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+                drawColorInput.addEventListener('input', () => {
+                    if (drawColorDrawer.value !== drawColorInput.value) {
+                        drawColorDrawer.value = drawColorInput.value;
+                    }
+                });
+            }
+
+            const drawWidthInput = document.getElementById('draw_width');
+            const drawWidthDrawer = document.getElementById('draw_width_drawer');
+            const drawWidthValueDrawer = document.getElementById('draw_width_value_drawer');
+            if (drawWidthInput && drawWidthDrawer) {
+                drawWidthDrawer.addEventListener('input', () => {
+                    drawWidthInput.value = drawWidthDrawer.value;
+                    if (drawWidthValueDrawer) drawWidthValueDrawer.textContent = drawWidthDrawer.value;
+                    drawWidthInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    drawWidthInput.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+                drawWidthInput.addEventListener('input', () => {
+                    if (drawWidthDrawer.value !== drawWidthInput.value) {
+                        drawWidthDrawer.value = drawWidthInput.value;
+                        if (drawWidthValueDrawer) drawWidthValueDrawer.textContent = drawWidthInput.value;
+                    }
+                });
+            }
+
+            const drawFontSizeInput = document.getElementById('draw_font_size');
+            const drawFontSizeDrawer = document.getElementById('draw_font_size_drawer');
+            const drawFontSizeValueDrawer = document.getElementById('draw_font_size_value_drawer');
+            if (drawFontSizeInput && drawFontSizeDrawer) {
+                drawFontSizeDrawer.addEventListener('input', () => {
+                    drawFontSizeInput.value = drawFontSizeDrawer.value;
+                    if (drawFontSizeValueDrawer) drawFontSizeValueDrawer.textContent = drawFontSizeDrawer.value;
+                    drawFontSizeInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    drawFontSizeInput.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+                drawFontSizeInput.addEventListener('input', () => {
+                    if (drawFontSizeDrawer.value !== drawFontSizeInput.value) {
+                        drawFontSizeDrawer.value = drawFontSizeInput.value;
+                        if (drawFontSizeValueDrawer) drawFontSizeValueDrawer.textContent = drawFontSizeInput.value;
+                    }
+                });
+            }
+
+            // Download: sync radio drawer (downloadType/downloadCourt/shot number) con quelli principali
+            syncRadioFromDrawer('downloadType_drawer', 'downloadType');
+            syncRadioFromDrawer('downloadCourt_drawer', 'downloadCourt');
+
+            const drawerShotNumber = document.getElementById('drawer_download_shot_number');
+            const mainShotNumber = document.getElementById('download_shot_number');
+            if (drawerShotNumber && mainShotNumber) {
+                drawerShotNumber.addEventListener('input', () => {
+                    mainShotNumber.value = drawerShotNumber.value;
+                    mainShotNumber.dispatchEvent(new Event('input', { bubbles: true }));
+                    mainShotNumber.dispatchEvent(new Event('change', { bubbles: true }));
+                });
+            }
+
+            const drawerDownloadBtn = document.getElementById('drawer_downloadCourtImage');
+            const mainDownloadBtn = document.getElementById('downloadCourtImage');
+            if (drawerDownloadBtn && mainDownloadBtn) {
+                drawerDownloadBtn.addEventListener('click', () => {
+                    mainDownloadBtn.click();
+                });
+            }
+
+            // Funzioni di sync "main -> drawer" chiamate all'apertura del drawer,
+            // in modo che lo stato visualizzato rifletta sempre i controlli principali.
+            // Propaga lo stato disabled e hidden da main a drawer per un dato gruppo di radio
+            function syncDisabledRadios(mainName, drawerName) {
+                const mainInputs = document.querySelectorAll(`input[name="${mainName}"]`);
+                mainInputs.forEach((mainInput) => {
+                    const drawerInput = document.querySelector(`input[name="${drawerName}"][value="${mainInput.value}"]`);
+                    if (!drawerInput) return;
+                    drawerInput.disabled = mainInput.disabled;
+                    const drawerLabel = drawerInput.closest('label');
+                    if (drawerLabel) {
+                        drawerLabel.classList.toggle('mobile-drawer-radio-disabled', mainInput.disabled);
+                        const mainLabel = mainInput.closest('label');
+                        const mainHidden = !!(mainLabel && mainLabel.style.display === 'none');
+                        drawerLabel.style.display = mainHidden ? 'none' : '';
+                    }
+                });
+            }
+
+            function syncDrawerModalitaFromMain() {
+                const mainModalita = document.querySelector('input[name="modalita"]:checked');
+                const value = mainModalita ? mainModalita.value : (window.__modalita__ || '2colpi');
+                const drawerInput = document.querySelector(`input[name="modalita_drawer"][value="${value}"]`);
+                if (drawerInput) drawerInput.checked = true;
+                syncDisabledRadios('modalita', 'modalita_drawer');
+            }
+
+            function syncDrawerMenuFromMain() {
+                // Colpitore
+                const mainColpitore = document.querySelector('input[name="colpitore"]:checked');
+                if (mainColpitore) {
+                    const drawerInput = document.querySelector(`input[name="colpitore_drawer"][value="${mainColpitore.value}"]`);
+                    if (drawerInput) drawerInput.checked = true;
+                }
+                // Tipologia
+                const mainTipologia = document.querySelector('input[name="tipologia"]:checked');
+                if (mainTipologia) {
+                    const drawerInput = document.querySelector(`input[name="tipologia_drawer"][value="${mainTipologia.value}"]`);
+                    if (drawerInput) drawerInput.checked = true;
+                }
+                // Visualizza checkboxes
+                drawerMenuViewCheckboxes.forEach(({ drawer, main }) => {
+                    const drawerEl = document.getElementById(drawer);
+                    const mainEl = document.getElementById(main);
+                    if (drawerEl && mainEl) drawerEl.checked = mainEl.checked;
+                });
+                // Disegna: colore, spessore, dimensione
+                if (drawColorDrawer && drawColorInput) drawColorDrawer.value = drawColorInput.value;
+                if (drawWidthDrawer && drawWidthInput) {
+                    drawWidthDrawer.value = drawWidthInput.value;
+                    if (drawWidthValueDrawer) drawWidthValueDrawer.textContent = drawWidthInput.value;
+                }
+                if (drawFontSizeDrawer && drawFontSizeInput) {
+                    drawFontSizeDrawer.value = drawFontSizeInput.value;
+                    if (drawFontSizeValueDrawer) drawFontSizeValueDrawer.textContent = drawFontSizeInput.value;
+                }
+                // Stato attivo dei bottoni disegno
+                syncDrawerDrawToolActiveState();
+                // Opzioni disegno (color/width/font size) visibili solo quando rilevanti
+                syncDrawerDrawOptionsVisibility();
+                // Download: sincronizza stato radio/numero
+                const mainDownloadType = document.querySelector('input[name="downloadType"]:checked');
+                if (mainDownloadType) {
+                    const drawerInput = document.querySelector(`input[name="downloadType_drawer"][value="${mainDownloadType.value}"]`);
+                    if (drawerInput) drawerInput.checked = true;
+                }
+                const mainDownloadCourt = document.querySelector('input[name="downloadCourt"]:checked');
+                if (mainDownloadCourt) {
+                    const drawerInput = document.querySelector(`input[name="downloadCourt_drawer"][value="${mainDownloadCourt.value}"]`);
+                    if (drawerInput) drawerInput.checked = true;
+                }
+                if (drawerShotNumber && mainShotNumber) drawerShotNumber.value = mainShotNumber.value;
+                // Propaga visibilità delle sezioni download dal principale al drawer
+                syncDrawerDownloadVisibility();
+                // Propaga lo stato disabled (es. opzioni tipologia in 1colpo)
+                syncDisabledRadios('colpitore', 'colpitore_drawer');
+                syncDisabledRadios('tipologia', 'tipologia_drawer');
+            }
+
+            function syncDrawerImpostazioniFromMain() {
+                // Gioco
+                const mainGioco = document.querySelector('input[name="gioco"]:checked');
+                if (mainGioco) {
+                    const drawerInput = document.querySelector(`input[name="gioco_drawer"][value="${mainGioco.value}"]`);
+                    if (drawerInput) drawerInput.checked = true;
+                }
+                // Superficie
+                const mainSuperficie = document.querySelector('input[name="campoType"]:checked');
+                if (mainSuperficie) {
+                    const drawerInput = document.querySelector(`input[name="campoType_drawer"][value="${mainSuperficie.value}"]`);
+                    if (drawerInput) drawerInput.checked = true;
+                }
+                // Default selects e checkboxes sono già gestiti dalla sync esistente
+            }
+
+            // Aggiorna la classe "active" dei bottoni disegno nel drawer sulla base
+            // della classe "active" dei bottoni principali
+            function syncDrawerDrawToolActiveState() {
+                drawerDrawButtons.forEach((btn) => {
+                    const targetId = btn.getAttribute('data-target');
+                    const mainBtn = targetId ? document.getElementById(targetId) : null;
+                    if (mainBtn) {
+                        btn.classList.toggle('active', mainBtn.classList.contains('active'));
+                    }
+                });
+            }
+
+            // Mostra/nasconde le righe colore/spessore e font-size nel drawer,
+            // ricalcandone la visibilità dai rispettivi container principali
+            function syncDrawerDrawOptionsVisibility() {
+                const mainDrawOptions = document.getElementById('draw_controls_hover');
+                const drawerDrawOptions = document.getElementById('drawer_draw_options');
+                if (mainDrawOptions && drawerDrawOptions) {
+                    const visible = mainDrawOptions.style.display !== 'none';
+                    drawerDrawOptions.style.display = visible ? '' : 'none';
+                }
+                const mainFontSize = document.getElementById('draw_font_size_hover');
+                const drawerFontSize = document.getElementById('drawer_font_size_options');
+                if (mainFontSize && drawerFontSize) {
+                    const visible = mainFontSize.style.display !== 'none';
+                    drawerFontSize.style.display = visible ? '' : 'none';
+                }
+            }
+
+            // Sincronizza la visibilità delle opzioni download nel drawer sulla base
+            // della visibilità di quelle principali
+            function syncDrawerDownloadVisibility() {
+                const mapping = [
+                    ['downloadOptions', 'drawer_downloadOptions'],
+                    ['downloadOptions2Colpi', 'drawer_downloadOptions2Colpi'],
+                    ['downloadOptionsDinamico', 'drawer_downloadOptionsDinamico'],
+                    ['singleCourtOptions', 'drawer_singleCourtOptions'],
+                    ['downloadCourtImage', 'drawer_downloadCourtImage']
+                ];
+                mapping.forEach(([mainId, drawerId]) => {
+                    const mainEl = document.getElementById(mainId);
+                    const drawerEl = document.getElementById(drawerId);
+                    if (mainEl && drawerEl) {
+                        const visible = mainEl.style.display !== 'none';
+                        drawerEl.style.display = visible ? '' : 'none';
+                    }
+                });
+            }
+
+            // Osserva il drawer principale Disegna per aggiornare lo stato attivo dei bottoni
+            // drawer quando cambia nella sidebar principale (es. selezione tool da desktop).
+            const mainDrawSection = document.getElementById('draw-section');
+            if (mainDrawSection && typeof MutationObserver === 'function') {
+                const drawObserver = new MutationObserver(() => {
+                    syncDrawerDrawToolActiveState();
+                    syncDrawerDrawOptionsVisibility();
+                });
+                drawObserver.observe(mainDrawSection, {
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['class', 'style']
+                });
+            }
+
+            // Osserva le opzioni download principali per mantenere il drawer allineato
+            const mainDownloadSection = document.getElementById('panelDownload');
+            if (mainDownloadSection && typeof MutationObserver === 'function') {
+                const downloadObserver = new MutationObserver(() => {
+                    syncDrawerDownloadVisibility();
+                });
+                downloadObserver.observe(mainDownloadSection, {
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['style']
+                });
+            }
+
             // Desktop guida button (ora è un header come gli altri)
             const desktopGuidaButton = document.getElementById('desktopGuidaButton');
             if (desktopGuidaButton) {
@@ -5817,29 +6254,18 @@
                 });
             }
             
-            // Mobile nav pill clicks - Modalità
+            // Mobile nav pill clicks - Modalità -> apre il drawer top-down
+            // (re-cliccando lo stesso pill il drawer si chiude).
             if (mobileNavModalita) {
                 mobileNavModalita.addEventListener('click', () => {
-                    if (currentMobileSection === 'modalita' && mobileSettingsOpen) {
-                        setMobileSettingsState(false, 'modalita');
-                    } else {
-                        setMobileSettingsState(true, 'modalita');
-                    }
+                    toggleMobileDrawerView('modalita');
                 });
             }
-            
-            // Mobile nav Menu button - opens menu with all options + download at bottom
+
+            // Mobile nav Menu button - apre il drawer top-down con tutte le opzioni
             if (mobileNavMenu) {
                 mobileNavMenu.addEventListener('click', () => {
-                    if (currentMobileSection === 'menu' && mobileSettingsOpen) {
-                        setMobileSettingsState(false, 'menu');
-                    } else {
-                        setMobileSettingsState(true, 'menu');
-                        // Aggiorna visibilità opzioni download per la modalità corrente
-                        if (typeof updateDownloadButtonVisibility === 'function') {
-                            updateDownloadButtonVisibility(window.__modalita__ || '2colpi');
-                        }
-                    }
+                    toggleMobileDrawerView('menu');
                 });
             }
             
