@@ -633,10 +633,11 @@ body.app-view-lezione-pericolo .lezioni-screen-inner {
     }
 }
 
+/* Griglia: testo più stretto | più spazio ai campi (evita tagli ai lati) */
 .lezione-pericolo-layout {
     display: grid;
-    grid-template-columns: minmax(300px, 1.15fr) minmax(0, 1fr) minmax(0, 1fr);
-    gap: 32px 36px;
+    grid-template-columns: minmax(220px, 0.75fr) minmax(0, 1.45fr);
+    gap: 28px 32px;
     align-items: start;
 }
 
@@ -657,18 +658,33 @@ body.app-view-lezione-pericolo .lezioni-screen-inner {
         0 1px 0 rgba(255, 255, 255, 0.8) inset;
 }
 
+@media (min-width: 1101px) {
+    .lezione-pericolo-text {
+        max-width: min(31rem, 100%);
+    }
+}
+
 @media (max-width: 1100px) {
     .lezione-pericolo-layout {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
     }
 
     .lezione-pericolo-text {
+        grid-column: 1 / -1;
+    }
+
+    .lezione-pericolo-courts {
+        position: static;
         grid-column: 1 / -1;
     }
 }
 
 @media (max-width: 700px) {
     .lezione-pericolo-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .lezione-pericolo-courts {
         grid-template-columns: 1fr;
     }
 }
@@ -697,7 +713,11 @@ body.app-view-lezione-pericolo .lezioni-screen-inner {
 }
 
 .lezione-pericolo-courts {
-    display: contents;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(18px, 2.2vw, 28px);
+    align-items: start;
+    min-width: 0;
 }
 
 .lezione-figure {
@@ -720,23 +740,87 @@ body.app-view-lezione-pericolo .lezioni-screen-inner {
     box-shadow: none;
 }
 
-.lezione-embed .svg-wrap.primary,
-.lezione-embed .lezione-embed-clone {
-    position: relative;
-    width: 100%;
-    max-width: 100%;
-    margin: 0 auto;
-    display: block;
+/*
+ * Campi nelle lezioni: stesse regole della pagina principale
+ * — Desktop: .svg-wrap { height:100%; } + svg { height:100%; width:auto; min-width:400px; }
+ *   con altezza blocco = area utile come .page-container (100vh - topbar - 2em padding)
+ * — Mobile: come .page-container (max-width:900px) .svg-wrap svg
+ */
+@media (min-width: 901px) {
+    body.app-view-lezione-pericolo .lezione-embed {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 0;
+        /* Allinea all’altezza interna del page-container sotto la topbar (stesso -2em del padding verticale) */
+        height: calc(100vh - var(--top-bar-height) - 2em);
+        max-height: calc(100vh - var(--top-bar-height) - 2em);
+    }
+
+    body.app-view-lezione-pericolo .lezione-embed .svg-wrap.primary,
+    body.app-view-lezione-pericolo .lezione-embed .lezione-embed-clone {
+        position: relative;
+        width: auto;
+        height: 100%;
+        min-width: min(100%, 400px);
+        max-width: 100%;
+        margin: 0 auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    body.app-view-lezione-pericolo .lezione-embed .svg-wrap.primary svg,
+    body.app-view-lezione-pericolo .lezione-embed .lezione-embed-clone svg {
+        height: 100%;
+        width: auto;
+        min-width: min(100%, 400px);
+        max-width: 100%;
+        max-height: none;
+        display: block;
+        border-radius: 20px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+    }
 }
 
-.lezione-embed .svg-wrap.primary svg,
-.lezione-embed .lezione-embed-clone svg {
-    width: 100%;
-    height: auto;
-    max-height: 70vh;
-    display: block;
-    border-radius: 16px;
-    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+/* Schermi medi/large: colonna campi sticky (come prima) */
+@media (min-width: 1101px) {
+    .lezione-pericolo-courts {
+        position: sticky;
+        top: 12px;
+        align-self: start;
+    }
+}
+
+/* Mobile: come campo principale in .page-container (max-width: 900px) */
+@media (max-width: 900px) {
+    body.app-view-lezione-pericolo .lezione-embed {
+        display: block;
+        height: auto;
+        max-height: none;
+    }
+
+    body.app-view-lezione-pericolo .lezione-embed .svg-wrap.primary,
+    body.app-view-lezione-pericolo .lezione-embed .lezione-embed-clone {
+        width: 100%;
+        height: auto;
+        min-width: 0;
+        max-width: 100%;
+        display: block;
+    }
+
+    body.app-view-lezione-pericolo .lezione-embed .svg-wrap.primary svg,
+    body.app-view-lezione-pericolo .lezione-embed .lezione-embed-clone svg {
+        width: 100%;
+        height: auto;
+        min-width: 0;
+        max-width: 100%;
+        max-height: calc(100vh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 70px);
+        max-height: calc(100dvh - var(--mobile-safe-top) - var(--mobile-safe-bottom) - var(--mobile-settings-bar-height) - 70px);
+        display: block;
+        border-radius: 20px;
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+    }
 }
 
 .lezione-embed .arrow-container {
