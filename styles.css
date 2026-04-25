@@ -245,6 +245,376 @@ body {
     padding-top: 0 !important;
 }
 
+/* Top bar: segmenti app vs vista Lezioni */
+.top-bar-segment {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.top-bar-segment--lezioni {
+    display: none;
+}
+
+body.app-view-lezioni .top-bar-segment--app {
+    display: none;
+}
+
+body.app-view-lezioni .top-bar-segment--lezioni {
+    display: flex;
+}
+
+.top-bar-segment--lezione-read {
+    display: none;
+}
+
+body.app-view-lezioni.app-view-lezione-pericolo .top-bar-segment--lezioni {
+    display: none !important;
+}
+
+body.app-view-lezioni.app-view-lezione-pericolo .top-bar-segment--lezione-read {
+    display: flex;
+}
+
+.top-bar-lezione-title {
+    max-width: min(200px, 50vw);
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    line-height: 1.2;
+    white-space: normal;
+    text-align: center;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+/* Pill "Lezioni" in vista: stesso stile .active dei tab; non cliccabile */
+#topBarLezioniCurrent {
+    position: relative;
+    pointer-events: none;
+    cursor: default;
+}
+
+#topBarLezioniCurrent.top-bar-item.active:hover {
+    background: #ffffff;
+    color: #1976d2;
+    transform: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.top-bar-item--back {
+    background: rgba(255, 255, 255, 0.22);
+}
+
+/* Vista Lezioni: stessa top bar anche su mobile */
+@media (max-width: 900px) {
+    body.app-view-lezioni .top-bar {
+        display: flex;
+        padding: 0 12px 0 16px;
+    }
+
+    body.app-view-lezioni .top-bar-title {
+        font-size: 18px;
+        letter-spacing: 0.5px;
+    }
+
+    body.app-view-lezioni {
+        overflow: hidden;
+    }
+
+    /* Stessa “luce” del tab attivo (desktop) anche in top bar compatta */
+    body.app-view-lezioni .top-bar .top-bar-item {
+        position: relative;
+    }
+
+    body.app-view-lezioni #topBarLezioniCurrent.top-bar-item.active {
+        background: #ffffff;
+        color: #0d47a1;
+        box-shadow:
+            0 6px 18px rgba(0, 0, 0, 0.22),
+            0 0 0 1px rgba(13, 71, 161, 0.10);
+    }
+
+    body.app-view-lezioni #topBarLezioniCurrent.top-bar-item.active::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: -6px;
+        transform: translateX(-50%);
+        width: 18px;
+        height: 3px;
+        border-radius: 3px;
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.55);
+    }
+
+    body.app-view-lezioni #topBarLezioniCurrent.top-bar-item.active:hover {
+        background: #ffffff;
+        color: #0d47a1;
+        transform: none;
+        box-shadow:
+            0 6px 18px rgba(0, 0, 0, 0.22),
+            0 0 0 1px rgba(13, 71, 161, 0.10);
+    }
+}
+
+/* Schermata elenco lezioni (senza campo / menu) */
+#lezioniScreen[hidden] {
+    display: none !important;
+}
+
+#lezioniScreen {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: var(--top-bar-height);
+    bottom: 0;
+    z-index: 85;
+    background: linear-gradient(135deg, #e8f4fd 0%, #f5f9ff 45%, #f0f8ff 100%);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+body.app-view-lezioni #mainAppView {
+    display: none !important;
+}
+
+.lezioni-screen-inner {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 28px var(--mobile-side-padding) calc(32px + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
+}
+
+/* Lezione singola: griglia larga, testo con margini simmetrici, non “chiusa” a 920px al centro */
+body.app-view-lezione-pericolo .lezioni-screen-inner {
+    max-width: min(1680px, 100%);
+    margin: 0;
+    padding-left: max(28px, 4.5vw);
+    padding-right: max(28px, 4.5vw);
+}
+
+.lezioni-screen-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    align-items: start;
+}
+
+@media (max-width: 720px) {
+    .lezioni-screen-columns {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Lezione: testo a sinistra, due campi a destra */
+.lezione-article {
+    max-width: 100%;
+}
+
+.lezione-pericolo-layout {
+    display: grid;
+    grid-template-columns: minmax(300px, 1.15fr) minmax(0, 1fr) minmax(0, 1fr);
+    gap: 28px 32px;
+    align-items: start;
+}
+
+.lezione-pericolo-text {
+    justify-self: start;
+    text-align: left;
+    max-width: 40rem;
+    padding-right: clamp(12px, 2.5vw, 40px);
+    box-sizing: content-box;
+}
+
+@media (max-width: 1100px) {
+    .lezione-pericolo-layout {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .lezione-pericolo-text {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 700px) {
+    .lezione-pericolo-layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+.lezione-article-title {
+    font-size: 1.25rem;
+    color: #0d47a1;
+    margin: 0 0 1rem 0;
+    line-height: 1.3;
+    font-weight: 700;
+}
+
+.lezione-pericolo-text p {
+    margin: 0 0 0.9rem 0;
+    font-size: 15px;
+    line-height: 1.55;
+    color: #37474f;
+}
+
+.lezione-pericolo-courts {
+    display: contents;
+}
+
+.lezione-figure {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.lezione-embed {
+    width: 100%;
+    min-height: 120px;
+    box-sizing: border-box;
+    pointer-events: none;
+    user-select: none;
+}
+
+.lezione-embed .svg-wrap.primary,
+.lezione-embed .lezione-embed-clone {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    display: block;
+}
+
+.lezione-embed .svg-wrap.primary svg,
+.lezione-embed .lezione-embed-clone svg {
+    width: 100%;
+    height: auto;
+    max-height: 70vh;
+    display: block;
+    border-radius: 16px;
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+}
+
+.lezione-embed .arrow-container {
+    pointer-events: none;
+}
+
+/* Elenco: link lezioni */
+.lezioni-list-link {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 10px 12px;
+    margin: 0;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.4;
+    color: #0d47a1;
+    background: #f0f7ff;
+    border: 1px solid rgba(25, 118, 210, 0.25);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.lezioni-list-link:hover,
+.lezioni-list-link:focus-visible {
+    background: #e3f2fd;
+    border-color: #1976d2;
+    outline: none;
+}
+
+.lezioni-list-link--lesson {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.lezioni-list-lesson-badge {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #1565c0;
+    line-height: 1.2;
+}
+
+.lezioni-list-lesson-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #0d47a1;
+    line-height: 1.35;
+}
+
+.lezione-article-eyebrow {
+    margin: 0 0 0.35rem 0;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #1565c0;
+    line-height: 1.2;
+}
+
+.lezioni-group {
+    margin-bottom: 20px;
+}
+
+.lezioni-group:last-child {
+    margin-bottom: 0;
+}
+
+.lezioni-group-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #1565c0;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin: 0 0 10px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(25, 118, 210, 0.22);
+}
+
+.lezioni-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.lezioni-list li {
+    padding: 9px 12px;
+    background: #f5f7fa;
+    border: 1px solid rgba(25, 118, 210, 0.12);
+    border-radius: 10px;
+    margin-bottom: 6px;
+    font-size: 14px;
+    line-height: 1.35;
+    color: #37474f;
+}
+
+.lezioni-list li:last-child {
+    margin-bottom: 0;
+}
+
+.lezioni-empty-hint {
+    display: none;
+    font-size: 13px;
+    color: #90a4ae;
+    font-style: italic;
+    margin: 0;
+    padding: 8px 2px 4px;
+    line-height: 1.4;
+}
+
+.lezioni-group .lezioni-list:empty + .lezioni-empty-hint {
+    display: block;
+}
+
 @media (min-width: 901px) {
     .top-bar-modal-overlay {
         display: none;
@@ -4775,6 +5145,16 @@ body {
         border-radius: 3px;
         background: #ffffff;
         box-shadow: 0 2px 8px rgba(255, 255, 255, 0.55);
+    }
+
+    #topBarLezioniCurrent.top-bar-item.active:hover {
+        background: #ffffff;
+        color: #0d47a1;
+        transform: none;
+        box-shadow:
+            0 6px 18px rgba(0, 0, 0, 0.22),
+            0 0 0 1px rgba(13, 71, 161, 0.10);
+        border-color: rgba(255, 255, 255, 0);
     }
 
     /* ----- Top bar modals: ombre raffinate + scrollbar ----- */

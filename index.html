@@ -272,8 +272,8 @@
         </div>
     </div>
     
-    <!-- Top Bar for Desktop -->
-    <div class="top-bar">
+    <!-- Top Bar (desktop sempre; in vista Lezioni anche su mobile) -->
+    <div class="top-bar" id="appTopBar" role="banner">
         <div class="top-bar-left">
             <div class="app-logo top-bar-logo">
                 <span class="app-logo-mark" aria-hidden="true">
@@ -286,34 +286,67 @@
                 </span>
                 <h1 class="top-bar-title">Geometry of Tennis</h1>
             </div>
-            <button id="topBarGioco" class="top-bar-item" title="Gioco">
-                <span class="top-bar-icon-gioco" id="topBarGiocoIcon">S</span>
-                <span class="top-bar-label">Gioco</span>
-            </button>
-            <button id="topBarModalita" class="top-bar-item" title="Modalità">
-                <span class="top-bar-icon-mode" id="topBarModalitaIcon">2</span>
-                <span class="top-bar-label">Modalità</span>
-            </button>
-            <button id="topBarGuida" class="top-bar-item" title="Guida" type="button">
-                <svg class="top-bar-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                    <path fill="currentColor" d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"/>
-                </svg>
-                <span class="top-bar-label">Guida</span>
-            </button>
-            <button id="topBarImpostazioni" class="top-bar-item" title="Impostazioni" type="button">
-                <svg class="top-bar-icon" viewBox="0 0 24 24" width="20" height="20">
-                    <path fill="currentColor" d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
-                </svg>
-                <span class="top-bar-label">Impostazioni</span>
-            </button>
+            <div class="top-bar-segment top-bar-segment--app">
+                <button id="topBarGioco" class="top-bar-item" title="Gioco" type="button">
+                    <span class="top-bar-icon-gioco" id="topBarGiocoIcon">S</span>
+                    <span class="top-bar-label">Gioco</span>
+                </button>
+                <button id="topBarModalita" class="top-bar-item" title="Modalità" type="button">
+                    <span class="top-bar-icon-mode" id="topBarModalitaIcon">2</span>
+                    <span class="top-bar-label">Modalità</span>
+                </button>
+                <button id="topBarImpostazioni" class="top-bar-item" title="Impostazioni" type="button">
+                    <svg class="top-bar-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                        <path fill="currentColor" d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
+                    </svg>
+                    <span class="top-bar-label">Impostazioni</span>
+                </button>
+                <button id="topBarGuida" class="top-bar-item" title="Guida" type="button">
+                    <svg class="top-bar-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                        <path fill="currentColor" d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"/>
+                    </svg>
+                    <span class="top-bar-label">Guida</span>
+                </button>
+                <button id="topBarLezioni" class="top-bar-item" title="Lezioni" type="button">
+                    <svg class="top-bar-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                        <path fill="currentColor" d="M18,2H12C9.79,2 8,3.79 8,6V20C8,21.1 8.9,22 10,22H18C19.1,22 20,21.1 20,20V4C20,2.9 19.1,2 18,2M18,20H10V6C10,4.9 10.9,4 12,4H18V20M4,8H6V20C6,21.1 6.9,22 8,22H8V24H6C3.79,24 2,22.21 2,20V8C2,6.9 2.9,6 4,6H4V8Z"/>
+                    </svg>
+                    <span class="top-bar-label">Lezioni</span>
+                </button>
+            </div>
+            <div class="top-bar-segment top-bar-segment--lezioni" id="topBarSegmentLezioni" hidden aria-hidden="true">
+                <button id="topBarLezioniBack" class="top-bar-item top-bar-item--back" type="button" title="Torna al menu principale con campo e comandi">
+                    <svg class="top-bar-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                        <path fill="currentColor" d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
+                    </svg>
+                    <span class="top-bar-label">Torna alla Home</span>
+                </button>
+                <span id="topBarLezioniCurrent" class="top-bar-item" title="Sezione attiva" aria-current="page">
+                    <svg class="top-bar-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                        <path fill="currentColor" d="M18,2H12C9.79,2 8,3.79 8,6V20C8,21.1 8.9,22 10,22H18C19.1,22 20,21.1 20,20V4C20,2.9 19.1,2 18,2M18,20H10V6C10,4.9 10.9,4 12,4H18V20M4,8H6V20C6,21.1 6.9,22 8,22H8V24H6C3.79,24 2,22.21 2,20V8C2,6.9 2.9,6 4,6H4V8Z"/>
+                    </svg>
+                    <span class="top-bar-label">Lezioni</span>
+                </span>
+            </div>
+            <div class="top-bar-segment top-bar-segment--lezione-read" id="topBarSegmentLezioneRead" hidden aria-hidden="true">
+                <button id="topBarLezioneBackList" class="top-bar-item top-bar-item--back" type="button" title="Torna all'elenco delle lezioni">
+                    <svg class="top-bar-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                        <path fill="currentColor" d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
+                    </svg>
+                    <span class="top-bar-label">Torna all'elenco</span>
+                </button>
+                <span id="topBarLezioneReadTitle" class="top-bar-item top-bar-item--current top-bar-lezione-title" aria-current="page"></span>
+            </div>
         </div>
         <div class="top-bar-right">
-            <button id="topBarDownload" class="top-bar-item" title="Scarica">
-                <svg class="top-bar-icon" viewBox="0 0 24 24" width="20" height="20">
-                    <path fill="currentColor" d="M19,12V19H5V12H3V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19M13,12.67L15.59,10.08L17,11.5L12,16.5L7,11.5L8.41,10.08L11,12.67V3H13V12.67Z" />
-                </svg>
-                <span class="top-bar-label">Scarica</span>
-            </button>
+            <div class="top-bar-segment top-bar-segment--app">
+                <button id="topBarDownload" class="top-bar-item" title="Scarica" type="button">
+                    <svg class="top-bar-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                        <path fill="currentColor" d="M19,12V19H5V12H3V19A2,2 0 0,0 5,21H19A2,2 0 0,0 21,19V12H19M13,12.67L15.59,10.08L17,11.5L12,16.5L7,11.5L8.41,10.08L11,12.67V3H13V12.67Z" />
+                    </svg>
+                    <span class="top-bar-label">Scarica</span>
+                </button>
+            </div>
         </div>
     </div>
 
@@ -551,7 +584,56 @@
         </div>
     </div>
 
-    <div class="page-container">
+    <!-- Schermata a piena pagina: elenco lezioni (futuro: apertura singole lezioni) -->
+    <div id="lezioniScreen" class="lezioni-screen" hidden inert>
+        <main class="lezioni-screen-inner" id="lezioniScreenMain" aria-label="Contenuto lezioni">
+            <div id="lezioniListView" class="lezioni-list-view">
+            <div class="lezioni-screen-columns">
+                <section class="lezioni-group" aria-labelledby="lezioniSingolareHeading">
+                    <h2 id="lezioniSingolareHeading" class="lezioni-group-title">Singolare</h2>
+                    <ul class="lezioni-list" id="lezioniListSingolare" data-ambito="singolare" aria-label="Lezioni di singolare">
+                        <li>
+                            <button type="button" class="lezioni-list-link lezioni-list-link--lesson" id="lezionePericoloIndietroBtn" data-lezione="pericolo-indietro" aria-label="Lezione 1. Il Pericolo di Stare Troppo Indietro">
+                                <span class="lezioni-list-lesson-badge">Lezione 1</span>
+                                <span class="lezioni-list-lesson-name">Il Pericolo di Stare Troppo Indietro</span>
+                            </button>
+                        </li>
+                    </ul>
+                    <p class="lezioni-empty-hint">Nessuna lezione in elenco.</p>
+                </section>
+                <section class="lezioni-group" aria-labelledby="lezioniDoppioHeading">
+                    <h2 id="lezioniDoppioHeading" class="lezioni-group-title">Doppio</h2>
+                    <ul class="lezioni-list" id="lezioniListDoppio" data-ambito="doppio" aria-label="Lezioni di doppio"></ul>
+                    <p class="lezioni-empty-hint">Nessuna lezione in elenco.</p>
+                </section>
+            </div>
+            </div>
+
+            <article id="lezionePericoloArticle" class="lezione-article" hidden inert>
+                <div class="lezione-pericolo-layout">
+                    <div class="lezione-pericolo-text" id="lezionePericoloText">
+                        <p class="lezione-article-eyebrow">Lezione 1</p>
+                        <h2 class="lezione-article-title">Il Pericolo di Stare Troppo Indietro</h2>
+                        <p>Spesso i giocatori scelgono di posizionarsi in una posizione arretrata del campo, soprattutto nei momenti di tensione, perché questa può dare una sensazione di sicurezza.</p>
+                        <p>Stare indietro nel campo dà sicuramente più tempo per reagire e recuperare il colpo dell'avversario, ma porta con sé un grande rischio.</p>
+                        <p>Come si vede dalle immagini, un giocatore che si muove a un metro dietro la linea di fondo (campo a sinistra), se l'avversario colpisce dal centro del campo deve coprire circa 10 metri. Se invece lo stesso giocatore si sposta a 3 metri dietro la linea di fondo, allora lo spazio da coprire aumenta di un metro.</p>
+                        <p>Questa differenza è molto importante: può fare la differenza tra un colpo recuperato e un vincente subito, oltre a portare a dover correre per molti più metri; nell'arco della partita ciò può generare fatica in più.</p>
+                        <p>Il senso di sicurezza quindi può risultare soltanto un'illusione, perché aumenta gli spazi a disposizione dell'avversario e ci costringe a compiere sforzi maggiori.</p>
+                    </div>
+                    <div class="lezione-pericolo-courts">
+                        <figure class="lezione-figure">
+                            <div id="lessonPericoloEmbedLeft" class="lezione-embed" aria-label="Esempio: un metro dietro la linea, ricevitore in Campo A"></div>
+                        </figure>
+                        <figure class="lezione-figure">
+                            <div id="lessonPericoloEmbedRight" class="lezione-embed" aria-label="Esempio: tre metri dietro la linea, ricevitore in Campo A"></div>
+                        </figure>
+                    </div>
+                </div>
+            </article>
+        </main>
+    </div>
+
+    <div id="mainAppView" class="page-container">
         <div class="controls-sidebar">
             <!-- MENU Header (Desktop Only) -->
             <div class="menu-header">
@@ -1367,6 +1449,12 @@
                         <path fill="currentColor" d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"/>
                     </svg>
                     <span>Guida</span>
+                </button>
+                <button id="mobileDrawerLezioni" class="mobile-drawer-item" type="button">
+                    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+                        <path fill="currentColor" d="M18,2H12C9.79,2 8,3.79 8,6V20C8,21.1 8.9,22 10,22H18C19.1,22 20,21.1 20,20V4C20,2.9 19.1,2 18,2M18,20H10V6C10,4.9 10.9,4 12,4H18V20M4,8H6V20C6,21.1 6.9,22 8,22H8V24H6C3.79,24 2,22.21 2,20V8C2,6.9 2.9,6 4,6H4V8Z"/>
+                    </svg>
+                    <span>Lezioni</span>
                 </button>
                 
                 <!-- Gioco -->
