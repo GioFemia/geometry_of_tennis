@@ -7487,7 +7487,9 @@
 
             function stripAndMountLessonClone(clone, mountEl, opts) {
                 if (!mountEl) return;
-                hideLessonPericoloBisectorAndYellow(clone);
+                if (!opts || !opts.keepBisectorAndYellow) {
+                    hideLessonPericoloBisectorAndYellow(clone);
+                }
                 if (opts && opts.horizontalMeasureText) {
                     const lbl = clone.querySelector('#h-measure-label');
                     if (lbl) lbl.textContent = opts.horizontalMeasureText;
@@ -7521,7 +7523,8 @@
                 if (!L || !R) return;
                 L.innerHTML = '';
                 R.innerHTML = '';
-                const primaryWrap = document.querySelector('.svg-wrap.primary');
+                /* #lezioniScreen precede #mainAppView: .svg-wrap.primary matcherebbe i clone negli embed */
+                const primaryWrap = document.querySelector('#mainAppView .svg-wrap.primary');
                 if (!primaryWrap || !svg) return;
                 const saved = saveLessonPericoloState();
                 /* Ricevitore: coordinate Campo A → y_svg = 822 - y_A. (0,-23)→845; campo destro (0,-90)→912. Colpitore (0,0) Campo B = (300,150), avversario. */
@@ -7576,6 +7579,93 @@
 
             window.geometryOfTennisCaptureLessonPericoloEmbeds = captureLessonPericoloEmbeds;
 
+            /* Lezione 2 (Mid-Point): Campo B / Campo A in coordinate "menu" — B=(±90,0), A=(±20,-36) sotto. */
+            function applyMidpointLessonViewFlags() {
+                window.__modalita__ = '2colpi';
+                window.__gioco__ = 'singolare';
+                window.__shotTypeIsPassante__ = false;
+                window.__shotTypeIsServizio__ = false;
+                window.__viewDirections__ = true;
+                window.__viewPlayer__ = true;
+                window.__viewResponder__ = true;
+                window.__viewShot__ = false;
+                window.__viewCenter__ = true;
+                window.__viewCover__ = false;
+                window.__viewCoordinates__ = false;
+                yellowEndX = null;
+            }
+
+            function setCheckboxesForMidpointLesson() {
+                setCheckboxesForLesson();
+                const shotEl = document.getElementById('view_shot');
+                const coverEl = document.getElementById('view_cover');
+                if (shotEl) {
+                    shotEl.checked = false;
+                    window.__viewShot__ = false;
+                }
+                if (coverEl) {
+                    coverEl.checked = false;
+                    window.__viewCover__ = false;
+                }
+            }
+
+            function captureLessonMidpointEmbeds() {
+                const L = document.getElementById('lessonMidpointEmbedLeft');
+                const R = document.getElementById('lessonMidpointEmbedRight');
+                if (!L || !R) return;
+                L.innerHTML = '';
+                R.innerHTML = '';
+                const primaryWrap = document.querySelector('#mainAppView .svg-wrap.primary');
+                if (!primaryWrap || !svg) return;
+                const saved = saveLessonPericoloState();
+                const m2c = document.querySelector('input[name="modalita"][value="2colpi"]');
+                const gSing = document.querySelector('input[name="gioco"][value="singolare"]');
+                try {
+                    applyMidpointLessonViewFlags();
+                    setCheckboxesForMidpointLesson();
+                    if (m2c) m2c.checked = true;
+                    if (gSing) gSing.checked = true;
+                    if (tipologiaPalleggio) {
+                        tipologiaPalleggio.checked = true;
+                    }
+                    if (colpitoreAvv) {
+                        colpitoreAvv.checked = true;
+                    }
+                    isPlayer = false;
+                    if (dot) {
+                        dot.setAttribute('cx', '210');
+                        dot.setAttribute('cy', '150');
+                    }
+                    applyViewToggles();
+                    updateLinesAndWedge(210, 150);
+                    finalizeLessonGeometry(210, 150, 320, 858);
+                    if (intersectionDot) {
+                        intersectionDot.style.display = '';
+                    }
+                    updateThemeColors();
+                    const clone1 = primaryWrap.cloneNode(true);
+                    stripAndMountLessonClone(clone1, L, { keepBisectorAndYellow: true });
+                    isPlayer = false;
+                    if (dot) {
+                        dot.setAttribute('cx', '390');
+                        dot.setAttribute('cy', '150');
+                    }
+                    applyViewToggles();
+                    updateLinesAndWedge(390, 150);
+                    finalizeLessonGeometry(390, 150, 280, 858);
+                    if (intersectionDot) {
+                        intersectionDot.style.display = '';
+                    }
+                    updateThemeColors();
+                    const clone2 = primaryWrap.cloneNode(true);
+                    stripAndMountLessonClone(clone2, R, { keepBisectorAndYellow: true });
+                } finally {
+                    restoreLessonPericoloState(saved);
+                }
+            }
+
+            window.geometryOfTennisCaptureLessonMidpointEmbeds = captureLessonMidpointEmbeds;
+
         })();
 
         // ==========================================
@@ -7594,10 +7684,10 @@
             const mainAppView = document.getElementById('mainAppView');
             const lezioniListView = document.getElementById('lezioniListView');
             const lezionePericoloArticle = document.getElementById('lezionePericoloArticle');
+            const lezioneMidpointArticle = document.getElementById('lezioneMidpointArticle');
             const topBarSegmentLezioneRead = document.getElementById('topBarSegmentLezioneRead');
             const topBarLezioneReadTitle = document.getElementById('topBarLezioneReadTitle');
             const topBarLezioneBackList = document.getElementById('topBarLezioneBackList');
-            const lezionePericoloIndietroBtn = document.getElementById('lezionePericoloIndietroBtn');
             const topBarDownload = document.getElementById('topBarDownload');
             
             const giocoOverlay = document.getElementById('topBarGiocoOverlay');
@@ -7675,16 +7765,23 @@
                 });
             }
 
-            function setLezionePericoloReadView(show) {
+            function setLezionePericoloReadView(show, lezioneSlug) {
                 if (!document.body) return;
+                const slug = show ? (lezioneSlug || 'pericolo-indietro') : null;
                 document.body.classList.toggle('app-view-lezione-pericolo', show);
                 if (lezioniListView) {
                     lezioniListView.hidden = show;
                     lezioniListView.inert = show;
                 }
                 if (lezionePericoloArticle) {
-                    lezionePericoloArticle.hidden = !show;
-                    lezionePericoloArticle.inert = !show;
+                    const on = show && slug === 'pericolo-indietro';
+                    lezionePericoloArticle.hidden = !on;
+                    lezionePericoloArticle.inert = !on;
+                }
+                if (lezioneMidpointArticle) {
+                    const on = show && slug === 'midpoint-fondo';
+                    lezioneMidpointArticle.hidden = !on;
+                    lezioneMidpointArticle.inert = !on;
                 }
                 if (topBarSegmentLezioni) {
                     const inLezioni = document.body.classList.contains('app-view-lezioni');
@@ -7701,8 +7798,12 @@
                     if (show) {
                         const titleFull = topBarLezioneReadTitle.querySelector('.top-bar-lezione-title-full');
                         const titleShort = topBarLezioneReadTitle.querySelector('.top-bar-lezione-title-short');
-                        const fullText = 'Lezione 1 - Singolare';
-                        const shortText = 'Lezione 1 - S';
+                        let fullText = 'Lezione 1 - Singolare';
+                        let shortText = 'Lezione 1 - S';
+                        if (slug === 'midpoint-fondo') {
+                            fullText = 'Lezione 2 - Singolare';
+                            shortText = 'Lezione 2 - S';
+                        }
                         if (titleFull) titleFull.textContent = fullText;
                         if (titleShort) titleShort.textContent = shortText;
                         topBarLezioneReadTitle.setAttribute('aria-label', fullText);
@@ -7713,8 +7814,11 @@
                     const inLezioni = document.body.classList.contains('app-view-lezioni');
                     topBarLezioniCurrent.classList.toggle('active', inLezioni && !show);
                 }
-                if (show && typeof window.geometryOfTennisCaptureLessonPericoloEmbeds === 'function') {
+                if (show && slug === 'pericolo-indietro' && typeof window.geometryOfTennisCaptureLessonPericoloEmbeds === 'function') {
                     window.geometryOfTennisCaptureLessonPericoloEmbeds();
+                }
+                if (show && slug === 'midpoint-fondo' && typeof window.geometryOfTennisCaptureLessonMidpointEmbeds === 'function') {
+                    window.geometryOfTennisCaptureLessonMidpointEmbeds();
                 }
             }
 
@@ -7761,11 +7865,14 @@
                     setLezioniView(false);
                 });
             }
-            if (lezionePericoloIndietroBtn) {
-                lezionePericoloIndietroBtn.addEventListener('click', () => {
-                    setLezionePericoloReadView(true);
+            document.querySelectorAll('.lezioni-list-link--lesson').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const slug = btn.getAttribute('data-lezione');
+                    if (slug) {
+                        setLezionePericoloReadView(true, slug);
+                    }
                 });
-            }
+            });
             if (topBarLezioneBackList) {
                 topBarLezioneBackList.addEventListener('click', () => {
                     setLezionePericoloReadView(false);
