@@ -291,6 +291,15 @@ body.app-view-lezioni.app-view-lezione-pericolo .top-bar-segment--lezione-read {
     padding-right: 10px;
 }
 
+/* Desktop: titolo lezione completo; mobile: override sotto */
+.top-bar-lezione-title-short {
+    display: none;
+}
+
+.top-bar-lezione-title-full {
+    display: inline;
+}
+
 /* Pill "Lezioni" in vista: stesso stile .active dei tab; non cliccabile */
 #topBarLezioniCurrent {
     position: relative;
@@ -313,12 +322,96 @@ body.app-view-lezioni.app-view-lezione-pericolo .top-bar-segment--lezione-read {
 @media (max-width: 900px) {
     body.app-view-lezioni .top-bar {
         display: flex;
-        padding: 0 12px 0 16px;
+        padding: 0 10px 0 10px;
+        align-items: center;
+        gap: 4px;
     }
 
-    body.app-view-lezioni .top-bar-title {
-        font-size: 18px;
-        letter-spacing: 0.5px;
+    /* In vista lezioni non serve Scarica; libera spazio a sinistra */
+    body.app-view-lezioni .top-bar-right {
+        display: none;
+    }
+
+    /* Logo + “Geometry of Tennis”: stessa tipografia della home mobile (.mobile-nav-title) */
+    body.app-view-lezioni .top-bar-logo {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        flex: 0 1 auto;
+        min-width: 0;
+        max-width: min(58%, 248px);
+        margin-right: 0;
+        gap: 8px;
+    }
+
+    body.app-view-lezioni .top-bar-logo .app-logo-mark {
+        width: 38px;
+        height: 38px;
+        padding: 6px;
+        border-radius: 10px;
+        flex-shrink: 0;
+    }
+
+    body.app-view-lezioni .top-bar-logo .top-bar-title {
+        margin: 0;
+        /* Allineato a .mobile-nav-title (barra impostazioni mobile, pagina principale) */
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 1.6px;
+        line-height: 1.2;
+        text-transform: uppercase;
+        font-style: italic;
+        white-space: nowrap;
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    body.app-view-lezioni .top-bar-left {
+        flex: 1;
+        min-width: 0;
+        gap: 8px;
+        align-items: center;
+    }
+
+    body.app-view-lezioni .top-bar-segment--lezioni,
+    body.app-view-lezioni .top-bar-segment--lezione-read {
+        flex: 1;
+        min-width: 0;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: nowrap;
+    }
+
+    /* Indietro: solo freccia; bordo leggero */
+    body.app-view-lezioni .top-bar-item--back .top-bar-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    body.app-view-lezioni .top-bar-item--back {
+        padding: 8px 11px;
+        flex-shrink: 0;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+    }
+
+    /* Mobile: in barra solo logo + indietro (nè pill “Lezioni” nè titolo lezione) */
+    body.app-view-lezioni #topBarLezioniCurrent {
+        display: none !important;
+    }
+
+    body.app-view-lezioni #topBarLezioneReadTitle {
+        display: none !important;
     }
 
     body.app-view-lezioni {
@@ -328,36 +421,6 @@ body.app-view-lezioni.app-view-lezione-pericolo .top-bar-segment--lezione-read {
     /* Stessa “luce” del tab attivo (desktop) anche in top bar compatta */
     body.app-view-lezioni .top-bar .top-bar-item {
         position: relative;
-    }
-
-    body.app-view-lezioni #topBarLezioniCurrent.top-bar-item.active {
-        background: #ffffff;
-        color: #0d47a1;
-        box-shadow:
-            0 6px 18px rgba(0, 0, 0, 0.22),
-            0 0 0 1px rgba(13, 71, 161, 0.10);
-    }
-
-    body.app-view-lezioni #topBarLezioniCurrent.top-bar-item.active::after {
-        content: '';
-        position: absolute;
-        left: 50%;
-        bottom: -6px;
-        transform: translateX(-50%);
-        width: 18px;
-        height: 3px;
-        border-radius: 3px;
-        background: #ffffff;
-        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.55);
-    }
-
-    body.app-view-lezioni #topBarLezioniCurrent.top-bar-item.active:hover {
-        background: #ffffff;
-        color: #0d47a1;
-        transform: none;
-        box-shadow:
-            0 6px 18px rgba(0, 0, 0, 0.22),
-            0 0 0 1px rgba(13, 71, 161, 0.10);
     }
 }
 
@@ -1776,30 +1839,48 @@ body.is-doppio .singolare-only {
     }
 
 
-    /* Mobile nav bar visible on mobile */
+    /* Mobile nav bar: stessi effetti della .top bar desktop (gradiente, bordo, ombre) */
     .controls-sidebar.mobile-enabled .mobile-nav-bar {
         display: flex;
+        position: relative;
+        margin: 0;
         margin-bottom: 0;
         border-radius: 0;
         width: 100%;
-        margin: 0;
         padding: 12px var(--mobile-side-padding);
         box-sizing: border-box;
         gap: 20px;
         flex-wrap: nowrap;
+        background: linear-gradient(135deg, #0d47a1 0%, #1565c0 35%, #1976d2 70%, #1e88e5 100%);
+        box-shadow:
+            0 4px 22px rgba(13, 71, 161, 0.28),
+            0 1px 0 rgba(255, 255, 255, 0.08) inset;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .controls-sidebar.mobile-enabled .mobile-nav-bar::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+        pointer-events: none;
     }
 
     .controls-sidebar.mobile-enabled .mobile-nav-title {
         font-family: 'Poppins', 'Roboto', sans-serif;
         font-size: 14px;
         font-weight: 800;
-        letter-spacing: 1.6px;
+        letter-spacing: 2.6px;
         background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #ffffff 100%);
         background-size: 200% 200%;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
         text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.22));
         display: block !important;
         animation: gradientShift 4s ease infinite;
         text-transform: uppercase;
@@ -1811,12 +1892,64 @@ body.is-doppio .singolare-only {
     
     .controls-sidebar.mobile-enabled .mobile-nav-center {
         gap: 6px;
+        margin-left: 10px;
     }
     
+    /* Pill come .top-bar-item desktop: vetro, hover, attivo con tacca */
     .controls-sidebar.mobile-enabled .mobile-nav-pill {
+        position: relative;
         width: 48px;
         height: 48px;
         padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0);
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        transition:
+            background 0.25s ease,
+            color 0.25s ease,
+            transform 0.18s ease,
+            box-shadow 0.25s ease,
+            border-color 0.2s ease;
+    }
+
+    .controls-sidebar.mobile-enabled .mobile-nav-pill:hover {
+        background: rgba(255, 255, 255, 0.22);
+        border-color: rgba(255, 255, 255, 0.18);
+        color: #ffffff;
+        transform: translateY(-1px);
+        box-shadow:
+            0 4px 14px rgba(0, 0, 0, 0.22),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    .controls-sidebar.mobile-enabled .mobile-nav-pill.active {
+        background: #ffffff;
+        color: #0d47a1;
+        border-color: rgba(255, 255, 255, 0);
+        box-shadow:
+            0 6px 18px rgba(0, 0, 0, 0.22),
+            0 0 0 1px rgba(13, 71, 161, 0.1);
+        transform: none;
+    }
+
+    .controls-sidebar.mobile-enabled .mobile-nav-pill.active::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: -4px;
+        transform: translateX(-50%);
+        width: 18px;
+        height: 3px;
+        border-radius: 3px;
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.55);
+    }
+
+    .controls-sidebar.mobile-enabled .mobile-nav-pill:focus-visible {
+        outline: 2px solid #ffffff;
+        outline-offset: 2px;
     }
     
     /* Pill con label (Menu) */

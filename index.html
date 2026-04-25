@@ -315,7 +315,7 @@
                 </button>
             </div>
             <div class="top-bar-segment top-bar-segment--lezioni" id="topBarSegmentLezioni" hidden aria-hidden="true">
-                <button id="topBarLezioniBack" class="top-bar-item top-bar-item--back" type="button" title="Torna al menu principale con campo e comandi">
+                <button id="topBarLezioniBack" class="top-bar-item top-bar-item--back" type="button" title="Torna al menu principale con campo e comandi" aria-label="Torna alla Home">
                     <svg class="top-bar-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                         <path fill="currentColor" d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
                     </svg>
@@ -329,13 +329,16 @@
                 </span>
             </div>
             <div class="top-bar-segment top-bar-segment--lezione-read" id="topBarSegmentLezioneRead" hidden aria-hidden="true">
-                <button id="topBarLezioneBackList" class="top-bar-item top-bar-item--back" type="button" title="Torna all'elenco delle lezioni">
+                <button id="topBarLezioneBackList" class="top-bar-item top-bar-item--back" type="button" title="Torna all'elenco delle lezioni" aria-label="Torna all'elenco delle lezioni">
                     <svg class="top-bar-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                         <path fill="currentColor" d="M20,11V13H8L13.5,18.5L12.08,19.92L4.16,12L12.08,4.08L13.5,5.5L8,11H20Z"/>
                     </svg>
                     <span class="top-bar-label">Torna all'elenco</span>
                 </button>
-                <span id="topBarLezioneReadTitle" class="top-bar-item top-bar-item--current top-bar-lezione-title" aria-current="page"></span>
+                <span id="topBarLezioneReadTitle" class="top-bar-item top-bar-item--current top-bar-lezione-title" role="status" aria-label="Lezione 1 - Singolare" aria-current="page">
+                    <span class="top-bar-lezione-title-full">Lezione 1 - Singolare</span>
+                    <span class="top-bar-lezione-title-short" aria-hidden="true">Lezione 1 - S</span>
+                </span>
             </div>
         </div>
         <div class="top-bar-right">
