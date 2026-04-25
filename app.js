@@ -7500,7 +7500,10 @@
                 const tip = clone.querySelector('.coordinate-tooltip');
                 if (tip) tip.style.display = 'none';
                 const arr = clone.querySelector('.arrow-container');
-                if (arr) arr.setAttribute('aria-hidden', 'true');
+                if (arr) {
+                    arr.setAttribute('aria-hidden', 'true');
+                    arr.style.display = 'none';
+                }
                 mountEl.innerHTML = '';
                 mountEl.appendChild(clone);
             }
@@ -7696,7 +7699,7 @@
                 }
                 if (topBarLezioneReadTitle) {
                     if (show) {
-                        topBarLezioneReadTitle.textContent = 'Lezione 1';
+                        topBarLezioneReadTitle.textContent = 'Lezione 1 - Singolare';
                     }
                     topBarLezioneReadTitle.classList.toggle('active', show);
                 }
