@@ -18,33 +18,9 @@
             const chkShot = document.getElementById('view_shot');
             const chkResponder = document.getElementById('view_responder');
             const chkCover = document.getElementById('view_cover');
-            const chkZones = document.getElementById('view_zones');
             const chkCenter = document.getElementById('view_center');
             const chkCoordinates = document.getElementById('view_coordinates');
             const tooltip = document.getElementById('coordinateTooltip');
-            // Zone del Campo elements
-            const zoneLine1 = document.getElementById('zone-line-1');
-            const zoneLine2 = document.getElementById('zone-line-2');
-            const zoneLine3 = document.getElementById('zone-line-3');
-            const zoneCircleA = document.getElementById('zone-circle-a');
-            const zoneLabelA = document.getElementById('zone-label-a');
-            const zoneCircleB = document.getElementById('zone-circle-b');
-            const zoneLabelB = document.getElementById('zone-label-b');
-            const zoneCircleC = document.getElementById('zone-circle-c');
-            const zoneLabelC = document.getElementById('zone-label-c');
-            const zoneCircleD = document.getElementById('zone-circle-d');
-            const zoneLabelD = document.getElementById('zone-label-d');
-            const zoneLineA1 = document.getElementById('zone-line-a-1');
-            const zoneLineA2 = document.getElementById('zone-line-a-2');
-            const zoneLineA3 = document.getElementById('zone-line-a-3');
-            const zoneCircleAFieldA = document.getElementById('zone-circle-a-field-a');
-            const zoneLabelAFieldA = document.getElementById('zone-label-a-field-a');
-            const zoneCircleBFieldA = document.getElementById('zone-circle-b-field-a');
-            const zoneLabelBFieldA = document.getElementById('zone-label-b-field-a');
-            const zoneCircleCFieldA = document.getElementById('zone-circle-c-field-a');
-            const zoneLabelCFieldA = document.getElementById('zone-label-c-field-a');
-            const zoneCircleDFieldA = document.getElementById('zone-circle-d-field-a');
-            const zoneLabelDFieldA = document.getElementById('zone-label-d-field-a');
             const fieldBCoords = document.getElementById('fieldB-coords');
             const fieldACoords = document.getElementById('fieldA-coords');
             const tooltipFieldB = document.getElementById('tooltip-field-b');
@@ -144,7 +120,6 @@
             window.__viewShot__ = true;
             window.__viewResponder__ = true;
             window.__viewCover__ = false;
-            window.__viewZones__ = false;
             window.__viewCenter__ = true;
             window.__viewCoordinates__ = false;
             window.__modalita__ = '2colpi';
@@ -1660,64 +1635,6 @@
                 updateColpitoreDragState();
             }
 
-            function updateZones() {
-                const zonesVisible = window.__viewZones__ !== false;
-                
-                if (isPlayer) {
-                    // Tu mode: mostra zone nel Campo B (sopra la rete, y da 150 a 486)
-                    if (zoneLine1) zoneLine1.style.display = zonesVisible ? '' : 'none';
-                    if (zoneLine2) zoneLine2.style.display = zonesVisible ? '' : 'none';
-                    if (zoneLine3) zoneLine3.style.display = zonesVisible ? '' : 'none';
-                    if (zoneCircleA) zoneCircleA.style.display = zonesVisible ? '' : 'none';
-                    if (zoneLabelA) zoneLabelA.style.display = zonesVisible ? '' : 'none';
-                    if (zoneCircleB) zoneCircleB.style.display = zonesVisible ? '' : 'none';
-                    if (zoneLabelB) zoneLabelB.style.display = zonesVisible ? '' : 'none';
-                    if (zoneCircleC) zoneCircleC.style.display = zonesVisible ? '' : 'none';
-                    if (zoneLabelC) zoneLabelC.style.display = zonesVisible ? '' : 'none';
-                    if (zoneCircleD) zoneCircleD.style.display = zonesVisible ? '' : 'none';
-                    if (zoneLabelD) zoneLabelD.style.display = zonesVisible ? '' : 'none';
-                    
-                    // Nascondi zone del Campo A
-                    if (zoneLineA1) zoneLineA1.style.display = 'none';
-                    if (zoneLineA2) zoneLineA2.style.display = 'none';
-                    if (zoneLineA3) zoneLineA3.style.display = 'none';
-                    if (zoneCircleAFieldA) zoneCircleAFieldA.style.display = 'none';
-                    if (zoneLabelAFieldA) zoneLabelAFieldA.style.display = 'none';
-                    if (zoneCircleBFieldA) zoneCircleBFieldA.style.display = 'none';
-                    if (zoneLabelBFieldA) zoneLabelBFieldA.style.display = 'none';
-                    if (zoneCircleCFieldA) zoneCircleCFieldA.style.display = 'none';
-                    if (zoneLabelCFieldA) zoneLabelCFieldA.style.display = 'none';
-                    if (zoneCircleDFieldA) zoneCircleDFieldA.style.display = 'none';
-                    if (zoneLabelDFieldA) zoneLabelDFieldA.style.display = 'none';
-                } else {
-                    // Avversario mode: mostra zone nel Campo A (sotto la rete, y da 486 a 822)
-                    if (zoneLine1) zoneLine1.style.display = 'none';
-                    if (zoneLine2) zoneLine2.style.display = 'none';
-                    if (zoneLine3) zoneLine3.style.display = 'none';
-                    if (zoneCircleA) zoneCircleA.style.display = 'none';
-                    if (zoneLabelA) zoneLabelA.style.display = 'none';
-                    if (zoneCircleB) zoneCircleB.style.display = 'none';
-                    if (zoneLabelB) zoneLabelB.style.display = 'none';
-                    if (zoneCircleC) zoneCircleC.style.display = 'none';
-                    if (zoneLabelC) zoneLabelC.style.display = 'none';
-                    if (zoneCircleD) zoneCircleD.style.display = 'none';
-                    if (zoneLabelD) zoneLabelD.style.display = 'none';
-                    
-                    // Mostra zone del Campo A
-                    if (zoneLineA1) zoneLineA1.style.display = zonesVisible ? '' : 'none';
-                    if (zoneLineA2) zoneLineA2.style.display = zonesVisible ? '' : 'none';
-                    if (zoneLineA3) zoneLineA3.style.display = zonesVisible ? '' : 'none';
-                    if (zoneCircleAFieldA) zoneCircleAFieldA.style.display = zonesVisible ? '' : 'none';
-                    if (zoneLabelAFieldA) zoneLabelAFieldA.style.display = zonesVisible ? '' : 'none';
-                    if (zoneCircleBFieldA) zoneCircleBFieldA.style.display = zonesVisible ? '' : 'none';
-                    if (zoneLabelBFieldA) zoneLabelBFieldA.style.display = zonesVisible ? '' : 'none';
-                    if (zoneCircleCFieldA) zoneCircleCFieldA.style.display = zonesVisible ? '' : 'none';
-                    if (zoneLabelCFieldA) zoneLabelCFieldA.style.display = zonesVisible ? '' : 'none';
-                    if (zoneCircleDFieldA) zoneCircleDFieldA.style.display = zonesVisible ? '' : 'none';
-                    if (zoneLabelDFieldA) zoneLabelDFieldA.style.display = zonesVisible ? '' : 'none';
-                }
-            }
-
             function applyViewToggles() {
                 if (leftLine) leftLine.style.display = (window.__viewDirections__ === false) ? 'none' : '';
                 if (rightLine) rightLine.style.display = (window.__viewDirections__ === false) ? 'none' : '';
@@ -1731,7 +1648,6 @@
                 if (hMeasureLabel) hMeasureLabel.style.display = shouldHideCover ? 'none' : '';
                 if (hMeasureBadge) hMeasureBadge.style.display = shouldHideCover ? 'none' : '';
                 if (arrowHtml) arrowHtml.style.display = shouldHideCover ? 'none' : 'block';
-                updateZones();
                 updateSecondaryCourtLock();
                 updateSecondaryFromLeft();
                 updateIntersectionDot();
@@ -1777,7 +1693,6 @@
                 const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
                 const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
                 updateLinesAndWedge(dotX, dotY);
-                updateZones();
                 updateDoppioHorizontalLines();
             }
 
@@ -1806,7 +1721,41 @@
                 if (doppioB2) { doppioB2.setAttribute('cx', DOPPIO_B2_DEFAULT.x); doppioB2.setAttribute('cy', DOPPIO_B2_DEFAULT.y); }
             }
 
+            // In modalità Doppio "Campo da Coprire" non ha senso tattico, quindi
+            // viene nascosto. Memorizziamo lo stato precedente per ripristinarlo
+            // quando si torna a Singolare.
+            let _coverStateBeforeDoppio = null;
+
+            function applyCoverModeForGioco(isDoppio) {
+                const drawerCover = document.getElementById('view_cover_drawer');
+                document.body.classList.toggle('is-doppio', !!isDoppio);
+                if (isDoppio) {
+                    if (_coverStateBeforeDoppio === null) {
+                        _coverStateBeforeDoppio = window.__viewCover__ === true;
+                    }
+                    window.__viewCover__ = false;
+                    if (chkCover) {
+                        chkCover.checked = false;
+                        chkCover.disabled = true;
+                    }
+                    if (drawerCover) {
+                        drawerCover.checked = false;
+                        drawerCover.disabled = true;
+                    }
+                } else {
+                    if (chkCover) chkCover.disabled = false;
+                    if (drawerCover) drawerCover.disabled = false;
+                    if (_coverStateBeforeDoppio !== null) {
+                        window.__viewCover__ = _coverStateBeforeDoppio;
+                        if (chkCover) chkCover.checked = _coverStateBeforeDoppio;
+                        if (drawerCover) drawerCover.checked = _coverStateBeforeDoppio;
+                        _coverStateBeforeDoppio = null;
+                    }
+                }
+            }
+
             function applyDoppioMode(isDoppio) {
+                applyCoverModeForGioco(isDoppio);
                 if (isDoppio) {
                     resetDoppioDots();
                     doppioDots.forEach(d => { if (d) d.style.display = ''; });
@@ -2360,7 +2309,6 @@
                         const dotX = ORIGIN_X;
                         const dotY = isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
                         updateLinesAndWedge(dotX, dotY);
-                        updateZones();
                     });
                 });
             }
@@ -3460,7 +3408,6 @@
             bindViewCheckbox(chkShot, '__viewShot__');
             bindViewCheckbox(chkResponder, '__viewResponder__');
             bindViewCheckbox(chkCover, '__viewCover__');
-            bindViewCheckbox(chkZones, '__viewZones__');
             bindViewCheckbox(chkCenter, '__viewCenter__');
             bindViewCheckbox(chkCoordinates, '__viewCoordinates__');
             
@@ -3553,8 +3500,6 @@
                     view_player: localStorage.getItem('default_view_player'),
                     view_shot: localStorage.getItem('default_view_shot'),
                     view_responder: localStorage.getItem('default_view_responder'),
-                    view_cover: localStorage.getItem('default_view_cover'),
-                    view_zones: localStorage.getItem('default_view_zones'),
                     view_center: localStorage.getItem('default_view_center'),
                     view_coordinates: localStorage.getItem('default_view_coordinates')
                 };
@@ -3660,7 +3605,7 @@
             
             function addDefaultEventListeners() {
                 // Listen for changes in DEFAULT section
-                const defaultControls = document.querySelectorAll('#default_gioco, #default_colpitore, #default_modalita, #default_tipologia, #default_campoType, #default_view_directions, #default_view_player, #default_view_shot, #default_view_responder, #default_view_cover, #default_view_zones, #default_view_center, #default_view_coordinates');
+                const defaultControls = document.querySelectorAll('#default_gioco, #default_colpitore, #default_modalita, #default_tipologia, #default_campoType, #default_view_directions, #default_view_player, #default_view_shot, #default_view_responder, #default_view_center, #default_view_coordinates');
                 
                 defaultControls.forEach(control => {
                     control.addEventListener('change', function() {
@@ -3854,7 +3799,6 @@
                     shot: window.__viewShot__,
                     responder: window.__viewResponder__,
                     cover: window.__viewCover__,
-                    zones: window.__viewZones__,
                     center: window.__viewCenter__,
                     coordinates: window.__viewCoordinates__
                 };
@@ -3864,7 +3808,6 @@
                 window.__viewShot__ = false;
                 window.__viewResponder__ = false;
                 window.__viewCover__ = false;
-                window.__viewZones__ = false;
                 window.__viewCenter__ = false;
                 window.__viewCoordinates__ = false;
                 
@@ -3873,7 +3816,6 @@
                 if (chkShot) chkShot.checked = false;
                 if (chkResponder) chkResponder.checked = false;
                 if (chkCover) chkCover.checked = false;
-                if (chkZones) chkZones.checked = false;
                 if (chkCenter) chkCenter.checked = false;
                 if (chkCoordinates) chkCoordinates.checked = false;
                 
@@ -3882,7 +3824,6 @@
                 if (chkShot) chkShot.disabled = true;
                 if (chkResponder) chkResponder.disabled = true;
                 if (chkCover) chkCover.disabled = true;
-                if (chkZones) chkZones.disabled = true;
                 if (chkCenter) chkCenter.disabled = true;
                 if (chkCoordinates) chkCoordinates.disabled = true;
                 
@@ -3902,7 +3843,6 @@
                 window.__viewShot__ = elementiVisibiliPrimaFinePunto.shot || false;
                 window.__viewResponder__ = elementiVisibiliPrimaFinePunto.responder || false;
                 window.__viewCover__ = elementiVisibiliPrimaFinePunto.cover || false;
-                window.__viewZones__ = elementiVisibiliPrimaFinePunto.zones || false;
                 window.__viewCenter__ = elementiVisibiliPrimaFinePunto.center || false;
                 window.__viewCoordinates__ = elementiVisibiliPrimaFinePunto.coordinates || false;
                 
@@ -3922,10 +3862,6 @@
                 if (chkCover) {
                     chkCover.checked = window.__viewCover__;
                     chkCover.disabled = false;
-                }
-                if (chkZones) {
-                    chkZones.checked = window.__viewZones__;
-                    chkZones.disabled = false;
                 }
                 if (chkCenter) {
                     chkCenter.checked = window.__viewCenter__;
@@ -5906,8 +5842,6 @@
                 directions: document.getElementById('default_view_directions_drawer'),
                 shot: document.getElementById('default_view_shot_drawer'),
                 center: document.getElementById('default_view_center_drawer'),
-                cover: document.getElementById('default_view_cover_drawer'),
-                zones: document.getElementById('default_view_zones_drawer'),
                 coordinates: document.getElementById('default_view_coordinates_drawer')
             };
             
@@ -5917,8 +5851,6 @@
                 directions: document.getElementById('default_view_directions'),
                 shot: document.getElementById('default_view_shot'),
                 center: document.getElementById('default_view_center'),
-                cover: document.getElementById('default_view_cover'),
-                zones: document.getElementById('default_view_zones'),
                 coordinates: document.getElementById('default_view_coordinates')
             };
             
@@ -5965,7 +5897,6 @@
                 { drawer: 'view_shot_drawer', main: 'view_shot' },
                 { drawer: 'view_center_drawer', main: 'view_center' },
                 { drawer: 'view_cover_drawer', main: 'view_cover' },
-                { drawer: 'view_zones_drawer', main: 'view_zones' },
                 { drawer: 'view_coordinates_drawer', main: 'view_coordinates' }
             ];
             drawerMenuViewCheckboxes.forEach(({ drawer, main }) => {
@@ -6897,7 +6828,6 @@
                         viewResponder: window.__viewResponder__,
                         viewCenter: window.__viewCenter__,
                         viewCover: window.__viewCover__,
-                        viewZones: window.__viewZones__,
                         viewCoordinates: window.__viewCoordinates__
                     };
                 }
@@ -6912,7 +6842,6 @@
                     window.__viewResponder__ = savedViewState.viewResponder;
                     window.__viewCenter__ = savedViewState.viewCenter;
                     window.__viewCover__ = savedViewState.viewCover;
-                    window.__viewZones__ = savedViewState.viewZones;
                     window.__viewCoordinates__ = savedViewState.viewCoordinates;
                     
                     // Aggiorna i checkbox
@@ -6922,7 +6851,6 @@
                     if (chkResponder) chkResponder.checked = window.__viewResponder__;
                     if (chkCenter) chkCenter.checked = window.__viewCenter__;
                     if (chkCover) chkCover.checked = window.__viewCover__;
-                    if (chkZones) chkZones.checked = window.__viewZones__;
                     if (chkCoordinates) chkCoordinates.checked = window.__viewCoordinates__;
                     
                     // Applica i cambiamenti
@@ -6941,7 +6869,6 @@
                     window.__viewResponder__ = true;
                     window.__viewCenter__ = true;
                     window.__viewCover__ = false;
-                    window.__viewZones__ = false; // Zone disabilitate nel tutorial
                     window.__viewCoordinates__ = false; // Coordinate disabilitate
                     
                     // Aggiorna i checkbox
@@ -6951,7 +6878,6 @@
                     if (chkResponder) chkResponder.checked = true;
                     if (chkCenter) chkCenter.checked = true;
                     if (chkCover) chkCover.checked = false;
-                    if (chkZones) chkZones.checked = false;
                     if (chkCoordinates) chkCoordinates.checked = false;
                     
                     // Applica i cambiamenti
@@ -7532,8 +7458,7 @@
             
             // Sync default checkboxes
             const defaultCheckboxes = ['default_view_player', 'default_view_responder', 'default_view_directions', 
-                                      'default_view_shot', 'default_view_center', 'default_view_cover', 
-                                      'default_view_zones', 'default_view_coordinates'];
+                                      'default_view_shot', 'default_view_center', 'default_view_coordinates'];
             defaultCheckboxes.forEach(checkboxName => {
                 const topCheckbox = document.getElementById(`${checkboxName}_top`);
                 const sidebarCheckbox = document.getElementById(checkboxName);
