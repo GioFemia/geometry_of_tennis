@@ -7699,7 +7699,13 @@
                 }
                 if (topBarLezioneReadTitle) {
                     if (show) {
-                        topBarLezioneReadTitle.textContent = 'Lezione 1 - Singolare';
+                        const titleFull = topBarLezioneReadTitle.querySelector('.top-bar-lezione-title-full');
+                        const titleShort = topBarLezioneReadTitle.querySelector('.top-bar-lezione-title-short');
+                        const fullText = 'Lezione 1 - Singolare';
+                        const shortText = 'Lezione 1 - S';
+                        if (titleFull) titleFull.textContent = fullText;
+                        if (titleShort) titleShort.textContent = shortText;
+                        topBarLezioneReadTitle.setAttribute('aria-label', fullText);
                     }
                     topBarLezioneReadTitle.classList.toggle('active', show);
                 }
