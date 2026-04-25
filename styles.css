@@ -679,16 +679,6 @@ body.app-view-lezione-pericolo .lezioni-screen-inner {
     }
 }
 
-@media (max-width: 700px) {
-    .lezione-pericolo-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .lezione-pericolo-courts {
-        grid-template-columns: 1fr;
-    }
-}
-
 .lezione-article-title {
     font-family: 'Poppins', 'Roboto', sans-serif;
     font-size: clamp(1.15rem, 1.3vw, 1.35rem);
@@ -794,6 +784,10 @@ body.app-view-lezione-pericolo .lezioni-screen-inner {
 
 /* Mobile: come campo principale in .page-container (max-width: 900px) */
 @media (max-width: 900px) {
+    .lezione-pericolo-courts {
+        grid-template-columns: 1fr;
+    }
+
     body.app-view-lezione-pericolo .lezione-embed {
         display: block;
         height: auto;
