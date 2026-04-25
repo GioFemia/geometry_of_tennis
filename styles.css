@@ -722,6 +722,12 @@ body {
     font-size: 11px;
 }
 
+/* In modalità Doppio le opzioni esclusive del Singolare (es. "Campo da
+   Coprire") vengono nascoste perché non rilevanti tatticamente. */
+body.is-doppio .singolare-only {
+    display: none !important;
+}
+
 @media (min-width: 901px) {
     .control-option.compact-option {
         padding: 5px 8px;
