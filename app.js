@@ -166,6 +166,74 @@
             };
             window.__currentCourtType__ = 'cemento';
 
+            function getModalitaLabelA11y() {
+                const m = window.__modalita__ || '2colpi';
+                if (m === '1colpo') return '1 colpo';
+                if (m === '2colpi') return '2 colpi';
+                if (m === 'dinamico') return 'dinamico';
+                return m;
+            }
+
+            function getTipologiaLabelA11y() {
+                const el = document.querySelector('input[name="tipologia"]:checked');
+                const v = el && el.value ? el.value : 'palleggio';
+                const map = { palleggio: 'palleggio', passante: 'passante', attacco: 'attacco', servizio: 'servizio' };
+                return map[v] || v;
+            }
+
+            function getColpitoreLabelA11y() {
+                if (window.__gioco__ === 'doppio') {
+                    const key = window.__doppioColpitore__ || 'giocatore1';
+                    const map = {
+                        giocatore1: 'Giocatore 1',
+                        giocatore2: 'Giocatore 2',
+                        avversario1: 'Avversario 1',
+                        avversario2: 'Avversario 2'
+                    };
+                    return map[key] || key;
+                }
+                return isPlayer ? 'tu stai colpendo' : 'l\'avversario colpisce';
+            }
+
+            function getSuperficieLabelA11y() {
+                const t = window.__currentCourtType__ || 'cemento';
+                return t === 'terra' ? 'terra battuta' : t === 'erba' ? 'erba' : 'cemento';
+            }
+
+            function buildTennisCourtAriaLabel() {
+                const part = [];
+                part.push('Campo da tennis in vista dall\'alto. Modalità: ' + getModalitaLabelA11y() + '.');
+                part.push('Superficie: ' + getSuperficieLabelA11y() + '.');
+                part.push(window.__gioco__ === 'doppio' ? 'Gioco: doppio.' : 'Gioco: singolare.');
+                part.push('Colpitore: ' + getColpitoreLabelA11y() + '. Tipo colpo: ' + getTipologiaLabelA11y() + '.');
+                part.push('Trascina il pallino per la posizione, la linea gialla per la direzione e il ricevitore; il ventaglio azzurro mostra le traiettorie estreme possibili.');
+                return part.join(' ');
+            }
+
+            function buildA11yStatusLine() {
+                return 'Modalità ' + getModalitaLabelA11y() + ', ' + (window.__gioco__ === 'doppio' ? 'doppio' : 'singolare') + ', ' + getColpitoreLabelA11y() + ', ' + getSuperficieLabelA11y() + ', colpo ' + getTipologiaLabelA11y() + '.';
+            }
+
+            function syncTennisCourtAccessibility(announce) {
+                if (svg) {
+                    const label = buildTennisCourtAriaLabel();
+                    svg.setAttribute('role', 'img');
+                    svg.setAttribute('aria-label', label);
+                }
+                const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                if (svg2) {
+                    svg2.setAttribute('role', 'img');
+                    svg2.setAttribute('aria-label', 'Campo del ricevitore: possibili risposte in base al colpo mostrato nel campo principale.');
+                }
+                if (announce) {
+                    const ann = document.getElementById('app-a11y-announcer');
+                    if (ann) {
+                        ann.textContent = buildA11yStatusLine();
+                    }
+                }
+            }
+            window.syncTennisCourtAccessibility = syncTennisCourtAccessibility;
+
             // Coordinate calculation functions
             function calculateFieldBCoordinates(x, y) {
                 // Campo B: origin at top horizontal line center (300, 150)
@@ -531,6 +599,9 @@
                     
                     secondary.innerHTML = '';
                     secondary.appendChild(svg2);
+                    if (window.syncTennisCourtAccessibility) {
+                        window.syncTennisCourtAccessibility(false);
+                    }
                 }
                 secondary.style.display = 'block';
             }
@@ -968,6 +1039,7 @@
                     });
                 }
                 window.__currentCourtType__ = courtType;
+                syncTennisCourtAccessibility(true);
             }
 
             function computeServizioTargets(dotX, dotY) {
@@ -1983,6 +2055,7 @@
                 applyDoppioMode(window.__gioco__ === 'doppio');
                 const _giocoIcon = document.getElementById('topBarGiocoIcon');
                 if (_giocoIcon) _giocoIcon.textContent = window.__gioco__ === 'doppio' ? 'D' : 'S';
+                syncTennisCourtAccessibility(true);
             });
 
             (function initGraphics() {
@@ -1998,6 +2071,7 @@
                 updateVisualizationCheckboxes();
                 syncDinamicoAvailabilityForGame();
                 if (window.__gioco__ === 'doppio') applyDoppioMode(true);
+                syncTennisCourtAccessibility(false);
             })();
 
             svg.addEventListener('mousemove', onMove, { passive: true });
@@ -2285,6 +2359,7 @@
                             }
                             updateArrowHtmlPosition();
                             syncDotWithActiveColpitore();
+                            syncTennisCourtAccessibility(true);
                             return;
                         }
 
@@ -2309,6 +2384,7 @@
                         const dotX = ORIGIN_X;
                         const dotY = isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y;
                         updateLinesAndWedge(dotX, dotY);
+                        syncTennisCourtAccessibility(true);
                     });
                 });
             }
@@ -2367,6 +2443,7 @@
                         const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
                         updateLinesAndWedge(dotX, dotY);
                         updateTipologiaAvailability();
+                        syncTennisCourtAccessibility(true);
                     });
                 });
             }
@@ -2460,6 +2537,7 @@
                         if (typeof window.updateDesktopTutorialSidebar === 'function') {
                             window.updateDesktopTutorialSidebar();
                         }
+                        syncTennisCourtAccessibility(true);
                     });
                 });
                 
@@ -7081,22 +7159,32 @@
                     
                     // Aggiorna l'UI (include cambio modalità, layout e evidenziazione)
                     updateUI();
-                    
-                    // Salva che l'utente ha già visto il tutorial
-                    try {
-                        localStorage.setItem('geometryOfTennis_tutorialSeen', 'true');
-                    } catch (e) {
-                        // localStorage non disponibile
-                    }
                 };
                 
                 // Chiudi il tutorial
                 function closeTutorial() {
+                    const completedTour = (typeof currentStep === 'number' && totalSteps > 0 && currentStep >= totalSteps - 1);
+                    if (completedTour) {
+                        try {
+                            localStorage.setItem('geometryOfTennis_tutorialSeen', 'true');
+                        } catch (e) {
+                            /* localStorage non disponibile */
+                        }
+                    }
+                    try {
+                        sessionStorage.setItem('geometryOfTennis_tutorialSessionDismissed', '1');
+                    } catch (e) {
+                        /* sessionStorage non disponibile */
+                    }
+
+                    // Nascondi subito TU / AVVERSARIO (l'overlay è ancora "active": updateTutorialFieldLabels non può farlo)
+                    const labelTu = document.getElementById('tutorialFieldLabelTu');
+                    const labelAvversario = document.getElementById('tutorialFieldLabelAvversario');
+                    if (labelTu) labelTu.style.display = 'none';
+                    if (labelAvversario) labelAvversario.style.display = 'none';
+
                     tutorialOverlay.classList.add('fade-out');
                     tutorialOverlay.classList.remove('fade-in');
-                    
-                    // Nascondi le etichette del campo
-                    updateTutorialFieldLabels();
                     
                     // Rimuovi l'evidenziazione
                     removeHighlight();
@@ -7225,17 +7313,17 @@
                 createDots();
                 updateUI();
                 
-                // Mostra automaticamente il tutorial alla prima visita
+                // Mostra automaticamente il tutorial alla prima visita (se non disattivato in precedenza o in questa sessione)
                 try {
                     const tutorialSeen = localStorage.getItem('geometryOfTennis_tutorialSeen');
-                    if (!tutorialSeen) {
-                        // Aspetta un momento per permettere all'app di caricarsi
+                    const sessionDismissed = sessionStorage.getItem('geometryOfTennis_tutorialSessionDismissed');
+                    if (!tutorialSeen && !sessionDismissed) {
                         setTimeout(() => {
                             openTutorial();
-                        }, 800);
+                        }, 600);
                     }
                 } catch (e) {
-                    // localStorage non disponibile, non mostrare automaticamente
+                    /* storage non disponibile, non mostrare automaticamente */
                 }
             })();
 
@@ -7697,6 +7785,25 @@
                 eraserButton.addEventListener('click', () => {
                     hideControls();
                 });
+            }
+        })();
+
+        (function setSeoMetaFromLocation() {
+            try {
+                if (typeof location !== 'undefined' && /^https?:\/\//.test(location.href)) {
+                    const base = location.href.split('#')[0];
+                    const og = document.getElementById('og-url');
+                    if (og) og.setAttribute('content', base);
+                    let link = document.querySelector('link[rel="canonical"]');
+                    if (!link) {
+                        link = document.createElement('link');
+                        link.rel = 'canonical';
+                        document.head.appendChild(link);
+                    }
+                    link.href = base;
+                }
+            } catch (e) {
+                /* ok */
             }
         })();
 

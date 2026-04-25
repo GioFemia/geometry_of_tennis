@@ -11,11 +11,23 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#1976d2">
+    <meta name="description" content="Geometry of Tennis: visualizza dal punto di vista geometrico le traiettorie, il colpitore, il ricevitore e le tattiche nel singolare e nel doppio. Strumento didattico con modalità 1 colpo, 2 colpi e dinamico." />
+    <meta name="author" content="Giovanni Femia" />
+    <meta id="og-url" property="og:url" content="" />
+    <meta property="og:title" content="Geometry of Tennis" />
+    <meta property="og:description" content="Impara le basi tattiche del tennis: geometria del campo, traiettorie, coperture e risposta del ricevitore, con vista dall'alto interattiva." />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="it_IT" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Geometry of Tennis" />
+    <meta name="twitter:description" content="Impara le basi tattiche del tennis: geometria del campo, traiettorie, coperture e risposta del ricevitore, con vista dall'alto interattiva." />
     <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="components-extras.css">
 </head>
 <body>
+    <div id="app-a11y-announcer" role="status" aria-live="polite" aria-atomic="true"></div>
     <div id="eraserIndicator" class="eraser-indicator"></div>
     
     <!-- Tutorial Overlay -->
@@ -116,7 +128,7 @@
                         <li><strong>Doppio:</strong> ci sono più aspetti tattici da analizzare, come la divisione del campo da coprire e la scelta sull'avversario verso cui tirare</li>
                     </ul>
                     <div class="tutorial-tip">
-                        <span>In doppio i giocatori a rete secondo questo modello coprono uno spazio fisso di campo, nella realtà l'almpiezza dipende dalla velocità del colpo che ricevono e dalla loro abilità.</span>
+                        <span>In doppio i giocatori a rete secondo questo modello coprono uno spazio fisso di campo, nella realtà l'ampiezza dipende dalla velocità del colpo che ricevono e dalla loro abilità.</span>
                     </div>
                 </div>
                 
@@ -155,7 +167,7 @@
                 <!-- Step 10: Scelta Colpitore -->
                 <div class="tutorial-step" data-step="10">
                     <h2>Scelta del Colpitore</h2>
-                    <p>Puoi scegliere <strong></strong>chi sta colpendo</strong>:</p>
+                    <p>Puoi scegliere <strong>chi sta colpendo</strong>:</p>
                     <ul class="tutorial-list">
                         <li><strong>Tu:</strong> Analizza i tuoi colpi e le risposte dell'avversario</li>
                         <li><strong>Avversario:</strong> Analizza i colpi dell'avversario e le tue possibili risposte</li>
@@ -213,7 +225,7 @@
                 <!-- Step 14: A cosa NON serve l'app -->
                 <div class="tutorial-step" data-step="14">
                     <h2>Per cosa NON è utile Geometry of Tennis</h2>
-                    <p>in questa applicazione non si analizzano certi aspetti, come:</p>
+                    <p>In questa applicazione non si analizzano certi aspetti, come:</p>
                     <ul class="tutorial-list">
                         <li><strong>Altezze dei Colpi:</strong> Essendo una visione bidimensionale, non si possono analizzare le altezze dei colpi</li>
                         <li><strong>Caratteristiche dei Giocatori:</strong> Non si tiene conto delle abilità tecniche</li>
@@ -282,13 +294,13 @@
                 <span class="top-bar-icon-mode" id="topBarModalitaIcon">2</span>
                 <span class="top-bar-label">Modalità</span>
             </button>
-            <button id="topBarGuida" class="top-bar-item" title="Guida">
-                <svg class="top-bar-icon" viewBox="0 0 24 24" width="20" height="20">
+            <button id="topBarGuida" class="top-bar-item" title="Guida" type="button">
+                <svg class="top-bar-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
                     <path fill="currentColor" d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"/>
                 </svg>
                 <span class="top-bar-label">Guida</span>
             </button>
-            <button id="topBarImpostazioni" class="top-bar-item" title="Impostazioni">
+            <button id="topBarImpostazioni" class="top-bar-item" title="Impostazioni" type="button">
                 <svg class="top-bar-icon" viewBox="0 0 24 24" width="20" height="20">
                     <path fill="currentColor" d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"/>
                 </svg>
@@ -979,7 +991,7 @@
         
         <div class="court-container primary-court">
             <div class="svg-wrap primary">
-                <svg id="tennisCourt" width="100%" height="auto" viewBox="0 0 600 1006" style="background:#1565c0; border-radius:20px; display:block;">
+                <svg id="tennisCourt" role="img" width="100%" height="auto" viewBox="0 0 600 1006" style="background:#1565c0; border-radius:20px; display:block;" aria-label="Campo da tennis, vista dall'alto. Caricamento stato…">
                     <rect x="184" y="150" width="232" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
                     <rect x="146" y="150" width="38" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
                     <rect x="416" y="150" width="38" height="672" fill="#42a5f5" stroke="#fff" stroke-width="5"/>
@@ -1350,8 +1362,8 @@
                 <!-- ============ IMPOSTAZIONI VIEW ============ -->
                 <div class="mobile-drawer-view active" data-view="impostazioni">
                 <!-- Guida Button -->
-                <button id="mobileDrawerGuida" class="mobile-drawer-item">
-                    <svg viewBox="0 0 24 24" width="24" height="24">
+                <button id="mobileDrawerGuida" class="mobile-drawer-item" type="button">
+                    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
                         <path fill="currentColor" d="M11,18H13V16H11V18M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,6A4,4 0 0,0 8,10H10A2,2 0 0,1 12,8A2,2 0 0,1 14,10C14,12 11,11.75 11,15H13C13,12.75 16,12.5 16,10A4,4 0 0,0 12,6Z"/>
                     </svg>
                     <span>Guida</span>
@@ -1472,7 +1484,7 @@
             </div>
         </div>
     </div>
-    
+
     <script src="app.js"></script>
 
 </body>
