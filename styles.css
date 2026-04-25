@@ -17,6 +17,15 @@ body {
     --mobile-settings-bar-height: 82px;
     --mobile-dinamico-bar-height: 0px;
     --mobile-dinamico-court-shift: 0px;
+    /* Stessa sorgente per top bar desktop (>=901), barra home mobile, top bar Lezioni mobile */
+    --app-topbar-gradient: linear-gradient(135deg, #0d47a1 0%, #1565c0 35%, #1976d2 70%, #1e88e5 100%);
+    --app-topbar-box-shadow:
+        0 4px 22px rgba(13, 71, 161, 0.28),
+        0 1px 0 rgba(255, 255, 255, 0.08) inset;
+    --app-topbar-border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    --app-topbar-bottom-line: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+    --app-topbar-title-letter-spacing: 2.6px;
+    --app-topbar-title-shadow: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.22));
 }
 
 /* ==========================================
@@ -318,13 +327,27 @@ body.app-view-lezioni.app-view-lezione-pericolo .top-bar-segment--lezione-read {
     background: rgba(255, 255, 255, 0.22);
 }
 
-/* Vista Lezioni: stessa top bar anche su mobile */
+/* Vista Lezioni: stessa top bar anche su mobile (colori/anim = home mobile + top bar desktop) */
 @media (max-width: 900px) {
     body.app-view-lezioni .top-bar {
         display: flex;
         padding: 0 10px 0 10px;
         align-items: center;
         gap: 4px;
+        background: var(--app-topbar-gradient);
+        box-shadow: var(--app-topbar-box-shadow);
+        border-bottom: var(--app-topbar-border-bottom);
+    }
+
+    body.app-view-lezioni .top-bar::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 1px;
+        background: var(--app-topbar-bottom-line);
+        pointer-events: none;
     }
 
     /* In vista lezioni non serve Scarica; libera spazio a sinistra */
@@ -354,17 +377,18 @@ body.app-view-lezioni.app-view-lezione-pericolo .top-bar-segment--lezione-read {
 
     body.app-view-lezioni .top-bar-logo .top-bar-title {
         margin: 0;
-        /* Allineato a .mobile-nav-title (barra impostazioni mobile, pagina principale) */
         font-size: 14px;
         font-weight: 800;
-        letter-spacing: 1.6px;
+        letter-spacing: var(--app-topbar-title-letter-spacing);
         line-height: 1.2;
         text-transform: uppercase;
         font-style: italic;
-        white-space: nowrap;
+        white-space: normal;
+        text-align: left;
         text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
-        overflow: hidden;
-        text-overflow: ellipsis;
+        filter: var(--app-topbar-title-shadow);
+        overflow: visible;
+        animation: gradientShift 4s ease infinite;
     }
 
     body.app-view-lezioni .top-bar-left {
@@ -397,12 +421,66 @@ body.app-view-lezioni.app-view-lezione-pericolo .top-bar-segment--lezione-read {
         border: 0;
     }
 
-    body.app-view-lezioni .top-bar-item--back {
+    /* Pulsanti: stessi colori/transition/active della top bar >=901 */
+    body.app-view-lezioni .top-bar .top-bar-item {
+        position: relative;
+        padding: 10px 18px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0);
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+        transition:
+            background 0.25s ease,
+            color 0.25s ease,
+            transform 0.18s ease,
+            box-shadow 0.25s ease,
+            border-color 0.2s ease;
+    }
+
+    body.app-view-lezioni .top-bar .top-bar-item:hover {
+        background: rgba(255, 255, 255, 0.22);
+        border-color: rgba(255, 255, 255, 0.18);
+        color: #ffffff;
+        transform: translateY(-1px);
+        box-shadow:
+            0 4px 14px rgba(0, 0, 0, 0.22),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    body.app-view-lezioni .top-bar .top-bar-item:active {
+        transform: translateY(0);
+    }
+
+    body.app-view-lezioni .top-bar .top-bar-item:focus-visible {
+        outline: 2px solid #ffffff;
+        outline-offset: 2px;
+    }
+
+    body.app-view-lezioni .top-bar .top-bar-item.active {
+        background: #ffffff;
+        color: #0d47a1;
+        box-shadow:
+            0 6px 18px rgba(0, 0, 0, 0.22),
+            0 0 0 1px rgba(13, 71, 161, 0.1);
+    }
+
+    body.app-view-lezioni .top-bar .top-bar-item.active::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: -6px;
+        transform: translateX(-50%);
+        width: 18px;
+        height: 3px;
+        border-radius: 3px;
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(255, 255, 255, 0.55);
+    }
+
+    body.app-view-lezioni .top-bar .top-bar-item--back {
         padding: 8px 11px;
         flex-shrink: 0;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.22);
-        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+        border-radius: 8px;
     }
 
     /* Mobile: in barra solo logo + indietro (nè pill “Lezioni” nè titolo lezione) */
@@ -416,11 +494,6 @@ body.app-view-lezioni.app-view-lezione-pericolo .top-bar-segment--lezione-read {
 
     body.app-view-lezioni {
         overflow: hidden;
-    }
-
-    /* Stessa “luce” del tab attivo (desktop) anche in top bar compatta */
-    body.app-view-lezioni .top-bar .top-bar-item {
-        position: relative;
     }
 }
 
@@ -1851,11 +1924,9 @@ body.is-doppio .singolare-only {
         box-sizing: border-box;
         gap: 20px;
         flex-wrap: nowrap;
-        background: linear-gradient(135deg, #0d47a1 0%, #1565c0 35%, #1976d2 70%, #1e88e5 100%);
-        box-shadow:
-            0 4px 22px rgba(13, 71, 161, 0.28),
-            0 1px 0 rgba(255, 255, 255, 0.08) inset;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: var(--app-topbar-gradient);
+        box-shadow: var(--app-topbar-box-shadow);
+        border-bottom: var(--app-topbar-border-bottom);
     }
 
     .controls-sidebar.mobile-enabled .mobile-nav-bar::after {
@@ -1865,7 +1936,7 @@ body.is-doppio .singolare-only {
         right: 0;
         bottom: 0;
         height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+        background: var(--app-topbar-bottom-line);
         pointer-events: none;
     }
 
@@ -1873,14 +1944,14 @@ body.is-doppio .singolare-only {
         font-family: 'Poppins', 'Roboto', sans-serif;
         font-size: 14px;
         font-weight: 800;
-        letter-spacing: 2.6px;
+        letter-spacing: var(--app-topbar-title-letter-spacing);
         background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #ffffff 100%);
         background-size: 200% 200%;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
         text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
-        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.22));
+        filter: var(--app-topbar-title-shadow);
         display: block !important;
         animation: gradientShift 4s ease infinite;
         text-transform: uppercase;
@@ -2420,7 +2491,7 @@ body.is-doppio .singolare-only {
     align-items: center;
     gap: 6px;
     padding: 10px 6px;
-    background: linear-gradient(135deg, #1565c0 0%, #1976d2 40%, #42a5f5 100%);
+    background: var(--app-topbar-gradient);
     border-radius: 12px;
     margin-bottom: 12px;
     flex-wrap: nowrap;
@@ -2435,8 +2506,9 @@ body.is-doppio .singolare-only {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: 1.6px;
+    letter-spacing: var(--app-topbar-title-letter-spacing);
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+    filter: var(--app-topbar-title-shadow);
     text-align: left;
     line-height: 1.2;
     position: relative;
@@ -5364,12 +5436,9 @@ body {
 
     /* ----- Top bar: gradient più ricco + bordo luminoso ----- */
     .top-bar {
-        background:
-            linear-gradient(135deg, #0d47a1 0%, #1565c0 35%, #1976d2 70%, #1e88e5 100%);
-        box-shadow:
-            0 4px 22px rgba(13, 71, 161, 0.28),
-            0 1px 0 rgba(255, 255, 255, 0.08) inset;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        background: var(--app-topbar-gradient);
+        box-shadow: var(--app-topbar-box-shadow);
+        border-bottom: var(--app-topbar-border-bottom);
         position: fixed;
     }
 
@@ -5380,13 +5449,22 @@ body {
         right: 0;
         bottom: 0;
         height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+        background: var(--app-topbar-bottom-line);
         pointer-events: none;
     }
 
     .top-bar-title {
-        letter-spacing: 2.6px;
-        filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.22));
+        letter-spacing: var(--app-topbar-title-letter-spacing);
+        filter: var(--app-topbar-title-shadow);
+    }
+
+    /* Su desktop il titolo resta su una riga; lo stesso markup della home mobile usa <br> solo sotto 901px */
+    .top-bar-title__break {
+        display: none;
+    }
+
+    .top-bar-title__w2::before {
+        content: ' ';
     }
 
     .top-bar-left {
