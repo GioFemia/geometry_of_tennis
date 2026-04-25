@@ -278,9 +278,11 @@ body.app-view-lezioni.app-view-lezione-pericolo .top-bar-segment--lezione-read {
 }
 
 .top-bar-lezione-title {
-    max-width: min(200px, 50vw);
+    max-width: min(320px, 58vw);
+    font-family: 'Poppins', 'Roboto', sans-serif;
     font-size: 13px;
     font-weight: 800;
+    font-style: normal;
     letter-spacing: 0.06em;
     line-height: 1.2;
     white-space: normal;
@@ -371,7 +373,11 @@ body.app-view-lezioni.app-view-lezione-pericolo .top-bar-segment--lezione-read {
     top: var(--top-bar-height);
     bottom: 0;
     z-index: 85;
-    background: linear-gradient(135deg, #e8f4fd 0%, #f5f9ff 45%, #f0f8ff 100%);
+    font-family: 'Roboto', Arial, sans-serif;
+    background:
+        radial-gradient(ellipse 100% 80% at 10% 0%, rgba(255, 255, 255, 0.7) 0%, transparent 55%),
+        radial-gradient(ellipse 60% 40% at 100% 20%, rgba(187, 222, 251, 0.45) 0%, transparent 50%),
+        linear-gradient(160deg, #e8f4fd 0%, #f0f7ff 38%, #e3f2fd 100%);
     overflow-y: auto;
     overflow-x: hidden;
     -webkit-overflow-scrolling: touch;
@@ -384,14 +390,62 @@ body.app-view-lezioni #mainAppView {
 .lezioni-screen-inner {
     max-width: 920px;
     margin: 0 auto;
-    padding: 28px var(--mobile-side-padding) calc(32px + env(safe-area-inset-bottom, 0px));
+    padding: 24px var(--mobile-side-padding) calc(40px + env(safe-area-inset-bottom, 0px));
     box-sizing: border-box;
+}
+
+/* Intestazione elenco lezioni */
+.lezioni-page-header {
+    margin: 0 0 2rem 0;
+    padding: 0 0 1.5rem 0;
+    border-bottom: 1px solid rgba(25, 118, 210, 0.14);
+    text-align: left;
+    position: relative;
+}
+
+.lezioni-page-header::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 120px;
+    height: 3px;
+    border-radius: 3px;
+    background: linear-gradient(90deg, #1976d2, rgba(25, 118, 210, 0.15));
+}
+
+/* Titoli: Poppins come "MENU" nel sidebar; testo: Roboto (ereditato da #lezioniScreen) */
+.lezioni-page-title {
+    font-family: 'Poppins', 'Roboto', sans-serif;
+    font-size: clamp(1.5rem, 2vw, 1.75rem);
+    font-weight: 800;
+    font-style: normal;
+    letter-spacing: 0.1em;
+    text-transform: none;
+    margin: 0 0 0.45rem 0;
+    line-height: 1.2;
+    text-shadow: none;
+    background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.lezioni-page-subtitle {
+    margin: 0;
+    max-width: 32rem;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    color: #455a64;
+    font-weight: 400;
 }
 
 /* Lezione singola: griglia larga, testo con margini simmetrici, non “chiusa” a 920px al centro */
 body.app-view-lezione-pericolo .lezioni-screen-inner {
     max-width: min(1680px, 100%);
     margin: 0;
+    padding-top: 28px;
     padding-left: max(28px, 4.5vw);
     padding-right: max(28px, 4.5vw);
 }
@@ -399,13 +453,21 @@ body.app-view-lezione-pericolo .lezioni-screen-inner {
 .lezioni-screen-columns {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 28px;
+    gap: 32px 28px;
     align-items: start;
 }
 
 @media (max-width: 720px) {
     .lezioni-screen-columns {
         grid-template-columns: 1fr;
+    }
+
+    .lezioni-group {
+        padding: 18px 16px 14px;
+    }
+
+    .lezioni-page-header {
+        margin-bottom: 1.5rem;
     }
 }
 
@@ -414,19 +476,49 @@ body.app-view-lezione-pericolo .lezioni-screen-inner {
     max-width: 100%;
 }
 
+.lezione-article--pericolo {
+    animation: lezioneArticleIn 0.45s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lezione-article--pericolo {
+        animation: none;
+    }
+}
+
+@keyframes lezioneArticleIn {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 .lezione-pericolo-layout {
     display: grid;
     grid-template-columns: minmax(300px, 1.15fr) minmax(0, 1fr) minmax(0, 1fr);
-    gap: 28px 32px;
+    gap: 32px 36px;
     align-items: start;
 }
 
 .lezione-pericolo-text {
+    font-family: 'Roboto', Arial, sans-serif;
     justify-self: start;
     text-align: left;
     max-width: 40rem;
-    padding-right: clamp(12px, 2.5vw, 40px);
-    box-sizing: content-box;
+    padding: clamp(22px, 3vw, 32px) clamp(22px, 3vw, 36px) clamp(24px, 3.2vw, 36px);
+    padding-right: clamp(20px, 2.5vw, 40px);
+    box-sizing: border-box;
+    background: linear-gradient(165deg, rgba(255, 255, 255, 0.97) 0%, rgba(245, 251, 255, 0.92) 55%, rgba(227, 242, 253, 0.35) 100%);
+    border: 1px solid rgba(25, 118, 210, 0.12);
+    border-left: 4px solid #1976d2;
+    border-radius: 20px;
+    box-shadow:
+        0 4px 24px rgba(13, 71, 161, 0.07),
+        0 1px 0 rgba(255, 255, 255, 0.8) inset;
 }
 
 @media (max-width: 1100px) {
@@ -446,18 +538,26 @@ body.app-view-lezione-pericolo .lezioni-screen-inner {
 }
 
 .lezione-article-title {
-    font-size: 1.25rem;
+    font-family: 'Poppins', 'Roboto', sans-serif;
+    font-size: clamp(1.15rem, 1.3vw, 1.35rem);
+    font-style: normal;
     color: #0d47a1;
-    margin: 0 0 1rem 0;
-    line-height: 1.3;
+    margin: 0 0 1.15rem 0;
+    line-height: 1.32;
     font-weight: 700;
+    letter-spacing: 0.02em;
 }
 
 .lezione-pericolo-text p {
-    margin: 0 0 0.9rem 0;
+    font-family: 'Roboto', Arial, sans-serif;
+    margin: 0 0 1rem 0;
     font-size: 15px;
-    line-height: 1.55;
+    line-height: 1.65;
     color: #37474f;
+}
+
+.lezione-pericolo-text p:last-child {
+    margin-bottom: 0;
 }
 
 .lezione-pericolo-courts {
@@ -473,10 +573,15 @@ body.app-view-lezione-pericolo .lezioni-screen-inner {
 
 .lezione-embed {
     width: 100%;
-    min-height: 120px;
+    min-height: 0;
     box-sizing: border-box;
     pointer-events: none;
     user-select: none;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
 }
 
 .lezione-embed .svg-wrap.primary,
@@ -499,6 +604,7 @@ body.app-view-lezione-pericolo .lezioni-screen-inner {
 }
 
 .lezione-embed .arrow-container {
+    display: none !important;
     pointer-events: none;
 }
 
@@ -507,77 +613,139 @@ body.app-view-lezione-pericolo .lezioni-screen-inner {
     display: block;
     width: 100%;
     text-align: left;
-    padding: 10px 12px;
+    position: relative;
+    padding: 14px 16px 14px 18px;
     margin: 0;
     font: inherit;
+    font-family: 'Roboto', Arial, sans-serif;
     font-size: 14px;
     line-height: 1.4;
     color: #0d47a1;
-    background: #f0f7ff;
-    border: 1px solid rgba(25, 118, 210, 0.25);
-    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, #e8f4fc 100%);
+    border: 1px solid rgba(25, 118, 210, 0.22);
+    border-radius: 14px;
     cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 2px 10px rgba(25, 118, 210, 0.06);
+    transition:
+        background 0.25s ease,
+        border-color 0.25s ease,
+        box-shadow 0.25s ease,
+        transform 0.2s ease;
 }
 
-.lezioni-list-link:hover,
+.lezioni-list-link::after {
+    content: '›';
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.25rem;
+    font-weight: 300;
+    color: rgba(25, 118, 210, 0.45);
+    line-height: 1;
+    transition: transform 0.2s ease, color 0.2s ease;
+    pointer-events: none;
+}
+
+.lezioni-list-link:hover {
+    background: linear-gradient(135deg, #ffffff 0%, #dcedfc 100%);
+    border-color: rgba(25, 118, 210, 0.45);
+    box-shadow: 0 6px 20px rgba(25, 118, 210, 0.12);
+    transform: translateY(-1px);
+}
+
 .lezioni-list-link:focus-visible {
-    background: #e3f2fd;
-    border-color: #1976d2;
+    background: linear-gradient(135deg, #ffffff 0%, #dcedfc 100%);
+    border-color: rgba(25, 118, 210, 0.45);
+    box-shadow: 0 0 0 3px rgba(25, 118, 210, 0.25);
     outline: none;
+    transform: translateY(-1px);
+}
+
+.lezioni-list-link:hover::after,
+.lezioni-list-link:focus-visible::after {
+    color: #1976d2;
+    transform: translate(3px, -50%);
 }
 
 .lezioni-list-link--lesson {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 6px;
+    gap: 8px;
+    padding-right: 2.5rem;
 }
 
 .lezioni-list-lesson-badge {
     display: inline-block;
-    font-size: 11px;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 10px;
     font-weight: 800;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #1565c0;
+    color: #0d47a1;
     line-height: 1.2;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 100%);
+    box-shadow: 0 1px 2px rgba(13, 71, 161, 0.12);
 }
 
 .lezioni-list-lesson-name {
-    font-size: 14px;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 14.5px;
     font-weight: 600;
     color: #0d47a1;
-    line-height: 1.35;
+    line-height: 1.4;
+    padding-right: 0.5rem;
 }
 
 .lezione-article-eyebrow {
-    margin: 0 0 0.35rem 0;
-    font-size: 12px;
+    display: inline-block;
+    font-family: 'Roboto', Arial, sans-serif;
+    margin: 0 0 0.75rem 0;
+    font-size: 11px;
+    font-style: normal;
     font-weight: 800;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #1565c0;
+    color: #0d47a1;
     line-height: 1.2;
+    padding: 6px 14px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #e3f2fd 0%, #c5e3f6 100%);
+    box-shadow: 0 1px 3px rgba(25, 118, 210, 0.15);
 }
 
 .lezioni-group {
-    margin-bottom: 20px;
+    margin-bottom: 0;
+    padding: 22px 20px 18px;
+    background: rgba(255, 255, 255, 0.78);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    border-radius: 18px;
+    box-shadow:
+        0 4px 28px rgba(25, 118, 210, 0.09),
+        0 0 0 1px rgba(25, 118, 210, 0.04) inset;
 }
 
 .lezioni-group:last-child {
     margin-bottom: 0;
 }
 
+/* Come .control-section-title nel menu: Roboto, maiuscolo, senza corsivo */
 .lezioni-group-title {
+    font-family: 'Roboto', Arial, sans-serif;
     font-size: 12px;
     font-weight: 700;
-    color: #1565c0;
+    font-style: normal;
+    color: #607d8b;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
-    margin: 0 0 10px 0;
-    padding-bottom: 8px;
-    border-bottom: 1px solid rgba(25, 118, 210, 0.22);
+    letter-spacing: 0.4px;
+    margin: 0 0 14px 0;
+    padding: 8px 0 10px 0;
+    border-bottom: 2px solid #e0e0e0;
 }
 
 .lezioni-list {
@@ -587,11 +755,11 @@ body.app-view-lezione-pericolo .lezioni-screen-inner {
 }
 
 .lezioni-list li {
-    padding: 9px 12px;
-    background: #f5f7fa;
-    border: 1px solid rgba(25, 118, 210, 0.12);
-    border-radius: 10px;
-    margin-bottom: 6px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    margin-bottom: 12px;
     font-size: 14px;
     line-height: 1.35;
     color: #37474f;
@@ -603,9 +771,10 @@ body.app-view-lezione-pericolo .lezioni-screen-inner {
 
 .lezioni-empty-hint {
     display: none;
+    font-family: 'Roboto', Arial, sans-serif;
     font-size: 13px;
     color: #90a4ae;
-    font-style: italic;
+    font-style: normal;
     margin: 0;
     padding: 8px 2px 4px;
     line-height: 1.4;
