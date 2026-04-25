@@ -1246,26 +1246,26 @@ body {
 
     .controls-sidebar.mobile-enabled .mobile-nav-title {
         font-family: 'Poppins', 'Roboto', sans-serif;
-        font-size: 16px;
-        font-weight: 900;
-        letter-spacing: 1.5px;
+        font-size: 14px;
+        font-weight: 800;
+        letter-spacing: 1.6px;
         background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #ffffff 100%);
         background-size: 200% 200%;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
-        text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
+        text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
         display: block !important;
         animation: gradientShift 4s ease infinite;
         text-transform: uppercase;
         font-style: italic;
         white-space: nowrap;
-        margin-right: 8px;
-        line-height: 1.1;
+        margin-right: 0;
+        line-height: 1.2;
     }
     
     .controls-sidebar.mobile-enabled .mobile-nav-center {
-        gap: 10px;
+        gap: 6px;
     }
     
     .controls-sidebar.mobile-enabled .mobile-nav-pill {
@@ -1740,8 +1740,8 @@ body {
     display: none;
     justify-content: space-between;
     align-items: center;
-    gap: 8px;
-    padding: 12px 8px;
+    gap: 6px;
+    padding: 10px 6px;
     background: linear-gradient(135deg, #1565c0 0%, #1976d2 40%, #42a5f5 100%);
     border-radius: 12px;
     margin-bottom: 12px;
@@ -1750,14 +1750,14 @@ body {
 
 .mobile-nav-title {
     font-family: 'Poppins', 'Roboto', sans-serif;
-    font-size: 10px;
+    font-size: 14px;
     font-weight: 800;
     background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #ffffff 100%);
     background-size: 200% 200%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: 2px;
+    letter-spacing: 1.6px;
     text-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
     text-align: left;
     line-height: 1.2;
@@ -1771,9 +1771,8 @@ body {
 .mobile-nav-center {
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex: 1;
-    justify-content: center;
+    gap: 6px;
+    flex: 0 0 auto;
 }
 
 .mobile-nav-pill {
@@ -2500,14 +2499,14 @@ body {
 
 .app-title {
     font-family: 'Poppins', 'Roboto', sans-serif;
-    font-size: 22px;
+    font-size: 17px;
     font-weight: 800;
     background: linear-gradient(135deg, #ffffff 0%, #e3f2fd 50%, #ffffff 100%);
     background-size: 200% 200%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: 3px;
+    letter-spacing: 2.2px;
     margin: 0;
     text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
     position: relative;
@@ -4320,6 +4319,122 @@ body {
         radial-gradient(ellipse 70% 60% at 88% 92%, rgba(66, 165, 245, 0.07) 0%, transparent 60%),
         linear-gradient(135deg, #e8f4fd 0%, #f0f8ff 100%);
     background-attachment: fixed;
+}
+
+/* ==========================================
+   APP LOGO (Universal)
+   Marchio + nome dell'app: una piccola icona
+   (raffigurazione minimal del campo: punto di
+   battuta + traiettorie divergenti) accanto
+   alla scritta "Geometry of Tennis".
+   ========================================== */
+.app-logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    line-height: 1;
+    user-select: none;
+}
+
+.app-logo-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    color: #ffffff;
+    background:
+        linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.06) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    border-radius: 9px;
+    padding: 5px;
+    box-sizing: border-box;
+    box-shadow:
+        0 3px 10px rgba(0, 0, 0, 0.18),
+        inset 0 1px 0 rgba(255, 255, 255, 0.20);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    position: relative;
+}
+
+.app-logo-mark::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+        circle at 30% 25%,
+        rgba(255, 255, 255, 0.25) 0%,
+        transparent 55%
+    );
+    pointer-events: none;
+}
+
+.app-logo-mark svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+    position: relative;
+    z-index: 1;
+}
+
+/* ----- Logo nella top bar desktop ----- */
+.top-bar-logo {
+    margin-right: 8px;
+}
+
+.top-bar-logo .app-logo-mark {
+    width: 38px;
+    height: 38px;
+    padding: 6px;
+    border-radius: 10px;
+}
+
+/* Sovrascrive il margin-right originale del titolo dentro al nuovo wrapper */
+.top-bar-left .top-bar-logo .top-bar-title {
+    margin-right: 0;
+}
+
+/* ----- Logo nella mobile nav bar ----- */
+.app-logo-mobile {
+    gap: 6px;
+    min-width: 0;
+    flex-shrink: 1;
+}
+
+.app-logo-mobile .app-logo-mark {
+    width: 40px;
+    height: 40px;
+    padding: 6px;
+    border-radius: 11px;
+}
+
+/* ----- Logo nella sezione titolo mobile (drawer/menu): solo mobile ----- */
+@media (max-width: 900px) {
+    .app-title-section {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+    }
+}
+
+.app-title-section .app-logo-mark.app-logo-mark-large {
+    width: 40px;
+    height: 40px;
+    padding: 6px;
+    border-radius: 11px;
+    z-index: 1;
+}
+
+/* ----- Tipografia "Geometry of Tennis": rifinitura del lettering ----- */
+.top-bar-title,
+.app-title,
+.mobile-nav-title {
+    /* tracking leggermente più aerato per dare un'aria più "logo" */
+    font-feature-settings: "liga" on, "kern" on, "ss01" on;
 }
 
 /* ----- Section titles compatti: accent verticale + sottolineato gradient ----- */
