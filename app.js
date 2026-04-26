@@ -7792,6 +7792,106 @@
 
             window.geometryOfTennisCaptureLessonMidpointReteEmbeds = captureLessonMidpointReteEmbeds;
 
+            /* Lezione 4 (Colpire prima): Tu, palleggio — solo Colpitore/Ricevitore/Direzioni/Campo da coprire.
+               A sinistra colpitore A(90;0), a destra A(90;65); ricevitore B(−33;−24) in entrambe.
+               SVG: Campo A cx=300+ax, cy=822−ay; Campo B cx=300+bx, cy=150+by. */
+            function applyColpirePrimaLessonViewFlags() {
+                window.__modalita__ = '1colpo';
+                window.__gioco__ = 'singolare';
+                window.__shotTypeIsPassante__ = false;
+                window.__shotTypeIsServizio__ = false;
+                window.__viewDirections__ = true;
+                window.__viewPlayer__ = true;
+                window.__viewResponder__ = true;
+                window.__viewShot__ = false;
+                window.__viewCenter__ = false;
+                window.__viewCover__ = true;
+                window.__viewCoordinates__ = false;
+                yellowEndX = null;
+            }
+
+            function setCheckboxesForColpirePrimaLesson() {
+                const specs = [
+                    ['view_directions', '__viewDirections__', true],
+                    ['view_player', '__viewPlayer__', true],
+                    ['view_responder', '__viewResponder__', true],
+                    ['view_shot', '__viewShot__', false],
+                    ['view_center', '__viewCenter__', false],
+                    ['view_cover', '__viewCover__', true],
+                    ['view_coordinates', '__viewCoordinates__', false]
+                ];
+                specs.forEach(([id, key, on]) => {
+                    const el = document.getElementById(id);
+                    if (el) {
+                        el.checked = on;
+                        window[key] = on;
+                    }
+                });
+            }
+
+            function captureLessonColpirePrimaEmbeds() {
+                const L = document.getElementById('lessonColpirePrimaEmbedLeft');
+                const R = document.getElementById('lessonColpirePrimaEmbedRight');
+                if (!L || !R) return;
+                L.innerHTML = '';
+                R.innerHTML = '';
+                const primaryWrap = document.querySelector('#mainAppView .svg-wrap.primary');
+                if (!primaryWrap || !svg) return;
+                const saved = saveLessonPericoloState();
+                const m1c = document.querySelector('input[name="modalita"][value="1colpo"]');
+                const colpitoreTuo = document.getElementById('colpitore_tuo');
+                /* Sinistra A(90;0)→(390,822); destra A(90;65)→(390,757); B (−33;−24)→(267,126) */
+                const dotLeftX = 390;
+                const dotLeftY = 822;
+                const dotRightX = 390;
+                const dotRightY = 757;
+                const recvX = 267;
+                const recvY = 126;
+                try {
+                    applyColpirePrimaLessonViewFlags();
+                    setCheckboxesForColpirePrimaLesson();
+                    if (m1c) m1c.checked = true;
+                    if (tipologiaPalleggio) {
+                        tipologiaPalleggio.checked = true;
+                    }
+                    if (colpitoreTuo) {
+                        colpitoreTuo.checked = true;
+                    }
+                    isPlayer = true;
+                    if (dot) {
+                        dot.setAttribute('cx', String(dotLeftX));
+                        dot.setAttribute('cy', String(dotLeftY));
+                    }
+                    applyViewToggles();
+                    updateLinesAndWedge(dotLeftX, dotLeftY);
+                    finalizeLessonGeometry(dotLeftX, dotLeftY, recvX, recvY);
+                    if (intersectionDot) {
+                        intersectionDot.style.display = '';
+                    }
+                    updateThemeColors();
+                    const clone1 = primaryWrap.cloneNode(true);
+                    stripAndMountLessonClone(clone1, L);
+                    isPlayer = true;
+                    if (dot) {
+                        dot.setAttribute('cx', String(dotRightX));
+                        dot.setAttribute('cy', String(dotRightY));
+                    }
+                    applyViewToggles();
+                    updateLinesAndWedge(dotRightX, dotRightY);
+                    finalizeLessonGeometry(dotRightX, dotRightY, recvX, recvY);
+                    if (intersectionDot) {
+                        intersectionDot.style.display = '';
+                    }
+                    updateThemeColors();
+                    const clone2 = primaryWrap.cloneNode(true);
+                    stripAndMountLessonClone(clone2, R);
+                } finally {
+                    restoreLessonPericoloState(saved);
+                }
+            }
+
+            window.geometryOfTennisCaptureLessonColpirePrimaEmbeds = captureLessonColpirePrimaEmbeds;
+
         })();
 
         // ==========================================
@@ -7812,6 +7912,7 @@
             const lezionePericoloArticle = document.getElementById('lezionePericoloArticle');
             const lezioneMidpointArticle = document.getElementById('lezioneMidpointArticle');
             const lezioneMidpointReteArticle = document.getElementById('lezioneMidpointReteArticle');
+            const lezioneColpirePrimaArticle = document.getElementById('lezioneColpirePrimaArticle');
             const topBarSegmentLezioneRead = document.getElementById('topBarSegmentLezioneRead');
             const topBarLezioneReadTitle = document.getElementById('topBarLezioneReadTitle');
             const topBarLezioneBackList = document.getElementById('topBarLezioneBackList');
@@ -7915,6 +8016,11 @@
                     lezioneMidpointReteArticle.hidden = !on;
                     lezioneMidpointReteArticle.inert = !on;
                 }
+                if (lezioneColpirePrimaArticle) {
+                    const on = show && slug === 'colpire-prima';
+                    lezioneColpirePrimaArticle.hidden = !on;
+                    lezioneColpirePrimaArticle.inert = !on;
+                }
                 if (topBarSegmentLezioni) {
                     const inLezioni = document.body.classList.contains('app-view-lezioni');
                     const hideLezSegment = inLezioni && show;
@@ -7940,6 +8046,10 @@
                             fullText = 'Lezione 3 - Singolare';
                             shortText = 'Lezione 3 - S';
                         }
+                        if (slug === 'colpire-prima') {
+                            fullText = 'Lezione 4 - Singolare';
+                            shortText = 'Lezione 4 - S';
+                        }
                         if (titleFull) titleFull.textContent = fullText;
                         if (titleShort) titleShort.textContent = shortText;
                         topBarLezioneReadTitle.setAttribute('aria-label', fullText);
@@ -7958,6 +8068,9 @@
                 }
                 if (show && slug === 'midpoint-rete' && typeof window.geometryOfTennisCaptureLessonMidpointReteEmbeds === 'function') {
                     window.geometryOfTennisCaptureLessonMidpointReteEmbeds();
+                }
+                if (show && slug === 'colpire-prima' && typeof window.geometryOfTennisCaptureLessonColpirePrimaEmbeds === 'function') {
+                    window.geometryOfTennisCaptureLessonColpirePrimaEmbeds();
                 }
             }
 
