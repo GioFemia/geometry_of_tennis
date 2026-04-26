@@ -931,6 +931,33 @@ body.app-view-lezione-pericolo .lezioni-screen-inner {
     box-shadow: 0 1px 3px rgba(25, 118, 210, 0.15);
 }
 
+/* Riferimento incrociato tra lezioni (testo del corpo) */
+button.lezione-cross-ref {
+    display: inline;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    font: inherit;
+    line-height: inherit;
+    color: #0d47a1;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+    cursor: pointer;
+    vertical-align: baseline;
+}
+
+button.lezione-cross-ref:hover {
+    color: #1565c0;
+}
+
+button.lezione-cross-ref:focus-visible {
+    outline: 2px solid rgba(25, 118, 210, 0.55);
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
 .lezioni-group {
     margin-bottom: 0;
     padding: 22px 20px 18px;

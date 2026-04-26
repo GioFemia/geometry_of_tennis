@@ -120,9 +120,9 @@
             window.__viewShot__ = true;
             window.__viewResponder__ = true;
             window.__viewCover__ = false;
-            window.__viewCenter__ = true;
+            window.__viewCenter__ = false;
             window.__viewCoordinates__ = false;
-            window.__modalita__ = '2colpi';
+            window.__modalita__ = '1colpo';
             window.__gioco__ = 'singolare';
             const MODALITA_DOPPIO_FALLBACK = '2colpi';
             window.__doppioColpitore__ = 'giocatore1';
@@ -167,7 +167,7 @@
             window.__currentCourtType__ = 'cemento';
 
             function getModalitaLabelA11y() {
-                const m = window.__modalita__ || '2colpi';
+                const m = window.__modalita__ || '1colpo';
                 if (m === '1colpo') return '1 colpo';
                 if (m === '2colpi') return '2 colpi';
                 if (m === 'dinamico') return 'dinamico';
@@ -2066,6 +2066,10 @@
                 updateLinesAndWedge(dotX, dotY);
                 setupSecondaryCourt();
                 updateDinamicoPanel();
+                if (window.__modalita__ === '1colpo') {
+                    const secondaryCourtContainerEarly = document.querySelector('.court-container:last-of-type');
+                    if (secondaryCourtContainerEarly) secondaryCourtContainerEarly.style.display = 'none';
+                }
                 applyViewToggles();
                 updateTipologiaAvailability();
                 updateVisualizationCheckboxes();
@@ -2546,6 +2550,10 @@
                 if (initialModalita) {
                     const initialVal = initialModalita.value;
                     window.__modalita__ = initialVal;
+                    const secondaryCourtContainer = document.querySelector('.court-container:last-of-type');
+                    if (secondaryCourtContainer) {
+                        secondaryCourtContainer.style.display = initialVal === '1colpo' ? 'none' : 'flex';
+                    }
                     if (initialVal === '1colpo') {
                         document.body.classList.add('mobile-1colpo');
                         document.body.classList.remove('mobile-2colpi', 'mobile-dinamico');
@@ -2556,6 +2564,11 @@
                         document.body.classList.add('mobile-dinamico');
                         document.body.classList.remove('mobile-1colpo', 'mobile-2colpi');
                     }
+                    const topModalita = document.querySelector(`input[name="modalita_top"][value="${initialVal}"]`);
+                    if (topModalita) topModalita.checked = true;
+                    const drawerModalita = document.querySelector(`input[name="modalita_drawer"][value="${initialVal}"]`);
+                    if (drawerModalita) drawerModalita.checked = true;
+                    updateModeIndicator(initialVal);
                     // Initialize download button visibility
                     updateDownloadButtonVisibility(initialVal);
                     
@@ -7343,6 +7356,25 @@
             // ==========================================
             const colpitoreAvv = document.getElementById('colpitore_avv');
             const tipologiaPalleggio = document.querySelector('input[name="tipologia"][value="palleggio"]');
+            const tipologiaPassante = document.querySelector('input[name="tipologia"][value="passante"]');
+
+            /** Allinea flag colpo / colori con il valore tipologia (senza ricalcolare currentMeasureY). */
+            function applyTipologiaGlobalsFromValue(val) {
+                const v = val || 'palleggio';
+                window.__shotTypeIsPassante__ = (v === 'passante');
+                window.__shotType2IsPassante__ = (v === 'passante');
+                window.__shotTypeIsServizio__ = (v === 'servizio');
+                if (v === 'attacco') {
+                    window.__shotTypeIsPassante__ = false;
+                    window.__shotType2IsPassante__ = true;
+                    window.__leftForceRed__ = false;
+                } else {
+                    window.__leftForceRed__ = false;
+                }
+                updateThemeColors();
+                updateThemeColorsRight();
+                updateTipologiaAvailability();
+            }
 
             function saveLessonPericoloState() {
                 return {
@@ -7353,8 +7385,6 @@
                     isPlayer: isPlayer,
                     yellowEndX: yellowEndX,
                     currentMeasureY: currentMeasureY,
-                    shotPassante: window.__shotTypeIsPassante__,
-                    shotServizio: window.__shotTypeIsServizio__,
                     vDir: window.__viewDirections__,
                     vPl: window.__viewPlayer__,
                     vRsp: window.__viewResponder__,
@@ -7409,8 +7439,6 @@
                 if (!s) return;
                 window.__modalita__ = s.modalita;
                 window.__gioco__ = s.gioco;
-                window.__shotTypeIsPassante__ = s.shotPassante;
-                window.__shotTypeIsServizio__ = s.shotServizio;
                 window.__viewDirections__ = s.vDir;
                 window.__viewPlayer__ = s.vPl;
                 window.__viewResponder__ = s.vRsp;
@@ -7423,12 +7451,19 @@
                 currentMeasureY = s.currentMeasureY;
                 const m = document.querySelector(`input[name="modalita"][value="${s.modalita}"]`);
                 if (m) m.checked = true;
-                const g = document.querySelector(`input[name="gioco"][value="${s.gioco}"]`);
-                if (g) g.checked = true;
+                const mTop = document.querySelector(`input[name="modalita_top"][value="${s.modalita}"]`);
+                if (mTop) mTop.checked = true;
+                const mDrawer = document.querySelector(`input[name="modalita_drawer"][value="${s.modalita}"]`);
+                if (mDrawer) mDrawer.checked = true;
+                const gTop = document.querySelector(`input[name="gioco_top"][value="${s.gioco}"]`);
+                if (gTop) gTop.checked = true;
+                const gDrawer = document.querySelector(`input[name="gioco_drawer"][value="${s.gioco}"]`);
+                if (gDrawer) gDrawer.checked = true;
                 const c = document.querySelector(`input[name="colpitore"][value="${s.colpitore}"]`);
                 if (c) c.checked = true;
                 const t = document.querySelector(`input[name="tipologia"][value="${s.tipologia}"]`);
                 if (t) t.checked = true;
+                applyTipologiaGlobalsFromValue(s.tipologia || 'palleggio');
                 if (dot && s.dotCx != null) {
                     dot.setAttribute('cx', s.dotCx);
                     dot.setAttribute('cy', s.dotCy);
@@ -7446,14 +7481,32 @@
                     const el = document.getElementById(id);
                     if (el) el.checked = !!val;
                 });
+                window.dispatchEvent(new Event('giocoChanged'));
+                if (m) {
+                    m.dispatchEvent(new Event('change', { bubbles: true }));
+                }
                 const dX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
                 const dY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
                 applyViewToggles();
                 updateLinesAndWedge(dX, dY);
+                if (typeof syncDrawerMenuFromMain === 'function') {
+                    syncDrawerMenuFromMain();
+                }
                 if (typeof syncTennisCourtAccessibility === 'function') {
                     syncTennisCourtAccessibility(false);
                 }
             }
+
+            window.geometryOfTennisSaveMainStateBeforeLezioni = function () {
+                window._geometryOfTennis_mainSnapBeforeLezioni = saveLessonPericoloState();
+            };
+            window.geometryOfTennisRestoreMainStateAfterLezioni = function () {
+                const snap = window._geometryOfTennis_mainSnapBeforeLezioni;
+                window._geometryOfTennis_mainSnapBeforeLezioni = null;
+                if (snap) {
+                    restoreLessonPericoloState(snap);
+                }
+            };
 
             function finalizeLessonGeometry(dotX, dotY, rx, ry) {
                 if (yellowLine) {
@@ -7666,6 +7719,79 @@
 
             window.geometryOfTennisCaptureLessonMidpointEmbeds = captureLessonMidpointEmbeds;
 
+            /* Lezione 3 (Mid-Point a rete): Passante, solo Colpitore/Ricevitore/Direzioni/Centro — B=(±90;−50), A=(±20;250). */
+            function applyMidpointReteLessonViewFlags() {
+                window.__modalita__ = '2colpi';
+                window.__gioco__ = 'singolare';
+                window.__shotTypeIsPassante__ = true;
+                window.__shotTypeIsServizio__ = false;
+                window.__viewDirections__ = true;
+                window.__viewPlayer__ = true;
+                window.__viewResponder__ = true;
+                window.__viewShot__ = false;
+                window.__viewCenter__ = true;
+                window.__viewCover__ = false;
+                window.__viewCoordinates__ = false;
+                yellowEndX = null;
+            }
+
+            function captureLessonMidpointReteEmbeds() {
+                const L = document.getElementById('lessonMidpointReteEmbedLeft');
+                const R = document.getElementById('lessonMidpointReteEmbedRight');
+                if (!L || !R) return;
+                L.innerHTML = '';
+                R.innerHTML = '';
+                const primaryWrap = document.querySelector('#mainAppView .svg-wrap.primary');
+                if (!primaryWrap || !svg) return;
+                const saved = saveLessonPericoloState();
+                const m2c = document.querySelector('input[name="modalita"][value="2colpi"]');
+                const gSing = document.querySelector('input[name="gioco"][value="singolare"]');
+                try {
+                    applyMidpointReteLessonViewFlags();
+                    setCheckboxesForMidpointLesson();
+                    if (m2c) m2c.checked = true;
+                    if (gSing) gSing.checked = true;
+                    if (tipologiaPassante) {
+                        tipologiaPassante.checked = true;
+                    }
+                    if (colpitoreAvv) {
+                        colpitoreAvv.checked = true;
+                    }
+                    isPlayer = false;
+                    if (dot) {
+                        dot.setAttribute('cx', '210');
+                        dot.setAttribute('cy', '100');
+                    }
+                    applyViewToggles();
+                    updateLinesAndWedge(210, 100);
+                    finalizeLessonGeometry(210, 100, 280, 572);
+                    if (intersectionDot) {
+                        intersectionDot.style.display = '';
+                    }
+                    updateThemeColors();
+                    const clone1 = primaryWrap.cloneNode(true);
+                    stripAndMountLessonClone(clone1, L, { keepBisectorAndYellow: true });
+                    isPlayer = false;
+                    if (dot) {
+                        dot.setAttribute('cx', '390');
+                        dot.setAttribute('cy', '100');
+                    }
+                    applyViewToggles();
+                    updateLinesAndWedge(390, 100);
+                    finalizeLessonGeometry(390, 100, 320, 572);
+                    if (intersectionDot) {
+                        intersectionDot.style.display = '';
+                    }
+                    updateThemeColors();
+                    const clone2 = primaryWrap.cloneNode(true);
+                    stripAndMountLessonClone(clone2, R, { keepBisectorAndYellow: true });
+                } finally {
+                    restoreLessonPericoloState(saved);
+                }
+            }
+
+            window.geometryOfTennisCaptureLessonMidpointReteEmbeds = captureLessonMidpointReteEmbeds;
+
         })();
 
         // ==========================================
@@ -7685,6 +7811,7 @@
             const lezioniListView = document.getElementById('lezioniListView');
             const lezionePericoloArticle = document.getElementById('lezionePericoloArticle');
             const lezioneMidpointArticle = document.getElementById('lezioneMidpointArticle');
+            const lezioneMidpointReteArticle = document.getElementById('lezioneMidpointReteArticle');
             const topBarSegmentLezioneRead = document.getElementById('topBarSegmentLezioneRead');
             const topBarLezioneReadTitle = document.getElementById('topBarLezioneReadTitle');
             const topBarLezioneBackList = document.getElementById('topBarLezioneBackList');
@@ -7783,6 +7910,11 @@
                     lezioneMidpointArticle.hidden = !on;
                     lezioneMidpointArticle.inert = !on;
                 }
+                if (lezioneMidpointReteArticle) {
+                    const on = show && slug === 'midpoint-rete';
+                    lezioneMidpointReteArticle.hidden = !on;
+                    lezioneMidpointReteArticle.inert = !on;
+                }
                 if (topBarSegmentLezioni) {
                     const inLezioni = document.body.classList.contains('app-view-lezioni');
                     const hideLezSegment = inLezioni && show;
@@ -7804,6 +7936,10 @@
                             fullText = 'Lezione 2 - Singolare';
                             shortText = 'Lezione 2 - S';
                         }
+                        if (slug === 'midpoint-rete') {
+                            fullText = 'Lezione 3 - Singolare';
+                            shortText = 'Lezione 3 - S';
+                        }
                         if (titleFull) titleFull.textContent = fullText;
                         if (titleShort) titleShort.textContent = shortText;
                         topBarLezioneReadTitle.setAttribute('aria-label', fullText);
@@ -7820,6 +7956,9 @@
                 if (show && slug === 'midpoint-fondo' && typeof window.geometryOfTennisCaptureLessonMidpointEmbeds === 'function') {
                     window.geometryOfTennisCaptureLessonMidpointEmbeds();
                 }
+                if (show && slug === 'midpoint-rete' && typeof window.geometryOfTennisCaptureLessonMidpointReteEmbeds === 'function') {
+                    window.geometryOfTennisCaptureLessonMidpointReteEmbeds();
+                }
             }
 
             function setLezioniView(on) {
@@ -7830,6 +7969,9 @@
                 }
                 document.body.classList.toggle('app-view-lezioni', enable);
                 if (enable) {
+                    if (typeof window.geometryOfTennisSaveMainStateBeforeLezioni === 'function') {
+                        window.geometryOfTennisSaveMainStateBeforeLezioni();
+                    }
                     closeAllModals();
                     if (typeof window._geometryOfTennisCloseMobileDrawer === 'function') {
                         window._geometryOfTennisCloseMobileDrawer();
@@ -7851,6 +7993,9 @@
                 if (topBarLezioniCurrent) {
                     topBarLezioniCurrent.classList.toggle('active', enable);
                 }
+                if (!enable && typeof window.geometryOfTennisRestoreMainStateAfterLezioni === 'function') {
+                    window.geometryOfTennisRestoreMainStateAfterLezioni();
+                }
             }
             window.setLezioniView = setLezioniView;
             window.setLezionePericoloReadView = setLezionePericoloReadView;
@@ -7868,6 +8013,14 @@
             document.querySelectorAll('.lezioni-list-link--lesson').forEach((btn) => {
                 btn.addEventListener('click', () => {
                     const slug = btn.getAttribute('data-lezione');
+                    if (slug) {
+                        setLezionePericoloReadView(true, slug);
+                    }
+                });
+            });
+            document.querySelectorAll('.lezione-cross-ref[data-lezione]').forEach((el) => {
+                el.addEventListener('click', () => {
+                    const slug = el.getAttribute('data-lezione');
                     if (slug) {
                         setLezionePericoloReadView(true, slug);
                     }
