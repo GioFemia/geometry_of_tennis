@@ -294,7 +294,7 @@
                     <span class="top-bar-label">Gioco</span>
                 </button>
                 <button id="topBarModalita" class="top-bar-item" title="Modalità" type="button">
-                    <span class="top-bar-icon-mode" id="topBarModalitaIcon">2</span>
+                    <span class="top-bar-icon-mode" id="topBarModalitaIcon">1</span>
                     <span class="top-bar-label">Modalità</span>
                 </button>
                 <button id="topBarImpostazioni" class="top-bar-item" title="Impostazioni" type="button">
@@ -392,14 +392,14 @@
             <div class="top-bar-modal-content">
                 <div class="mode-options">
                     <label class="mode-option" for="modo_1colpo_top">
-                        <input id="modo_1colpo_top" type="radio" name="modalita_top" value="1colpo" />
+                        <input id="modo_1colpo_top" type="radio" name="modalita_top" value="1colpo" checked />
                         <div class="mode-option-content">
                             <span class="mode-option-icon">1</span>
                             <span class="mode-option-label">1 Colpo</span>
                         </div>
                     </label>
                     <label class="mode-option" for="modo_2colpi_top">
-                        <input id="modo_2colpi_top" type="radio" name="modalita_top" value="2colpi" checked />
+                        <input id="modo_2colpi_top" type="radio" name="modalita_top" value="2colpi" />
                         <div class="mode-option-content">
                             <span class="mode-option-icon">2</span>
                             <span class="mode-option-label">2 Colpi</span>
@@ -469,8 +469,8 @@
                             <label class="control-option" for="default_modalita_top">
                                 <span>Modalità:</span>
                                 <select id="default_modalita_top" name="default_modalita_top">
-                                    <option value="1colpo">1 Colpo</option>
-                                    <option value="2colpi" selected>2 Colpi</option>
+                                    <option value="1colpo" selected>1 Colpo</option>
+                                    <option value="2colpi">2 Colpi</option>
                                     <option value="dinamico">Dinamico</option>
                                 </select>
                             </label>
@@ -514,7 +514,7 @@
                                 <span>Visualizza: Colpo</span>
                             </label>
                             <label class="control-option" for="default_view_center_top">
-                                <input id="default_view_center_top" type="checkbox" checked />
+                                <input id="default_view_center_top" type="checkbox" />
                                 <span>Visualizza: Centro</span>
                             </label>
                             <label class="control-option" for="default_view_coordinates_top">
@@ -613,6 +613,12 @@
                                 <span class="lezioni-list-lesson-name">Il Mid-Point da Fondo</span>
                             </button>
                         </li>
+                        <li>
+                            <button type="button" class="lezioni-list-link lezioni-list-link--lesson" data-lezione="midpoint-rete" aria-label="Lezione 3. Il Mid-Point a Rete">
+                                <span class="lezioni-list-lesson-badge">Lezione 3</span>
+                                <span class="lezioni-list-lesson-name">Il Mid-Point a Rete</span>
+                            </button>
+                        </li>
                     </ul>
                     <p class="lezioni-empty-hint">Nessuna lezione in elenco.</p>
                 </section>
@@ -666,6 +672,26 @@
                     </div>
                 </div>
             </article>
+
+            <article id="lezioneMidpointReteArticle" class="lezione-article lezione-article--pericolo" hidden inert>
+                <div class="lezione-pericolo-layout">
+                    <div class="lezione-pericolo-text" id="lezioneMidpointReteText">
+                        <p class="lezione-article-eyebrow">Lezione 3</p>
+                        <h2 class="lezione-article-title">Il Mid-Point a Rete</h2>
+                        <p>Nella <button type="button" class="lezione-cross-ref" data-lezione="midpoint-fondo" aria-label="Apri la Lezione 2, Il Mid-Point da Fondo">Lezione 2</button> abbiamo visto come il Mid-Point, ovvero il punto ottimale in cui farsi trovare per poter rispondere al colpo dell'avversario, si muova rispetto alla posizione dell'avversario quando sei a fondo.</p>
+                        <p>Le cose cambiano invece quando sei a rete: in questo caso bisogna posizionarsi in modo da coprire un po' di più il lungolinea.</p>
+                        <p>Come si vede dalle immagini quindi è corretto posizionarsi alla sinistra del centro del campo quando l'avversario colpisce dalla sua destra, mentre è bene essere spostati sulla destra se l'avversario colpisce dalla propria sinistra.</p>
+                    </div>
+                    <div class="lezione-pericolo-courts">
+                        <figure class="lezione-figure">
+                            <div id="lessonMidpointReteEmbedLeft" class="lezione-embed" aria-label="Mid-Point a rete: avversario da destra, Campo B (−90;−50), ricevitore Campo A (−20;250)"></div>
+                        </figure>
+                        <figure class="lezione-figure">
+                            <div id="lessonMidpointReteEmbedRight" class="lezione-embed" aria-label="Mid-Point a rete: avversario da sinistra, Campo B (90;−50), ricevitore Campo A (20;250)"></div>
+                        </figure>
+                    </div>
+                </div>
+            </article>
         </main>
     </div>
 
@@ -695,7 +721,7 @@
                 <div class="mobile-nav-center">
                     <!-- Modalità -->
                     <button id="mobileNavModalita" class="mobile-nav-pill" data-section="modalita" title="Modalità">
-                        <span class="pill-icon pill-icon-mode" id="mobileNavModalitaIcon">2</span>
+                        <span class="pill-icon pill-icon-mode" id="mobileNavModalitaIcon">1</span>
                     </button>
                     
                     <!-- Menu (apre pannello sotto con opzioni come desktop) -->
@@ -739,7 +765,7 @@
             <div class="panel-section" id="panelModalita">
                 <div class="panel-section-header" role="button" tabindex="0" aria-expanded="false">
                     <span class="panel-section-title">MODALITÀ</span>
-                    <span class="panel-section-indicator" id="currentModeIndicator">2 Colpi</span>
+                    <span class="panel-section-indicator" id="currentModeIndicator">1 Colpo</span>
                 </div>
                 <div class="panel-section-content">
                     <h3 class="control-section-title compact-title mobile-panel-content-title">
@@ -747,14 +773,14 @@
                     </h3>
                     <div class="mode-options">
                         <label class="mode-option" for="modo_1colpo">
-                            <input id="modo_1colpo" type="radio" name="modalita" value="1colpo" />
+                            <input id="modo_1colpo" type="radio" name="modalita" value="1colpo" checked />
                             <div class="mode-option-content">
                                 <span class="mode-option-icon">1</span>
                                 <span class="mode-option-label">1 Colpo</span>
                             </div>
                         </label>
                         <label class="mode-option" for="modo_2colpi">
-                            <input id="modo_2colpi" type="radio" name="modalita" value="2colpi" checked />
+                            <input id="modo_2colpi" type="radio" name="modalita" value="2colpi" />
                             <div class="mode-option-content">
                                 <span class="mode-option-icon">2</span>
                                 <span class="mode-option-label">2 Colpi</span>
@@ -852,7 +878,7 @@
                         <span>Colpo</span>
                     </label>
                     <label class="control-option compact-option" for="view_center">
-                        <input id="view_center" type="checkbox" checked />
+                        <input id="view_center" type="checkbox" />
                         <span>Centro</span>
                     </label>
                     <label class="control-option compact-option singolare-only" for="view_cover">
@@ -980,8 +1006,8 @@
                         <label class="control-option" for="default_modalita">
                             <span>Modalità:</span>
                             <select id="default_modalita" name="default_modalita">
-                                <option value="1colpo">1 Colpo</option>
-                                <option value="2colpi" selected>2 Colpi</option>
+                                <option value="1colpo" selected>1 Colpo</option>
+                                <option value="2colpi">2 Colpi</option>
                                 <option value="dinamico">Dinamico</option>
                             </select>
                         </label>
@@ -1025,7 +1051,7 @@
                             <span>Visualizza: Colpo</span>
                         </label>
                         <label class="control-option" for="default_view_center">
-                            <input id="default_view_center" type="checkbox" checked />
+                            <input id="default_view_center" type="checkbox" />
                             <span>Visualizza: Centro</span>
                         </label>
                         <label class="control-option" for="default_view_coordinates">
@@ -1254,14 +1280,14 @@
                         <h4 class="mobile-drawer-settings-title">Modalità</h4>
                         <div class="mobile-drawer-mode-group">
                             <label class="mobile-drawer-mode-option" for="modo_1colpo_drawer">
-                                <input id="modo_1colpo_drawer" type="radio" name="modalita_drawer" value="1colpo" />
+                                <input id="modo_1colpo_drawer" type="radio" name="modalita_drawer" value="1colpo" checked />
                                 <span class="mobile-drawer-mode-content">
                                     <span class="mobile-drawer-mode-icon">1</span>
                                     <span class="mobile-drawer-mode-label">1 Colpo</span>
                                 </span>
                             </label>
                             <label class="mobile-drawer-mode-option" for="modo_2colpi_drawer">
-                                <input id="modo_2colpi_drawer" type="radio" name="modalita_drawer" value="2colpi" checked />
+                                <input id="modo_2colpi_drawer" type="radio" name="modalita_drawer" value="2colpi" />
                                 <span class="mobile-drawer-mode-content">
                                     <span class="mobile-drawer-mode-icon">2</span>
                                     <span class="mobile-drawer-mode-label">2 Colpi</span>
@@ -1355,7 +1381,7 @@
                                 <span>Colpo</span>
                             </label>
                             <label class="mobile-drawer-checkbox">
-                                <input type="checkbox" id="view_center_drawer" checked />
+                                <input type="checkbox" id="view_center_drawer" />
                                 <span>Centro</span>
                             </label>
                             <label class="mobile-drawer-checkbox singolare-only">
@@ -1548,8 +1574,8 @@
                         <label class="mobile-drawer-select-label">
                             <span>Modalità:</span>
                             <select id="default_modalita_drawer">
-                                <option value="1colpo">1 Colpo</option>
-                                <option value="2colpi" selected>2 Colpi</option>
+                                <option value="1colpo" selected>1 Colpo</option>
+                                <option value="2colpi">2 Colpi</option>
                                 <option value="dinamico">Dinamico</option>
                             </select>
                         </label>
@@ -1589,7 +1615,7 @@
                             <span>Visualizza: Colpo</span>
                         </label>
                         <label class="mobile-drawer-checkbox">
-                            <input type="checkbox" id="default_view_center_drawer" checked />
+                            <input type="checkbox" id="default_view_center_drawer" />
                             <span>Visualizza: Centro</span>
                         </label>
                         <label class="mobile-drawer-checkbox">
