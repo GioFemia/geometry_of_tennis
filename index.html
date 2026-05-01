@@ -942,9 +942,14 @@
                 </h3>
                 <div class="control-options compact-options">
                     <div class="draw-buttons-container compact">
-                        <button id="draw_pen_btn" class="draw-tool-button compact" data-tool="pen" title="Matita">
+                        <button id="draw_pen_btn" class="draw-tool-button compact" data-tool="pen" title="Matita (tratto fluido)">
                             <svg viewBox="0 0 24 24" width="16" height="16">
                                 <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
+                            </svg>
+                        </button>
+                        <button id="draw_highlighter_btn" class="draw-tool-button compact" data-tool="highlighter" title="Evidenziatore">
+                            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                <path fill="currentColor" d="M5 19.5h6v-1.5H5v1.5zm9.77-12.18l-1.06-1.06-8.13 8.13-.71 2.12 2.12-.71 8.13-8.13-1.35-1.35zm.77-.77l2 2-9.24 9.24H6v-3.51l9.54-9.73z"/>
                             </svg>
                         </button>
                         <button id="draw_arrow_btn" class="draw-tool-button compact" data-tool="arrow" title="Freccia">
@@ -972,28 +977,52 @@
                                 <path fill="currentColor" d="M16.24,3.56L21.19,8.5C21.97,9.29 21.97,10.55 21.19,11.34L12,20.53C10.44,22.09 7.91,22.09 6.34,20.53L2.81,17C2.03,16.21 2.03,14.95 2.81,14.16L13.41,3.56C14.2,2.78 15.46,2.78 16.24,3.56M4.22,15.58L7.76,19.11C8.54,19.9 9.8,19.9 10.59,19.11L14.12,15.58L9.17,10.63L4.22,15.58Z" />
                             </svg>
                         </button>
+                        <button type="button" id="draw_undo_btn" class="draw-tool-button compact draw-tool-button--undo" data-tool="undo" title="Annulla (Ctrl+Z)" aria-label="Annulla ultimo tratto" disabled>
+                            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+                        </button>
+                        <button type="button" id="draw_redo_btn" class="draw-tool-button compact draw-tool-button--redo" data-tool="redo" title="Ripristina (Ctrl+Y o Ctrl+Maiusc+Z)" aria-label="Ripristina" disabled>
+                            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path fill="currentColor" d="M18.4 10.6C16.55 9 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22l2.36.78c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.72.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>
+                        </button>
                         <button id="draw_clear_btn" class="draw-tool-button compact" data-tool="clear" title="Cancella tutto">
                             <svg viewBox="0 0 24 24" width="16" height="16">
                                 <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
                             </svg>
                         </button>
                     </div>
-                    <!-- Controlli che appaiono al hover -->
-                    <div class="draw-controls-hover" id="draw_controls_hover" style="display: none;">
+                    <div class="draw-inspector" id="draw_inspector">
                         <div class="draw-color-picker-hover compact">
-                            <label class="draw-label compact">Colore:</label>
-                            <input type="color" id="draw_color" value="#000000" class="compact-color" />
+                            <span class="draw-label compact">Colore</span>
+                            <div class="draw-color-row">
+                                <div class="draw-color-swatches" role="group" aria-label="Colori rapidi">
+                                    <button type="button" class="draw-swatch" data-draw-swatch="#1a1a1a" style="background:#1a1a1a" title="Nero"></button>
+                                    <button type="button" class="draw-swatch" data-draw-swatch="#e53935" style="background:#e53935" title="Rosso"></button>
+                                    <button type="button" class="draw-swatch" data-draw-swatch="#fb8c00" style="background:#fb8c00" title="Arancio"></button>
+                                    <button type="button" class="draw-swatch" data-draw-swatch="#fdd835" style="background:#fdd835" title="Giallo"></button>
+                                    <button type="button" class="draw-swatch" data-draw-swatch="#43a047" style="background:#43a047" title="Verde"></button>
+                                    <button type="button" class="draw-swatch" data-draw-swatch="#1e88e5" style="background:#1e88e5" title="Blu"></button>
+                                    <button type="button" class="draw-swatch" data-draw-swatch="#8e24aa" style="background:#8e24aa" title="Viola"></button>
+                                    <button type="button" class="draw-swatch" data-draw-swatch="#ffffff" style="background:#ffffff;border:1px solid #ccc" title="Bianco"></button>
+                                </div>
+                                <input type="color" id="draw_color" value="#000000" class="compact-color" title="Selettore colore" aria-label="Colore personalizzato" />
+                            </div>
                         </div>
                         <div class="draw-width-picker-hover compact">
-                            <label class="draw-label compact">Spessore:</label>
-                            <input type="range" id="draw_width" min="1" max="10" value="3" class="compact-range" />
-                            <span id="draw_width_value" class="compact-value">3</span>
+                            <label class="draw-label compact" for="draw_width">Spessore</label>
+                            <input type="range" id="draw_width" min="1" max="24" value="4" class="compact-range" />
+                            <span id="draw_width_value" class="compact-value">4</span>
                         </div>
-                    </div>
-                    <div class="draw-font-size-picker-hover compact" id="draw_font_size_hover" style="display: none;">
-                        <label class="draw-label compact">Dimensione:</label>
-                        <input type="range" id="draw_font_size" min="12" max="48" value="16" class="compact-range" />
-                        <span id="draw_font_size_value" class="compact-value">16</span>
+                        <div class="draw-text-menu-panel" id="draw_text_menu_panel" hidden>
+                            <span class="draw-text-menu-title">Testo sul campo</span>
+                            <textarea id="draw_text_menu_input" class="draw-text-menu-input" rows="3" maxlength="800" placeholder="Scrivi qui…"></textarea>
+                            <div class="draw-text-menu-size-row">
+                                <label class="draw-label compact" for="draw_text_menu_font_size">Dimensione</label>
+                                <input type="range" id="draw_text_menu_font_size" min="12" max="64" value="18" class="compact-range" />
+                                <span id="draw_text_menu_font_size_value" class="compact-value">18</span>
+                            </div>
+                            <p class="draw-text-menu-hint" id="draw_text_menu_hint">Clicca sul campo per posizionare il testo.</p>
+                            <button type="button" id="draw_text_menu_apply_edit" class="draw-text-menu-apply" hidden>Applica modifiche</button>
+                        </div>
+                        <p class="draw-inspector-hint" id="draw_inspector_hint">Linee, freccia e righello: tieni premuto <kbd>Maiusc</kbd> per angoli a 45°</p>
                     </div>
                 </div>
             </div>
@@ -1448,6 +1477,11 @@
                                     <path fill="currentColor" d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z" />
                                 </svg>
                             </button>
+                            <button type="button" class="mobile-drawer-draw-tool" data-target="draw_highlighter_btn" title="Evidenziatore" aria-label="Evidenziatore">
+                                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                                    <path fill="currentColor" d="M5 19.5h6v-1.5H5v1.5zm9.77-12.18l-1.06-1.06-8.13 8.13-.71 2.12 2.12-.71 8.13-8.13-1.35-1.35zm.77-.77l2 2-9.24 9.24H6v-3.51l9.54-9.73z"/>
+                                </svg>
+                            </button>
                             <button type="button" class="mobile-drawer-draw-tool" data-target="draw_arrow_btn" title="Freccia" aria-label="Freccia">
                                 <svg viewBox="0 0 24 24" width="20" height="20">
                                     <path fill="currentColor" d="M4,12 L18,12 M18,12 L13,7 M18,12 L13,17" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1473,6 +1507,12 @@
                                     <path fill="currentColor" d="M16.24,3.56L21.19,8.5C21.97,9.29 21.97,10.55 21.19,11.34L12,20.53C10.44,22.09 7.91,22.09 6.34,20.53L2.81,17C2.03,16.21 2.03,14.95 2.81,14.16L13.41,3.56C14.2,2.78 15.46,2.78 16.24,3.56M4.22,15.58L7.76,19.11C8.54,19.9 9.8,19.9 10.59,19.11L14.12,15.58L9.17,10.63L4.22,15.58Z" />
                                 </svg>
                             </button>
+                            <button type="button" class="mobile-drawer-draw-tool" id="draw_undo_drawer" data-target="draw_undo_btn" title="Annulla" aria-label="Annulla">
+                                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M12.5 8c-2.65 0-5.05 1-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C21.08 11.03 17.15 8 12.5 8z"/></svg>
+                            </button>
+                            <button type="button" class="mobile-drawer-draw-tool" id="draw_redo_drawer" data-target="draw_redo_btn" title="Ripristina" aria-label="Ripristina">
+                                <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M18.4 10.6C16.55 9 14.15 8 11.5 8c-4.65 0-8.58 3.03-9.96 7.22l2.36.78c1.05-3.19 4.05-5.5 7.6-5.5 1.95 0 3.72.72 5.12 1.88L13 16h9V7l-3.6 3.6z"/></svg>
+                            </button>
                             <button type="button" class="mobile-drawer-draw-tool mobile-drawer-draw-tool-danger" data-target="draw_clear_btn" title="Cancella tutto" aria-label="Cancella tutto">
                                 <svg viewBox="0 0 24 24" width="20" height="20">
                                     <path fill="currentColor" d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" />
@@ -1486,16 +1526,20 @@
                             </div>
                             <div class="mobile-drawer-draw-row">
                                 <label class="mobile-drawer-draw-label">Spessore</label>
-                                <input type="range" id="draw_width_drawer" min="1" max="10" value="3" class="mobile-drawer-range" />
-                                <span id="draw_width_value_drawer" class="mobile-drawer-range-value">3</span>
+                                <input type="range" id="draw_width_drawer" min="1" max="24" value="4" class="mobile-drawer-range" />
+                                <span id="draw_width_value_drawer" class="mobile-drawer-range-value">4</span>
                             </div>
                         </div>
-                        <div class="mobile-drawer-draw-options" id="drawer_font_size_options" style="display: none;">
+                        <div class="mobile-drawer-text-menu" id="draw_text_menu_panel_drawer" style="display: none;">
+                            <span class="mobile-drawer-draw-label">Testo sul campo</span>
+                            <textarea id="draw_text_menu_input_drawer" class="mobile-drawer-text-input" rows="3" maxlength="800" placeholder="Scrivi qui…"></textarea>
                             <div class="mobile-drawer-draw-row">
                                 <label class="mobile-drawer-draw-label">Dimensione</label>
-                                <input type="range" id="draw_font_size_drawer" min="12" max="48" value="16" class="mobile-drawer-range" />
-                                <span id="draw_font_size_value_drawer" class="mobile-drawer-range-value">16</span>
+                                <input type="range" id="draw_text_menu_font_size_drawer" min="12" max="64" value="18" class="mobile-drawer-range" />
+                                <span id="draw_text_menu_font_size_value_drawer" class="mobile-drawer-range-value">18</span>
                             </div>
+                            <p class="mobile-drawer-text-hint" id="draw_text_menu_hint_drawer">Clicca sul campo per posizionare.</p>
+                            <button type="button" id="draw_text_menu_apply_edit_drawer" class="mobile-drawer-text-apply" style="display: none;">Applica modifiche</button>
                         </div>
                     </div>
 

@@ -3557,6 +3557,12 @@
                     title.addEventListener('click', () => {
                         const section = title.parentElement;
                         section.classList.toggle('collapsed');
+
+                        if (section.id === 'draw-section' && !section.classList.contains('collapsed')) {
+                            if (typeof window.refreshDrawInspector === 'function') {
+                                window.refreshDrawInspector();
+                            }
+                        }
                         
                         // Se la sezione disegna viene chiusa, disabilita il disegno
                         if (section.id === 'draw-section' && section.classList.contains('collapsed')) {
@@ -3564,18 +3570,14 @@
                             if (window.drawingEnabled) {
                                 window.drawingEnabled = false;
                                 // Rimuovi la classe active da tutti i pulsanti
-                                const drawButtons = ['draw_pen_btn', 'draw_arrow_btn', 'draw_line_btn', 'draw_text_btn', 'draw_ruler_btn', 'draw_eraser_btn'];
+                                const drawButtons = ['draw_pen_btn', 'draw_highlighter_btn', 'draw_arrow_btn', 'draw_line_btn', 'draw_text_btn', 'draw_ruler_btn', 'draw_eraser_btn'];
                                 drawButtons.forEach(btnId => {
                                     const btn = document.getElementById(btnId);
                                     if (btn) btn.classList.remove('active');
                                 });
-                                // Nascondi i container del testo
-                                const fontSizeContainer = document.getElementById('draw_font_size_container');
-                                const widthInput = document.getElementById('draw_width');
-                                const widthContainer = widthInput ? widthInput.parentElement : null;
-                                if (fontSizeContainer) fontSizeContainer.style.display = 'none';
-                                if (widthContainer) widthContainer.style.display = 'flex';
-                                // Rimuovi i cursori personalizzati
+                                if (typeof window.refreshDrawInspector === 'function') {
+                                    window.refreshDrawInspector();
+                                }
                                 const svg1 = document.getElementById('tennisCourt');
                                 const svg2 = document.querySelector('.svg-wrap.secondary svg');
                                 if (svg1) {
@@ -4903,8 +4905,8 @@
             let currentElement = null; // Per linee, frecce e righelli
             let startPoint = null; // Punto iniziale per linee, frecce e righelli
             let drawColor = '#000000';
-            let drawWidth = 3;
-            let drawFontSize = 16;
+            let drawWidth = 4;
+            let drawFontSize = 18;
             let drawText = '';
             
             // Gruppo SVG per contenere tutti i disegni (campo primario)
@@ -4928,21 +4930,137 @@
                 }
                 return drawingGroup2;
             }
+
+            let penPointBuffer = null;
+            let drawHistory = [];
+            let drawHistoryIndex = 0;
+
+            function getDrawingSnapshot() {
+                const g2 = getSecondaryDrawingGroup();
+                return {
+                    primary: drawingGroup ? drawingGroup.innerHTML : '',
+                    secondary: g2 ? g2.innerHTML : ''
+                };
+            }
+
+            function rehydrateDrawingTexts(group) {
+                if (!group) return;
+                const hostSvg = group.ownerSVGElement || group.closest('svg');
+                if (!hostSvg) return;
+                group.querySelectorAll('text.draggable-text').forEach((te) => {
+                    bindDraggableText(te, hostSvg);
+                });
+            }
+
+            function applyDrawingSnapshot(snap) {
+                if (drawingGroup) {
+                    drawingGroup.innerHTML = snap.primary || '';
+                    rehydrateDrawingTexts(drawingGroup);
+                }
+                const g2 = getSecondaryDrawingGroup();
+                if (g2) {
+                    g2.innerHTML = snap.secondary || '';
+                    rehydrateDrawingTexts(g2);
+                }
+                updateDrawUndoRedoButtons();
+            }
+
+            function updateDrawUndoRedoButtons() {
+                const u = document.getElementById('draw_undo_btn');
+                const r = document.getElementById('draw_redo_btn');
+                const ud = document.getElementById('draw_undo_drawer');
+                const rd = document.getElementById('draw_redo_drawer');
+                const canU = drawHistoryIndex > 0;
+                const canR = drawHistoryIndex < drawHistory.length - 1;
+                [u, ud].forEach((b) => {
+                    if (b) b.disabled = !canU;
+                });
+                [r, rd].forEach((b) => {
+                    if (b) b.disabled = !canR;
+                });
+            }
+
+            function resetDrawHistoryFromDom() {
+                drawHistory = [getDrawingSnapshot()];
+                drawHistoryIndex = 0;
+                updateDrawUndoRedoButtons();
+            }
+
+            function recordDrawingState() {
+                const snap = getDrawingSnapshot();
+                const cur = drawHistory[drawHistoryIndex];
+                if (cur && cur.primary === snap.primary && cur.secondary === snap.secondary) return;
+                drawHistory = drawHistory.slice(0, drawHistoryIndex + 1);
+                drawHistory.push(snap);
+                drawHistoryIndex++;
+                if (drawHistory.length > 48) {
+                    drawHistory.shift();
+                    drawHistoryIndex--;
+                }
+                updateDrawUndoRedoButtons();
+            }
+
+            function undoDrawing() {
+                if (drawHistoryIndex <= 0) return;
+                drawHistoryIndex--;
+                applyDrawingSnapshot(drawHistory[drawHistoryIndex]);
+            }
+
+            function redoDrawing() {
+                if (drawHistoryIndex >= drawHistory.length - 1) return;
+                drawHistoryIndex++;
+                applyDrawingSnapshot(drawHistory[drawHistoryIndex]);
+            }
+
+            function buildSmoothPathD(points) {
+                if (!points || points.length === 0) return '';
+                if (points.length === 1) {
+                    const p = points[0];
+                    return `M ${p.x} ${p.y} L ${p.x + 0.02} ${p.y}`;
+                }
+                if (points.length === 2) {
+                    return `M ${points[0].x} ${points[0].y} L ${points[1].x} ${points[1].y}`;
+                }
+                let d = `M ${points[0].x} ${points[0].y}`;
+                for (let i = 1; i < points.length - 2; i++) {
+                    const xc = (points[i].x + points[i + 1].x) / 2;
+                    const yc = (points[i].y + points[i + 1].y) / 2;
+                    d += ` Q ${points[i].x} ${points[i].y} ${xc} ${yc}`;
+                }
+                const pLast = points[points.length - 1];
+                const pPrev = points[points.length - 2];
+                d += ` Q ${pPrev.x} ${pPrev.y} ${pLast.x} ${pLast.y}`;
+                return d;
+            }
+
+            function snapLineEnd(start, end) {
+                const dx = end.x - start.x;
+                const dy = end.y - start.y;
+                const len = Math.sqrt(dx * dx + dy * dy);
+                if (len < 0.5) return end;
+                let ang = Math.atan2(dy, dx);
+                const step = Math.PI / 4;
+                ang = Math.round(ang / step) * step;
+                return { x: start.x + Math.cos(ang) * len, y: start.y + Math.sin(ang) * len };
+            }
             
             // Riferimenti agli elementi
             const penButton = document.getElementById('draw_pen_btn');
+            const highlighterButton = document.getElementById('draw_highlighter_btn');
             const arrowButton = document.getElementById('draw_arrow_btn');
             const lineButton = document.getElementById('draw_line_btn');
             const textButton = document.getElementById('draw_text_btn');
             const rulerButton = document.getElementById('draw_ruler_btn');
             const eraserButton = document.getElementById('draw_eraser_btn');
             const clearButton = document.getElementById('draw_clear_btn');
+            const undoDrawButton = document.getElementById('draw_undo_btn');
+            const redoDrawButton = document.getElementById('draw_redo_btn');
             const colorInput = document.getElementById('draw_color');
             const widthInput = document.getElementById('draw_width');
             const widthValue = document.getElementById('draw_width_value');
-            const widthContainer = widthInput.parentElement;
-            const fontSizeValue = document.getElementById('draw_font_size_value');
-            const fontSizeContainer = document.getElementById('draw_font_size_container');
+            const widthContainer = widthInput && widthInput.parentElement;
+            const drawInspectorEl = document.getElementById('draw_inspector');
+            const drawInspectorHint = document.getElementById('draw_inspector_hint');
             const eraserIndicator = document.getElementById('eraserIndicator');
             
             // Funzione per convertire coordinate del mouse in coordinate SVG
@@ -4959,40 +5077,261 @@
                 const drawSection = document.getElementById('draw-section');
                 return drawSection && !drawSection.classList.contains('collapsed');
             }
+
+            function refreshDrawInspector() {
+                const section = document.getElementById('draw-section');
+                if (drawInspectorEl) {
+                    drawInspectorEl.hidden = !!(section && section.classList.contains('collapsed'));
+                }
+                if (widthContainer) {
+                    const hideW = window.drawingEnabled && drawingMode === 'text';
+                    widthContainer.style.display = hideW ? 'none' : '';
+                }
+                if (drawInspectorHint) {
+                    const hideHint = drawingMode === 'text' || drawingMode === 'eraser';
+                    drawInspectorHint.style.display = hideHint ? 'none' : '';
+                }
+                if (typeof refreshDrawTextMenuPanels === 'function') {
+                    refreshDrawTextMenuPanels();
+                }
+            }
+            window.refreshDrawInspector = refreshDrawInspector;
+
+            const drawTextMenuPanel = document.getElementById('draw_text_menu_panel');
+            const drawTextMenuInput = document.getElementById('draw_text_menu_input');
+            const drawTextMenuFontSize = document.getElementById('draw_text_menu_font_size');
+            const drawTextMenuFontSizeValue = document.getElementById('draw_text_menu_font_size_value');
+            const drawTextMenuHint = document.getElementById('draw_text_menu_hint');
+            const drawTextMenuApplyEdit = document.getElementById('draw_text_menu_apply_edit');
+            const drawTextMenuPanelDrawer = document.getElementById('draw_text_menu_panel_drawer');
+            const drawTextMenuInputDrawer = document.getElementById('draw_text_menu_input_drawer');
+            const drawTextMenuFontSizeDrawer = document.getElementById('draw_text_menu_font_size_drawer');
+            const drawTextMenuFontSizeValueDrawer = document.getElementById('draw_text_menu_font_size_value_drawer');
+            const drawTextMenuHintDrawer = document.getElementById('draw_text_menu_hint_drawer');
+            const drawTextMenuApplyEditDrawer = document.getElementById('draw_text_menu_apply_edit_drawer');
+            let drawTextEditTarget = null;
+
+            function clampDrawFontSize(n) {
+                const v = parseInt(n, 10);
+                if (isNaN(v)) return drawFontSize;
+                return Math.min(64, Math.max(12, v));
+            }
+
+            function readMenuTextFontSize() {
+                const el = drawTextMenuFontSize || drawTextMenuFontSizeDrawer;
+                if (!el) return drawFontSize;
+                return clampDrawFontSize(el.value);
+            }
+
+            function syncMainDrawFontSizeControls(size) {
+                drawFontSize = clampDrawFontSize(size);
+            }
+
+            function setMenuTextFontSizeUi(size) {
+                const s = clampDrawFontSize(size);
+                if (drawTextMenuFontSize) drawTextMenuFontSize.value = String(s);
+                if (drawTextMenuFontSizeValue) drawTextMenuFontSizeValue.textContent = String(s);
+                if (drawTextMenuFontSizeDrawer) drawTextMenuFontSizeDrawer.value = String(s);
+                if (drawTextMenuFontSizeValueDrawer) drawTextMenuFontSizeValueDrawer.textContent = String(s);
+            }
+
+            function getMenuTextRawTrimmed() {
+                const a = drawTextMenuInput ? drawTextMenuInput.value : '';
+                const b = drawTextMenuInputDrawer ? drawTextMenuInputDrawer.value : '';
+                return (a || b).trim();
+            }
+
+            function refreshDrawTextMenuPanels() {
+                const showMain = window.drawingEnabled && drawingMode === 'text' && isDrawSectionOpen();
+                if (drawTextMenuPanel) drawTextMenuPanel.hidden = !showMain;
+                if (drawTextMenuPanelDrawer) {
+                    drawTextMenuPanelDrawer.style.display =
+                        window.drawingEnabled && drawingMode === 'text' ? 'block' : 'none';
+                }
+                updateDrawTextEditUi();
+            }
+
+            function updateDrawTextEditUi() {
+                const editing = !!drawTextEditTarget;
+                if (drawTextMenuApplyEdit) drawTextMenuApplyEdit.hidden = !editing;
+                if (drawTextMenuApplyEditDrawer) {
+                    drawTextMenuApplyEditDrawer.style.display = editing ? 'block' : 'none';
+                }
+                const hintNew = 'Clicca sul campo per posizionare il testo.';
+                const hintEdit =
+                    'Modifica sopra, poi «Applica modifiche», oppure clicca sul campo vuoto per posizionarne uno nuovo.';
+                if (drawTextMenuHint) drawTextMenuHint.textContent = editing ? hintEdit : hintNew;
+                if (drawTextMenuHintDrawer) drawTextMenuHintDrawer.textContent = editing ? hintEdit : hintNew;
+            }
+
+            function loadTextIntoMenuForEdit(textElement) {
+                drawTextEditTarget = textElement;
+                const t = textElement.textContent || '';
+                const sz = parseFloat(textElement.getAttribute('font-size')) || drawFontSize;
+                if (drawTextMenuInput) drawTextMenuInput.value = t;
+                if (drawTextMenuInputDrawer) drawTextMenuInputDrawer.value = t;
+                setMenuTextFontSizeUi(sz);
+                updateDrawTextEditUi();
+            }
+
+            function clearDrawTextEditTarget() {
+                drawTextEditTarget = null;
+                updateDrawTextEditUi();
+            }
+
+            function commitDrawTextEditFromMenu() {
+                if (!drawTextEditTarget) return;
+                const raw = getMenuTextRawTrimmed();
+                if (!raw) return;
+                const chosenSize = readMenuTextFontSize();
+                drawTextEditTarget.textContent = raw;
+                drawTextEditTarget.setAttribute('font-size', chosenSize);
+                syncMainDrawFontSizeControls(chosenSize);
+                clearDrawTextEditTarget();
+                recordDrawingState();
+            }
+
+            function wireDrawTextMenuTwoWaySync() {
+                function syncTextInputsFromMain() {
+                    if (drawTextMenuInputDrawer && drawTextMenuInput) {
+                        drawTextMenuInputDrawer.value = drawTextMenuInput.value;
+                    }
+                }
+                function syncTextInputsFromDrawer() {
+                    if (drawTextMenuInput && drawTextMenuInputDrawer) {
+                        drawTextMenuInput.value = drawTextMenuInputDrawer.value;
+                    }
+                }
+                function syncSizeDisplay() {
+                    const v = readMenuTextFontSize();
+                    if (drawTextMenuFontSizeValue) drawTextMenuFontSizeValue.textContent = String(v);
+                    if (drawTextMenuFontSizeValueDrawer) {
+                        drawTextMenuFontSizeValueDrawer.textContent = String(v);
+                    }
+                }
+                if (drawTextMenuInput && drawTextMenuInputDrawer) {
+                    drawTextMenuInput.addEventListener('input', syncTextInputsFromMain);
+                    drawTextMenuInputDrawer.addEventListener('input', syncTextInputsFromDrawer);
+                }
+                if (drawTextMenuFontSize && drawTextMenuFontSizeDrawer) {
+                    drawTextMenuFontSize.addEventListener('input', () => {
+                        drawTextMenuFontSizeDrawer.value = drawTextMenuFontSize.value;
+                        syncSizeDisplay();
+                    });
+                    drawTextMenuFontSizeDrawer.addEventListener('input', () => {
+                        drawTextMenuFontSize.value = drawTextMenuFontSizeDrawer.value;
+                        syncSizeDisplay();
+                    });
+                }
+            }
+
+            function bindDraggableText(textElement, svgElement) {
+                textElement._draggableData = {
+                    isDragging: false,
+                    hasMoved: false,
+                    startX: 0,
+                    startY: 0,
+                    textStartX: 0,
+                    textStartY: 0,
+                    svgElement: svgElement
+                };
+                textElement.addEventListener('mousedown', (e) => {
+                    e.stopPropagation();
+                    const data = textElement._draggableData;
+                    data.isDragging = true;
+                    data.hasMoved = false;
+                    const coords = getSvgCoordinates(e, data.svgElement);
+                    data.startX = coords.x;
+                    data.startY = coords.y;
+                    data.textStartX = parseFloat(textElement.getAttribute('x'));
+                    data.textStartY = parseFloat(textElement.getAttribute('y'));
+                    data.svgElement._currentDraggingText = textElement;
+                });
+                textElement.addEventListener('click', (e) => {
+                    const data = textElement._draggableData;
+                    if (!data.hasMoved && window.drawingEnabled && drawingMode === 'text') {
+                        e.stopPropagation();
+                        loadTextIntoMenuForEdit(textElement);
+                    }
+                });
+            }
+
+            if (drawTextMenuApplyEdit) {
+                drawTextMenuApplyEdit.addEventListener('click', commitDrawTextEditFromMenu);
+            }
+            if (drawTextMenuApplyEditDrawer) {
+                drawTextMenuApplyEditDrawer.addEventListener('click', commitDrawTextEditFromMenu);
+            }
+
+            wireDrawTextMenuTwoWaySync();
+            setMenuTextFontSizeUi(drawFontSize);
             
+            function setSecondarySvgCursor(drawing, erasing) {
+                const svg2 = document.querySelector('.svg-wrap.secondary svg');
+                if (!svg2) return;
+                svg2.classList.toggle('drawing-cursor', !!drawing);
+                svg2.classList.toggle('erasing-cursor', !!erasing);
+                if (!drawing && !erasing) {
+                    svg2.classList.remove('drawing-cursor', 'erasing-cursor');
+                }
+            }
+
+            function deactivateDrawingTools() {
+                window.drawingEnabled = false;
+                clearDrawTextEditTarget();
+                [penButton, highlighterButton, arrowButton, lineButton, textButton, rulerButton, eraserButton].forEach((b) => {
+                    if (b) b.classList.remove('active');
+                });
+                svg.classList.remove('drawing-cursor', 'erasing-cursor');
+                setSecondarySvgCursor(false, false);
+                refreshDrawInspector();
+            }
+
+            function activateDrawTool(mode) {
+                drawingMode = mode;
+                window.drawingEnabled = true;
+                [penButton, highlighterButton, arrowButton, lineButton, textButton, rulerButton, eraserButton].forEach((b) => {
+                    if (b) b.classList.remove('active');
+                });
+                const map = {
+                    pen: penButton,
+                    highlighter: highlighterButton,
+                    arrow: arrowButton,
+                    line: lineButton,
+                    text: textButton,
+                    ruler: rulerButton,
+                    eraser: eraserButton
+                };
+                const btn = map[mode];
+                if (btn) btn.classList.add('active');
+                if (mode === 'eraser') {
+                    svg.classList.add('erasing-cursor');
+                    svg.classList.remove('drawing-cursor');
+                    setSecondarySvgCursor(false, true);
+                } else {
+                    svg.classList.add('drawing-cursor');
+                    svg.classList.remove('erasing-cursor');
+                    setSecondarySvgCursor(true, false);
+                }
+                refreshDrawInspector();
+            }
+
+            let eraserStartHtml = null;
+
             // Gestione del pulsante matita
             if (penButton) {
                 penButton.addEventListener('click', () => {
-                    if (!isDrawSectionOpen()) return; // Non permettere se la sezione è chiusa
-                    
-                    if (drawingMode === 'pen' && window.drawingEnabled) {
-                        // Disattiva la modalità disegno
-                        window.drawingEnabled = false;
-                        penButton.classList.remove('active');
-                        svg.classList.remove('drawing-cursor');
-                        fontSizeContainer.style.display = 'none';
-                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
-                        if (svg2) svg2.classList.remove('drawing-cursor');
-                    } else {
-                        // Attiva la modalità matita
-                        drawingMode = 'pen';
-                        window.drawingEnabled = true;
-                        penButton.classList.add('active');
-                        arrowButton.classList.remove('active');
-                        lineButton.classList.remove('active');
-                        textButton.classList.remove('active');
-                        rulerButton.classList.remove('active');
-                        eraserButton.classList.remove('active');
-                        svg.classList.add('drawing-cursor');
-                        svg.classList.remove('erasing-cursor');
-                        fontSizeContainer.style.display = 'none';
-                        widthContainer.style.display = 'flex';
-                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
-                        if (svg2) {
-                            svg2.classList.add('drawing-cursor');
-                            svg2.classList.remove('erasing-cursor');
-                        }
-                    }
+                    if (!isDrawSectionOpen()) return;
+                    if (drawingMode === 'pen' && window.drawingEnabled) deactivateDrawingTools();
+                    else activateDrawTool('pen');
+                });
+            }
+
+            if (highlighterButton) {
+                highlighterButton.addEventListener('click', () => {
+                    if (!isDrawSectionOpen()) return;
+                    if (drawingMode === 'highlighter' && window.drawingEnabled) deactivateDrawingTools();
+                    else activateDrawTool('highlighter');
                 });
             }
             
@@ -5000,33 +5339,8 @@
             if (arrowButton) {
                 arrowButton.addEventListener('click', () => {
                     if (!isDrawSectionOpen()) return;
-                    
-                    if (drawingMode === 'arrow' && window.drawingEnabled) {
-                        window.drawingEnabled = false;
-                        arrowButton.classList.remove('active');
-                        svg.classList.remove('drawing-cursor');
-                        fontSizeContainer.style.display = 'none';
-                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
-                        if (svg2) svg2.classList.remove('drawing-cursor');
-                    } else {
-                        drawingMode = 'arrow';
-                        window.drawingEnabled = true;
-                        arrowButton.classList.add('active');
-                        penButton.classList.remove('active');
-                        lineButton.classList.remove('active');
-                        textButton.classList.remove('active');
-                        rulerButton.classList.remove('active');
-                        eraserButton.classList.remove('active');
-                        svg.classList.add('drawing-cursor');
-                        svg.classList.remove('erasing-cursor');
-                        fontSizeContainer.style.display = 'none';
-                        widthContainer.style.display = 'flex';
-                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
-                        if (svg2) {
-                            svg2.classList.add('drawing-cursor');
-                            svg2.classList.remove('erasing-cursor');
-                        }
-                    }
+                    if (drawingMode === 'arrow' && window.drawingEnabled) deactivateDrawingTools();
+                    else activateDrawTool('arrow');
                 });
             }
             
@@ -5034,34 +5348,8 @@
             if (lineButton) {
                 lineButton.addEventListener('click', () => {
                     if (!isDrawSectionOpen()) return;
-                    
-                    if (drawingMode === 'line' && window.drawingEnabled) {
-                        window.drawingEnabled = false;
-                        lineButton.classList.remove('active');
-                        svg.classList.remove('drawing-cursor');
-                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
-                        if (svg2) svg2.classList.remove('drawing-cursor');
-                        textInputContainer.style.display = 'none';
-                        fontSizeContainer.style.display = 'none';
-                    } else {
-                        drawingMode = 'line';
-                        window.drawingEnabled = true;
-                        lineButton.classList.add('active');
-                        penButton.classList.remove('active');
-                        arrowButton.classList.remove('active');
-                        textButton.classList.remove('active');
-                        rulerButton.classList.remove('active');
-                        eraserButton.classList.remove('active');
-                        svg.classList.add('drawing-cursor');
-                        svg.classList.remove('erasing-cursor');
-                        fontSizeContainer.style.display = 'none';
-                        widthContainer.style.display = 'flex';
-                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
-                        if (svg2) {
-                            svg2.classList.add('drawing-cursor');
-                            svg2.classList.remove('erasing-cursor');
-                        }
-                    }
+                    if (drawingMode === 'line' && window.drawingEnabled) deactivateDrawingTools();
+                    else activateDrawTool('line');
                 });
             }
             
@@ -5069,34 +5357,8 @@
             if (textButton) {
                 textButton.addEventListener('click', () => {
                     if (!isDrawSectionOpen()) return;
-                    
-                    if (drawingMode === 'text' && window.drawingEnabled) {
-                        window.drawingEnabled = false;
-                        textButton.classList.remove('active');
-                        svg.classList.remove('drawing-cursor');
-                        fontSizeContainer.style.display = 'none';
-                        widthContainer.style.display = 'flex';
-                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
-                        if (svg2) svg2.classList.remove('drawing-cursor');
-                    } else {
-                        drawingMode = 'text';
-                        window.drawingEnabled = true;
-                        textButton.classList.add('active');
-                        penButton.classList.remove('active');
-                        arrowButton.classList.remove('active');
-                        lineButton.classList.remove('active');
-                        rulerButton.classList.remove('active');
-                        eraserButton.classList.remove('active');
-                        svg.classList.add('drawing-cursor');
-                        svg.classList.remove('erasing-cursor');
-                        fontSizeContainer.style.display = 'flex';
-                        widthContainer.style.display = 'none';
-                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
-                        if (svg2) {
-                            svg2.classList.add('drawing-cursor');
-                            svg2.classList.remove('erasing-cursor');
-                        }
-                    }
+                    if (drawingMode === 'text' && window.drawingEnabled) deactivateDrawingTools();
+                    else activateDrawTool('text');
                 });
             }
             
@@ -5104,34 +5366,8 @@
             if (rulerButton) {
                 rulerButton.addEventListener('click', () => {
                     if (!isDrawSectionOpen()) return;
-                    
-                    if (drawingMode === 'ruler' && window.drawingEnabled) {
-                        window.drawingEnabled = false;
-                        rulerButton.classList.remove('active');
-                        svg.classList.remove('drawing-cursor');
-                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
-                        if (svg2) svg2.classList.remove('drawing-cursor');
-                        textInputContainer.style.display = 'none';
-                        fontSizeContainer.style.display = 'none';
-                    } else {
-                        drawingMode = 'ruler';
-                        window.drawingEnabled = true;
-                        rulerButton.classList.add('active');
-                        penButton.classList.remove('active');
-                        arrowButton.classList.remove('active');
-                        lineButton.classList.remove('active');
-                        textButton.classList.remove('active');
-                        eraserButton.classList.remove('active');
-                        svg.classList.add('drawing-cursor');
-                        svg.classList.remove('erasing-cursor');
-                        fontSizeContainer.style.display = 'none';
-                        widthContainer.style.display = 'flex';
-                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
-                        if (svg2) {
-                            svg2.classList.add('drawing-cursor');
-                            svg2.classList.remove('erasing-cursor');
-                        }
-                    }
+                    if (drawingMode === 'ruler' && window.drawingEnabled) deactivateDrawingTools();
+                    else activateDrawTool('ruler');
                 });
             }
             
@@ -5139,53 +5375,39 @@
             if (eraserButton) {
                 eraserButton.addEventListener('click', () => {
                     if (!isDrawSectionOpen()) return;
-                    
-                    if (drawingMode === 'eraser' && window.drawingEnabled) {
-                        window.drawingEnabled = false;
-                        eraserButton.classList.remove('active');
-                        svg.classList.remove('erasing-cursor');
-                        fontSizeContainer.style.display = 'none';
-                        widthContainer.style.display = 'flex';
-                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
-                        if (svg2) svg2.classList.remove('erasing-cursor');
-                    } else {
-                        drawingMode = 'eraser';
-                        window.drawingEnabled = true;
-                        eraserButton.classList.add('active');
-                        penButton.classList.remove('active');
-                        arrowButton.classList.remove('active');
-                        lineButton.classList.remove('active');
-                        textButton.classList.remove('active');
-                        rulerButton.classList.remove('active');
-                        svg.classList.add('erasing-cursor');
-                        svg.classList.remove('drawing-cursor');
-                        fontSizeContainer.style.display = 'none';
-                        widthContainer.style.display = 'none';
-                        const svg2 = document.querySelector('.svg-wrap.secondary svg');
-                        if (svg2) {
-                            svg2.classList.add('erasing-cursor');
-                            svg2.classList.remove('drawing-cursor');
-                        }
-                    }
+                    if (drawingMode === 'eraser' && window.drawingEnabled) deactivateDrawingTools();
+                    else activateDrawTool('eraser');
+                });
+            }
+
+            if (undoDrawButton) {
+                undoDrawButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    undoDrawing();
+                });
+            }
+            if (redoDrawButton) {
+                redoDrawButton.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    redoDrawing();
                 });
             }
             
             // Gestione del pulsante cancella tutto
             if (clearButton) {
                 clearButton.addEventListener('click', () => {
-                    // Cancella disegni dal campo primario
                     if (drawingGroup && drawingGroup.children.length > 0) {
                         while (drawingGroup.firstChild) {
                             drawingGroup.removeChild(drawingGroup.firstChild);
                         }
                     }
-                    // Cancella disegni dal campo secondario
                     const drawingGroup2 = getSecondaryDrawingGroup();
                     if (drawingGroup2 && drawingGroup2.children.length > 0) {
                         while (drawingGroup2.firstChild) {
                             drawingGroup2.removeChild(drawingGroup2.firstChild);
                         }
                     }
+                    recordDrawingState();
                 });
             }
             
@@ -5204,14 +5426,30 @@
                 });
             }
             
-            // Gestione della dimensione font
-            const fontSizeInput = document.getElementById('draw_font_size');
-            if (fontSizeInput && fontSizeValue) {
-                fontSizeInput.addEventListener('input', (e) => {
-                    drawFontSize = parseInt(e.target.value);
-                    fontSizeValue.textContent = drawFontSize;
+            document.querySelectorAll('[data-draw-swatch]').forEach((sw) => {
+                sw.addEventListener('click', () => {
+                    const c = sw.getAttribute('data-draw-swatch');
+                    if (!c || !colorInput) return;
+                    colorInput.value = c;
+                    colorInput.dispatchEvent(new Event('input', { bubbles: true }));
                 });
-            }
+            });
+
+            document.addEventListener('keydown', (e) => {
+                if (!e.ctrlKey && !e.metaKey) return;
+                if (e.target && e.target.closest && e.target.closest('input, textarea, select, [contenteditable="true"]')) return;
+                const drawSec = document.getElementById('draw-section');
+                if (!drawSec || drawSec.classList.contains('collapsed')) return;
+                const k = e.key;
+                if (k === 'z' || k === 'Z') {
+                    e.preventDefault();
+                    if (e.shiftKey) redoDrawing();
+                    else undoDrawing();
+                } else if (k === 'y' || k === 'Y') {
+                    e.preventDefault();
+                    redoDrawing();
+                }
+            }, true);
             
             // Funzione per aggiungere event listeners a un SVG specifico
             function addDrawingListeners(svgElement, targetDrawingGroup) {
@@ -5231,15 +5469,21 @@
                     isDrawing = true;
                     const coords = getSvgCoordinates(evt, svgElement);
                 
-                if (drawingMode === 'pen') {
-                    // Crea un nuovo path per il disegno
+                const isPenLike = drawingMode === 'pen' || drawingMode === 'highlighter';
+                if (isPenLike) {
+                    penPointBuffer = [{ x: coords.x, y: coords.y }];
                     currentPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
                     currentPath.setAttribute('fill', 'none');
                     currentPath.setAttribute('stroke', drawColor);
-                    currentPath.setAttribute('stroke-width', drawWidth);
                     currentPath.setAttribute('stroke-linecap', 'round');
                     currentPath.setAttribute('stroke-linejoin', 'round');
-                    currentPath.setAttribute('d', `M ${coords.x} ${coords.y}`);
+                    if (drawingMode === 'highlighter') {
+                        currentPath.setAttribute('stroke-opacity', '0.38');
+                        currentPath.setAttribute('stroke-width', String(Math.max(drawWidth * 1.85, 8)));
+                    } else {
+                        currentPath.setAttribute('stroke-width', drawWidth);
+                    }
+                    currentPath.setAttribute('d', buildSmoothPathD(penPointBuffer));
                     currentPath.classList.add('user-drawing');
                     targetDrawingGroup.appendChild(currentPath);
                 } else if (drawingMode === 'arrow') {
@@ -5284,79 +5528,36 @@
                     currentElement.classList.add('user-drawing');
                     targetDrawingGroup.appendChild(currentElement);
                 } else if (drawingMode === 'text') {
-                    // Mostra prompt per inserire il testo
-                    const userText = prompt('Inserisci il testo da visualizzare sul campo:', '');
-                    if (userText && userText.trim() !== '') {
-                        const textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-                        textElement.setAttribute('x', coords.x);
-                        textElement.setAttribute('y', coords.y);
-                        textElement.setAttribute('fill', drawColor);
-                        textElement.setAttribute('font-size', drawFontSize);
-                        textElement.setAttribute('font-family', 'Roboto, Arial, sans-serif');
-                        textElement.setAttribute('font-weight', '600');
-                        textElement.setAttribute('text-anchor', 'middle');
-                        textElement.setAttribute('dominant-baseline', 'middle');
-                        textElement.textContent = userText;
-                        textElement.classList.add('user-drawing', 'draggable-text');
-                        textElement.style.cursor = 'move';
-                        
-                        // Sistema ottimizzato di trascinamento (evita accumulo di event listener)
-                        // I dati vengono salvati nell'elemento, mentre i listener mousemove/mouseup
-                        // sono gestiti centralmente dall'SVG parent (uno solo per tutti i testi)
-                        textElement._draggableData = {
-                            isDragging: false,
-                            hasMoved: false,
-                            startX: 0,
-                            startY: 0,
-                            textStartX: 0,
-                            textStartY: 0,
-                            svgElement: svgElement
-                        };
-                        
-                        // Mousedown sul testo per iniziare il trascinamento
-                        textElement.addEventListener('mousedown', (e) => {
-                            e.stopPropagation();
-                            const data = textElement._draggableData;
-                            data.isDragging = true;
-                            data.hasMoved = false;
-                            const coords = getSvgCoordinates(e, data.svgElement);
-                            data.startX = coords.x;
-                            data.startY = coords.y;
-                            data.textStartX = parseFloat(textElement.getAttribute('x'));
-                            data.textStartY = parseFloat(textElement.getAttribute('y'));
-                            
-                            // Salva l'elemento corrente che sta venendo trascinato
-                            data.svgElement._currentDraggingText = textElement;
-                        });
-                        
-                        // Click per modificare il testo (solo se non è stato trascinato)
-                        textElement.addEventListener('click', (e) => {
-                            const data = textElement._draggableData;
-                            if (!data.hasMoved) {
-                                e.stopPropagation();
-                                const newText = prompt('Modifica il testo:', textElement.textContent);
-                                if (newText !== null && newText.trim() !== '') {
-                                    textElement.textContent = newText;
-                                }
-                            }
-                        });
-                        
-                        // Doppio click per modificare le dimensioni
-                        textElement.addEventListener('dblclick', (e) => {
-                            e.stopPropagation();
-                            const currentSize = parseFloat(textElement.getAttribute('font-size'));
-                            const newSize = prompt('Inserisci la nuova dimensione del testo (12-72):', currentSize);
-                            if (newSize !== null) {
-                                const size = parseInt(newSize);
-                                if (!isNaN(size) && size >= 12 && size <= 72) {
-                                    textElement.setAttribute('font-size', size);
-                                }
-                            }
-                        });
-                        
-                        targetDrawingGroup.appendChild(textElement);
+                    const hitText = evt.target && evt.target.closest && evt.target.closest('text.draggable-text');
+                    if (hitText) {
+                        isDrawing = false;
+                        return;
                     }
-                    isDrawing = false; // Il testo non richiede drag
+                    clearDrawTextEditTarget();
+                    const raw = getMenuTextRawTrimmed();
+                    if (!raw) {
+                        isDrawing = false;
+                        return;
+                    }
+                    const chosenSize = readMenuTextFontSize();
+                    const textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    textElement.setAttribute('x', coords.x);
+                    textElement.setAttribute('y', coords.y);
+                    textElement.setAttribute('fill', drawColor);
+                    textElement.setAttribute('font-size', chosenSize);
+                    textElement.setAttribute('font-family', 'Roboto, Arial, sans-serif');
+                    textElement.setAttribute('font-weight', '600');
+                    textElement.setAttribute('text-anchor', 'middle');
+                    textElement.setAttribute('dominant-baseline', 'middle');
+                    textElement.textContent = raw;
+                    textElement.classList.add('user-drawing', 'draggable-text');
+                    textElement.style.cursor = 'move';
+                    bindDraggableText(textElement, svgElement);
+                    targetDrawingGroup.appendChild(textElement);
+                    syncMainDrawFontSizeControls(chosenSize);
+                    setMenuTextFontSizeUi(chosenSize);
+                    recordDrawingState();
+                    isDrawing = false;
                 } else if (drawingMode === 'ruler') {
                     // Salva il punto iniziale per il righello
                     startPoint = coords;
@@ -5414,8 +5615,9 @@
                     
                     targetDrawingGroup.appendChild(currentElement);
                 } else if (drawingMode === 'eraser') {
+                    eraserStartHtml = JSON.stringify(getDrawingSnapshot());
                     // Trova e rimuovi elementi vicini al cursore con un raggio più ampio
-                    const eraserRadius = 15; // Raggio di cancellazione
+                    const eraserRadius = 18;
                     const drawings = targetDrawingGroup.querySelectorAll('.user-drawing');
                     
                     for (let drawing of drawings) {
@@ -5474,23 +5676,28 @@
                 
                 const coords = getSvgCoordinates(evt, svgElement);
                 
-                if (drawingMode === 'pen' && currentPath) {
-                    // Continua il path
-                    const currentD = currentPath.getAttribute('d');
-                    currentPath.setAttribute('d', `${currentD} L ${coords.x} ${coords.y}`);
+                if ((drawingMode === 'pen' || drawingMode === 'highlighter') && currentPath && penPointBuffer) {
+                    const last = penPointBuffer[penPointBuffer.length - 1];
+                    const dist = Math.hypot(coords.x - last.x, coords.y - last.y);
+                    if (dist > 1.2) {
+                        penPointBuffer.push({ x: coords.x, y: coords.y });
+                        currentPath.setAttribute('d', buildSmoothPathD(penPointBuffer));
+                    }
                 } else if (drawingMode === 'arrow' && currentElement && startPoint) {
+                    let end = coords;
+                    if (evt.shiftKey) end = snapLineEnd(startPoint, coords);
                     // Aggiorna la linea della freccia
                     const line = currentElement.querySelector('.arrow-line');
                     if (line) {
-                        line.setAttribute('x2', coords.x);
-                        line.setAttribute('y2', coords.y);
+                        line.setAttribute('x2', end.x);
+                        line.setAttribute('y2', end.y);
                     }
                     
                     // Calcola e aggiorna la punta della freccia (più grande e più evidente)
                     const arrowhead = currentElement.querySelector('.arrow-head');
                     if (arrowhead) {
-                        const dx = coords.x - startPoint.x;
-                        const dy = coords.y - startPoint.y;
+                        const dx = end.x - startPoint.x;
+                        const dy = end.y - startPoint.y;
                         const angle = Math.atan2(dy, dx);
                         
                         // Freccia molto più grande e più larga (angolo più ampio)
@@ -5498,20 +5705,21 @@
                         const arrowAngle = Math.PI / 4.5; // Angolo più ampio per rendere la freccia più evidente
                         
                         // Calcola i punti della punta della freccia (triangolo più grande)
-                        const x1 = coords.x - arrowSize * Math.cos(angle - arrowAngle);
-                        const y1 = coords.y - arrowSize * Math.sin(angle - arrowAngle);
-                        const x2 = coords.x - arrowSize * Math.cos(angle + arrowAngle);
-                        const y2 = coords.y - arrowSize * Math.sin(angle + arrowAngle);
+                        const x1 = end.x - arrowSize * Math.cos(angle - arrowAngle);
+                        const y1 = end.y - arrowSize * Math.sin(angle - arrowAngle);
+                        const x2 = end.x - arrowSize * Math.cos(angle + arrowAngle);
+                        const y2 = end.y - arrowSize * Math.sin(angle + arrowAngle);
                         
-                        arrowhead.setAttribute('d', `M ${coords.x} ${coords.y} L ${x1} ${y1} L ${x2} ${y2} Z`);
+                        arrowhead.setAttribute('d', `M ${end.x} ${end.y} L ${x1} ${y1} L ${x2} ${y2} Z`);
                         arrowhead.setAttribute('stroke', drawColor);
                         arrowhead.setAttribute('stroke-width', '1');
                         arrowhead.setAttribute('stroke-linejoin', 'miter');
                     }
                 } else if (drawingMode === 'line' && currentElement) {
-                    // Aggiorna la linea
-                    currentElement.setAttribute('x2', coords.x);
-                    currentElement.setAttribute('y2', coords.y);
+                    let endL = coords;
+                    if (evt.shiftKey && startPoint) endL = snapLineEnd(startPoint, coords);
+                    currentElement.setAttribute('x2', endL.x);
+                    currentElement.setAttribute('y2', endL.y);
                 } else if (drawingMode === 'ruler' && currentElement && startPoint) {
                     // Ottimizzazione: usa riferimenti cached invece di querySelector ripetuti
                     if (!currentElement._cachedElements) {
@@ -5526,15 +5734,18 @@
                     
                     const { line, measureText, measureBg, tick1, tick2 } = currentElement._cachedElements;
                     
+                    let endR = coords;
+                    if (evt.shiftKey) endR = snapLineEnd(startPoint, coords);
+                    
                     // Aggiorna la linea del righello
                     if (line) {
-                        line.setAttribute('x2', coords.x);
-                        line.setAttribute('y2', coords.y);
+                        line.setAttribute('x2', endR.x);
+                        line.setAttribute('y2', endR.y);
                     }
                     
                     // Calcola la lunghezza
-                    const dx = coords.x - startPoint.x;
-                    const dy = coords.y - startPoint.y;
+                    const dx = endR.x - startPoint.x;
+                    const dy = endR.y - startPoint.y;
                     const length = Math.sqrt(dx * dx + dy * dy);
                     
                     // Calcola l'angolo della linea
@@ -5557,10 +5768,10 @@
                     if (tick2) {
                         // Segmentino alla fine
                         const perpAngle = angle + Math.PI / 2; // Perpendicolare
-                        const tick2x1 = coords.x - Math.cos(perpAngle) * tickLength;
-                        const tick2y1 = coords.y - Math.sin(perpAngle) * tickLength;
-                        const tick2x2 = coords.x + Math.cos(perpAngle) * tickLength;
-                        const tick2y2 = coords.y + Math.sin(perpAngle) * tickLength;
+                        const tick2x1 = endR.x - Math.cos(perpAngle) * tickLength;
+                        const tick2y1 = endR.y - Math.sin(perpAngle) * tickLength;
+                        const tick2x2 = endR.x + Math.cos(perpAngle) * tickLength;
+                        const tick2y2 = endR.y + Math.sin(perpAngle) * tickLength;
                         tick2.setAttribute('x1', tick2x1);
                         tick2.setAttribute('y1', tick2y1);
                         tick2.setAttribute('x2', tick2x2);
@@ -5574,8 +5785,8 @@
                         measureText.textContent = lengthText;
                         
                         // Posiziona il testo al centro della linea
-                        const midX = (startPoint.x + coords.x) / 2;
-                        const midY = (startPoint.y + coords.y) / 2;
+                        const midX = (startPoint.x + endR.x) / 2;
+                        const midY = (startPoint.y + endR.y) / 2;
                         
                         // Calcola l'angolo della linea per posizionare il testo perpendicolarmente
                         const offset = 15; // Distanza dalla linea
@@ -5596,7 +5807,7 @@
                     }
                 } else if (drawingMode === 'eraser') {
                     // Continua a cancellare mentre si muove con il mouse premuto
-                    const eraserRadius = 15; // Raggio di cancellazione
+                    const eraserRadius = 18;
                     const drawings = targetDrawingGroup.querySelectorAll('.user-drawing');
                     
                     for (let drawing of drawings) {
@@ -5631,18 +5842,40 @@
             });
             
             svgElement.addEventListener('mouseup', () => {
-                // Gestione fine trascinamento testo
                 if (svgElement._currentDraggingText) {
                     const textElement = svgElement._currentDraggingText;
                     const data = textElement._draggableData;
                     if (data) {
+                        if (data.isDragging && data.hasMoved) recordDrawingState();
                         data.isDragging = false;
                     }
                     svgElement._currentDraggingText = null;
                 }
                 
-                if (!window.drawingEnabled) return;
+                const wasStroke = isDrawing;
+
+                if (!window.drawingEnabled) {
+                    isDrawing = false;
+                    penPointBuffer = null;
+                    currentPath = null;
+                    currentElement = null;
+                    startPoint = null;
+                    return;
+                }
+                
+                if ((drawingMode === 'pen' || drawingMode === 'highlighter') && currentPath && penPointBuffer) {
+                    currentPath.setAttribute('d', buildSmoothPathD(penPointBuffer));
+                    recordDrawingState();
+                } else if (eraserStartHtml !== null) {
+                    const now = JSON.stringify(getDrawingSnapshot());
+                    if (now !== eraserStartHtml) recordDrawingState();
+                    eraserStartHtml = null;
+                } else if (wasStroke && (drawingMode === 'arrow' || drawingMode === 'line' || drawingMode === 'ruler')) {
+                    recordDrawingState();
+                }
+                
                 isDrawing = false;
+                penPointBuffer = null;
                 currentPath = null;
                 currentElement = null;
                 startPoint = null;
@@ -5661,12 +5894,12 @@
                 
                 if (!window.drawingEnabled) return;
                 isDrawing = false;
+                penPointBuffer = null;
+                eraserStartHtml = null;
                 currentPath = null;
                 currentElement = null;
                 startPoint = null;
             });
-            
-            // Supporto touch per dispositivi mobili
             svgElement.addEventListener('touchstart', (evt) => {
                 if (!window.drawingEnabled) return;
                 evt.preventDefault();
@@ -5736,6 +5969,9 @@
                 });
                 observer.observe(secondaryWrap, { childList: true, subtree: false });
             }
+            
+            resetDrawHistoryFromDom();
+            refreshDrawInspector();
             
             // Gestione dell'indicatore visivo della gomma
             document.addEventListener('mousemove', (evt) => {
@@ -6140,24 +6376,6 @@
                 });
             }
 
-            const drawFontSizeInput = document.getElementById('draw_font_size');
-            const drawFontSizeDrawer = document.getElementById('draw_font_size_drawer');
-            const drawFontSizeValueDrawer = document.getElementById('draw_font_size_value_drawer');
-            if (drawFontSizeInput && drawFontSizeDrawer) {
-                drawFontSizeDrawer.addEventListener('input', () => {
-                    drawFontSizeInput.value = drawFontSizeDrawer.value;
-                    if (drawFontSizeValueDrawer) drawFontSizeValueDrawer.textContent = drawFontSizeDrawer.value;
-                    drawFontSizeInput.dispatchEvent(new Event('input', { bubbles: true }));
-                    drawFontSizeInput.dispatchEvent(new Event('change', { bubbles: true }));
-                });
-                drawFontSizeInput.addEventListener('input', () => {
-                    if (drawFontSizeDrawer.value !== drawFontSizeInput.value) {
-                        drawFontSizeDrawer.value = drawFontSizeInput.value;
-                        if (drawFontSizeValueDrawer) drawFontSizeValueDrawer.textContent = drawFontSizeInput.value;
-                    }
-                });
-            }
-
             // Download: sync radio drawer (downloadType/downloadCourt/shot number) con quelli principali
             syncRadioFromDrawer('downloadType_drawer', 'downloadType');
             syncRadioFromDrawer('downloadCourt_drawer', 'downloadCourt');
@@ -6232,10 +6450,6 @@
                     drawWidthDrawer.value = drawWidthInput.value;
                     if (drawWidthValueDrawer) drawWidthValueDrawer.textContent = drawWidthInput.value;
                 }
-                if (drawFontSizeDrawer && drawFontSizeInput) {
-                    drawFontSizeDrawer.value = drawFontSizeInput.value;
-                    if (drawFontSizeValueDrawer) drawFontSizeValueDrawer.textContent = drawFontSizeInput.value;
-                }
                 // Stato attivo dei bottoni disegno
                 syncDrawerDrawToolActiveState();
                 // Opzioni disegno (color/width/font size) visibili solo quando rilevanti
@@ -6290,17 +6504,13 @@
             // Mostra/nasconde le righe colore/spessore e font-size nel drawer,
             // ricalcandone la visibilità dai rispettivi container principali
             function syncDrawerDrawOptionsVisibility() {
-                const mainDrawOptions = document.getElementById('draw_controls_hover');
+                const mainInspector = document.getElementById('draw_inspector');
                 const drawerDrawOptions = document.getElementById('drawer_draw_options');
-                if (mainDrawOptions && drawerDrawOptions) {
-                    const visible = mainDrawOptions.style.display !== 'none';
-                    drawerDrawOptions.style.display = visible ? '' : 'none';
+                if (mainInspector && drawerDrawOptions) {
+                    drawerDrawOptions.style.display = mainInspector.hidden ? 'none' : '';
                 }
-                const mainFontSize = document.getElementById('draw_font_size_hover');
-                const drawerFontSize = document.getElementById('drawer_font_size_options');
-                if (mainFontSize && drawerFontSize) {
-                    const visible = mainFontSize.style.display !== 'none';
-                    drawerFontSize.style.display = visible ? '' : 'none';
+                if (typeof refreshDrawTextMenuPanels === 'function') {
+                    refreshDrawTextMenuPanels();
                 }
             }
 
@@ -8499,125 +8709,6 @@
                         mainDownloadButton.click();
                     }
                     closeAllModals();
-                });
-            }
-        })();
-
-        // ==========================================
-        // DRAW CONTROLS HOVER FUNCTIONALITY
-        // ==========================================
-        (function() {
-            const drawControlsHover = document.getElementById('draw_controls_hover');
-            const drawFontSizeHover = document.getElementById('draw_font_size_hover');
-            const drawSection = document.getElementById('draw-section');
-            
-            if (!drawSection || !drawControlsHover) return;
-            
-            // Tools that need color and width controls
-            const toolsWithControls = ['pen', 'arrow', 'line', 'ruler'];
-            // Tools that need font size controls
-            const toolsWithFontSize = ['text'];
-            // Tools that don't need controls
-            const toolsWithoutControls = ['eraser', 'clear'];
-            
-            // Get all draw tool buttons
-            const drawToolButtons = drawSection.querySelectorAll('.draw-tool-button[data-tool]');
-            
-            let hoverTimeout;
-            
-            function showControls(tool) {
-                // Clear any existing timeout
-                if (hoverTimeout) {
-                    clearTimeout(hoverTimeout);
-                    hoverTimeout = null;
-                }
-                
-                // Hide all controls first
-                drawControlsHover.classList.remove('show');
-                if (drawFontSizeHover) {
-                    drawFontSizeHover.classList.remove('show');
-                }
-                
-                // Show appropriate controls based on tool
-                if (toolsWithControls.includes(tool)) {
-                    // Show color and width controls
-                    drawControlsHover.classList.add('show');
-                    if (drawFontSizeHover) {
-                        drawFontSizeHover.classList.remove('show');
-                    }
-                } else if (toolsWithFontSize.includes(tool)) {
-                    // Show color, width, and font size controls for text
-                    drawControlsHover.classList.add('show');
-                    if (drawFontSizeHover) {
-                        drawFontSizeHover.classList.add('show');
-                    }
-                }
-            }
-            
-            function hideControls() {
-                hoverTimeout = setTimeout(() => {
-                    drawControlsHover.classList.remove('show');
-                    if (drawFontSizeHover) {
-                        drawFontSizeHover.classList.remove('show');
-                    }
-                }, 200); // Small delay to allow moving between button and controls
-            }
-            
-            // Add hover listeners to each tool button
-            drawToolButtons.forEach(button => {
-                const tool = button.getAttribute('data-tool');
-                
-                if (tool && !toolsWithoutControls.includes(tool)) {
-                    button.addEventListener('mouseenter', () => {
-                        showControls(tool);
-                    });
-                    
-                    button.addEventListener('mouseleave', () => {
-                        hideControls();
-                    });
-                }
-            });
-            
-            // Keep controls visible when hovering over them
-            if (drawControlsHover) {
-                drawControlsHover.addEventListener('mouseenter', () => {
-                    if (hoverTimeout) {
-                        clearTimeout(hoverTimeout);
-                        hoverTimeout = null;
-                    }
-                });
-                
-                drawControlsHover.addEventListener('mouseleave', () => {
-                    hideControls();
-                });
-            }
-            
-            if (drawFontSizeHover) {
-                drawFontSizeHover.addEventListener('mouseenter', () => {
-                    if (hoverTimeout) {
-                        clearTimeout(hoverTimeout);
-                        hoverTimeout = null;
-                    }
-                });
-                
-                drawFontSizeHover.addEventListener('mouseleave', () => {
-                    hideControls();
-                });
-            }
-            
-            // Hide controls when clicking on clear or eraser (they don't need controls)
-            const clearButton = document.getElementById('draw_clear_btn');
-            const eraserButton = document.getElementById('draw_eraser_btn');
-            
-            if (clearButton) {
-                clearButton.addEventListener('click', () => {
-                    hideControls();
-                });
-            }
-            
-            if (eraserButton) {
-                eraserButton.addEventListener('click', () => {
-                    hideControls();
                 });
             }
         })();
