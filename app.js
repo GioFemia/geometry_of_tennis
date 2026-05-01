@@ -979,8 +979,8 @@
                 }
                 
                 // Mostra solo le sezioni .compact (Colpitore, Colpo, Visualizza, Disegna, Scarica) quando è aperto il menu
-                // Queste sono le sezioni dirette del sidebar, NON quelle dentro panelImpostazioni
-                const mainControlSections = controlsSidebar.querySelectorAll(':scope > .control-section.compact');
+                // Figlie dirette di .controls-sidebar-scroll, NON quelle dentro panelImpostazioni
+                const mainControlSections = controlsSidebar.querySelectorAll(':scope > .controls-sidebar-scroll > .control-section.compact');
                 mainControlSections.forEach(section => {
                     if (isMenuSection && open) {
                         section.classList.add('mobile-visible');
@@ -2597,53 +2597,76 @@
                 }
                 
                 const primaryCourt = document.querySelector('.court-container.primary-court');
-                if (!primaryCourt) return;
+                const secondaryCourt = document.querySelector('.court-container.secondary-court');
+                if (!primaryCourt || !secondaryCourt) return;
                 
-                // Ottieni il page-container come riferimento
                 const pageContainer = document.querySelector('.page-container');
                 if (!pageContainer) return;
                 
-                // Ottieni le posizioni e dimensioni
                 const pageRect = pageContainer.getBoundingClientRect();
-                const courtRect = primaryCourt.getBoundingClientRect();
+                const primaryRect = primaryCourt.getBoundingClientRect();
+                const secondaryRect = secondaryCourt.getBoundingClientRect();
                 
-                // Verifica che i campi abbiano dimensioni valide
-                if (courtRect.height <= 0 || pageRect.height <= 0) {
-                    // Se le dimensioni non sono ancora disponibili, riprova dopo un breve delay
+                if (pageRect.height <= 0 || primaryRect.height <= 0) {
                     requestAnimationFrame(() => {
                         setTimeout(updateCourtsArrowPosition, 50);
                     });
                     return;
                 }
                 
-                // Nel viewBox SVG, la rete è a NET_Y = 486
-                // Il campo visibile va da ORIGIN_TOP_Y (150) a ORIGIN_BOTTOM_Y (822)
-                // Quindi la rete è a: 486 - 150 = 336 pixel dal top del campo visibile
-                // Su un'altezza totale del campo visibile di: 822 - 150 = 672 pixel
-                // Percentuale: 336 / 672 = 0.5 = 50% (centro del campo)
+                // Centro orizzontale dello spazio tra il campo principale e quello secondario
+                const gapMidX = (primaryRect.right + secondaryRect.left) / 2;
+                const leftPx = gapMidX - pageRect.left;
                 
-                const courtTop = courtRect.top - pageRect.top;
-                const courtHeight = courtRect.height;
+                // Altezza rete: coordinate SVG → schermo (stesso criterio della misura orizzontale)
+                let netTopPx = primaryRect.top - pageRect.top + primaryRect.height / 2;
+                const svgEl = document.getElementById('tennisCourt');
+                if (svgEl && typeof svgEl.createSVGPoint === 'function') {
+                    try {
+                        const ctm = svgEl.getScreenCTM();
+                        if (ctm) {
+                            const pt = svgEl.createSVGPoint();
+                            pt.x = ORIGIN_X;
+                            pt.y = NET_Y;
+                            const p = pt.matrixTransform(ctm);
+                            netTopPx = p.y - pageRect.top;
+                        }
+                    } catch (e) {
+                        /* fallback metà altezza contenitore campo */
+                    }
+                }
                 
-                // La rete è al 50% dell'altezza del campo visibile
-                // Calcoliamo la posizione assoluta della rete nel campo
-                const netPosition = courtTop + (courtHeight / 2);
-                
-                // Verifica che la posizione calcolata sia ragionevole
-                // La freccia dovrebbe essere all'interno del page-container
-                if (netPosition < pageRect.top || netPosition > pageRect.bottom) {
-                    // Posizione non valida, riprova dopo un breve delay
+                const slop = 48;
+                if (
+                    secondaryRect.width <= 2
+                    || !Number.isFinite(leftPx)
+                    || !Number.isFinite(netTopPx)
+                    || netTopPx < -slop
+                    || netTopPx > pageRect.height + slop
+                ) {
                     requestAnimationFrame(() => {
                         setTimeout(updateCourtsArrowPosition, 50);
                     });
                     return;
                 }
                 
-                // Posiziona la freccia all'altezza della rete, centrata orizzontalmente
                 courtsArrow.style.position = 'absolute';
-                courtsArrow.style.top = `${netPosition}px`;
-                courtsArrow.style.left = '62%';
+                courtsArrow.style.top = `${netTopPx}px`;
+                courtsArrow.style.left = `${leftPx}px`;
                 courtsArrow.style.transform = 'translate(-50%, -50%)';
+            }
+
+            if (typeof ResizeObserver !== 'undefined') {
+                const layoutObsRoot = document.querySelector('.page-container');
+                if (layoutObsRoot) {
+                    const courtsLayoutObserver = new ResizeObserver(() => {
+                        updateCourtsArrowPosition();
+                        if (typeof updateArrowHtmlPosition === 'function') {
+                            updateArrowHtmlPosition();
+                        }
+                    });
+                    courtsLayoutObserver.observe(layoutObsRoot);
+                }
             }
             
             // Event listeners for download type selection (2 colpi mode)
@@ -3579,8 +3602,60 @@
                 addDefaultEventListeners();
             }
             
+            /** Valori correnti nella sezione Impostazioni → Default (HTML o già aggiornati da localStorage). */
+            function readDefaultSectionDomValues() {
+                const d = {};
+                const selKeys = ['gioco', 'colpitore', 'modalita', 'tipologia', 'campoType'];
+                selKeys.forEach((key) => {
+                    const el = document.getElementById('default_' + key);
+                    if (el && 'value' in el) {
+                        d[key] = el.value;
+                    }
+                });
+                const viewKeys = ['view_directions', 'view_player', 'view_shot', 'view_responder', 'view_center', 'view_coordinates'];
+                viewKeys.forEach((key) => {
+                    const el = document.getElementById('default_' + key);
+                    if (el && el.type === 'checkbox') {
+                        d[key] = el.checked ? 'true' : 'false';
+                    }
+                });
+                return d;
+            }
+
+            /**
+             * Allinea flag globali e grafica ai controlli effettivi dopo i default.
+             * Copre il primo avvio (nessun localStorage): i change non partono se il valorem resta uguale.
+             */
+            function syncBootstrapStateFromDom() {
+                const gTop = document.querySelector('input[name="gioco_top"]:checked');
+                if (gTop) {
+                    window.__gioco__ = gTop.value;
+                }
+                window.dispatchEvent(new Event('giocoChanged'));
+
+                const m = document.querySelector('input[name="modalita"]:checked');
+                if (m) {
+                    window.__modalita__ = m.value;
+                }
+
+                if (chkDirections) window.__viewDirections__ = !!chkDirections.checked;
+                if (chkPlayer) window.__viewPlayer__ = !!chkPlayer.checked;
+                if (chkShot) window.__viewShot__ = !!chkShot.checked;
+                if (chkResponder) window.__viewResponder__ = !!chkResponder.checked;
+                if (chkCenter) window.__viewCenter__ = !!chkCenter.checked;
+                if (chkCover) window.__viewCover__ = !!chkCover.checked;
+                if (chkCoordinates) window.__viewCoordinates__ = !!chkCoordinates.checked;
+
+                applyViewToggles();
+                const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                updateLinesAndWedge(dotX, dotY);
+                updateIntersectionDot();
+                updateArrowHtmlPosition();
+                syncTennisCourtAccessibility(false);
+            }
+
             function loadAndApplyDefaults() {
-                // Load defaults from localStorage
                 const savedDefaults = {
                     gioco: localStorage.getItem('default_gioco'),
                     colpitore: localStorage.getItem('default_colpitore'),
@@ -3594,12 +3669,20 @@
                     view_center: localStorage.getItem('default_view_center'),
                     view_coordinates: localStorage.getItem('default_view_coordinates')
                 };
-                
-                // Apply to DEFAULT section
+
                 applyToDefaultSection(savedDefaults);
-                
-                // Apply to actual controls
-                applyToActualControls(savedDefaults);
+
+                const domDefaults = readDefaultSectionDomValues();
+                const effective = {};
+                Object.keys(savedDefaults).forEach((key) => {
+                    const raw = savedDefaults[key];
+                    effective[key] = raw !== null && raw !== undefined && raw !== ''
+                        ? raw
+                        : domDefaults[key];
+                });
+
+                applyToActualControls(effective);
+                syncBootstrapStateFromDom();
             }
             
             function applyToDefaultSection(defaults) {
@@ -3642,7 +3725,7 @@
             function applyToActualControls(defaults) {
                 // Apply to actual control sections
                 // Applica prima la modalità se presente, così window.__modalita__ viene aggiornato correttamente
-                if (defaults.modalita !== null) {
+                if (defaults.modalita != null && String(defaults.modalita).length) {
                     const targetRadio = document.querySelector(`input[name="modalita"][value="${defaults.modalita}"]`);
                     if (targetRadio) {
                         targetRadio.checked = true;
@@ -3664,7 +3747,7 @@
                 
                 // Poi applica gli altri controlli
                 Object.keys(defaults).forEach(key => {
-                    if (defaults[key] !== null && key !== 'modalita') {
+                    if (defaults[key] != null && String(defaults[key]).length && key !== 'modalita') {
                         if (key.startsWith('view_')) {
                             const targetCheckbox = document.getElementById(key);
                             if (targetCheckbox) {
@@ -6524,6 +6607,8 @@
                             if (els.length === 1) return els[0];
                             return { _multiElement: true, elements: els };
                         }
+                        case 'top-bar-lezioni':
+                            return document.getElementById('topBarLezioni');
                         default:
                             return null;
                     }
@@ -6806,11 +6891,11 @@
                 // Funzione per determinare se la guida deve essere sidebar o sostituire il campo principale
                 function shouldShowSidebar(step) {
                     // Pagine in overlay: introduzione e ultime tre pagine
-                    if (step === 0 || step === 12 || step === 13 || step === 14) {
+                    if (step === 0 || step === 13 || step === 14 || step === 15) {
                         return false; // Overlay per queste pagine
                     }
-                    // Sidebar per le pagine centrali del tutorial
-                    return (step >= 1 && step <= 11);
+                    // Sidebar per le pagine centrali del tutorial (inclusa Lezioni)
+                    return (step >= 1 && step <= 12);
                 }
                 
                 // Funzione per determinare se la guida deve sostituire il campo principale
@@ -7187,18 +7272,11 @@
                 
                 // Chiudi il tutorial
                 function closeTutorial() {
-                    const completedTour = (typeof currentStep === 'number' && totalSteps > 0 && currentStep >= totalSteps - 1);
-                    if (completedTour) {
-                        try {
-                            localStorage.setItem('geometryOfTennis_tutorialSeen', 'true');
-                        } catch (e) {
-                            /* localStorage non disponibile */
-                        }
-                    }
                     try {
-                        sessionStorage.setItem('geometryOfTennis_tutorialSessionDismissed', '1');
+                        /* Prima visita: basta aver aperto e chiuso la guida (anche senza completare tutti gli step). */
+                        localStorage.setItem('geometryOfTennis_tutorialSeen', 'true');
                     } catch (e) {
-                        /* sessionStorage non disponibile */
+                        /* localStorage non disponibile */
                     }
 
                     // Nascondi subito TU / AVVERSARIO (l'overlay è ancora "active": updateTutorialFieldLabels non può farlo)
@@ -7337,17 +7415,18 @@
                 createDots();
                 updateUI();
                 
-                // Mostra automaticamente il tutorial alla prima visita (se non disattivato in precedenza o in questa sessione)
+                // Prima visita: apri la guida se non è mai stata mostrata (o localStorage non disponibile → prova comunque).
                 try {
                     const tutorialSeen = localStorage.getItem('geometryOfTennis_tutorialSeen');
-                    const sessionDismissed = sessionStorage.getItem('geometryOfTennis_tutorialSessionDismissed');
-                    if (!tutorialSeen && !sessionDismissed) {
+                    if (!tutorialSeen) {
                         setTimeout(() => {
                             openTutorial();
                         }, 600);
                     }
                 } catch (e) {
-                    /* storage non disponibile, non mostrare automaticamente */
+                    setTimeout(() => {
+                        openTutorial();
+                    }, 600);
                 }
             })();
 
@@ -7538,11 +7617,27 @@
                 if (yl) yl.style.display = 'none';
             }
 
+            /** Le lezioni sono sempre singolo: nasconde nel clone cerchi/linee doppio anche se il menu era in doppio. */
+            function hideLessonCloneDoppioDecorations(clone) {
+                if (!clone) return;
+                ['doppioA1', 'doppioA2', 'doppioB1', 'doppioB2'].forEach((id) => {
+                    const el = clone.querySelector('#' + id);
+                    if (el) el.style.display = 'none';
+                });
+                clone.querySelectorAll('svg line').forEach((line) => {
+                    const sw = line.getAttribute('stroke-width');
+                    if (line.getAttribute('stroke') === '#000' && String(sw) === '2') {
+                        line.style.display = 'none';
+                    }
+                });
+            }
+
             function stripAndMountLessonClone(clone, mountEl, opts) {
                 if (!mountEl) return;
                 if (!opts || !opts.keepBisectorAndYellow) {
                     hideLessonPericoloBisectorAndYellow(clone);
                 }
+                hideLessonCloneDoppioDecorations(clone);
                 if (opts && opts.horizontalMeasureText) {
                     const lbl = clone.querySelector('#h-measure-label');
                     if (lbl) lbl.textContent = opts.horizontalMeasureText;

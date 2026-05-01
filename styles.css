@@ -45,6 +45,8 @@ body {
     justify-content: space-between;
     padding: 0 24px;
     box-sizing: border-box;
+    min-width: 0;
+    max-width: 100vw;
 }
 
 @media (min-width: 901px) {
@@ -118,6 +120,74 @@ body {
 
 .top-bar-label {
     white-space: nowrap;
+}
+
+/* Desktop a larghezza intermedia / zoom: evita overflow e mantiene azioni raggiungibili */
+@media (min-width: 901px) and (max-width: 1320px) {
+    .top-bar {
+        padding: 0 clamp(10px, 2.2vw, 24px);
+        gap: 4px;
+    }
+
+    .top-bar-left {
+        flex: 1;
+        min-width: 0;
+        gap: clamp(6px, 0.9vw, 14px);
+    }
+
+    .top-bar-right {
+        flex-shrink: 0;
+    }
+
+    .top-bar-logo {
+        min-width: 0;
+        flex-shrink: 1;
+        max-width: min(300px, 34vw);
+    }
+
+    .top-bar-title {
+        font-size: clamp(0.8125rem, 0.65vw + 0.68rem, 1.625rem);
+        letter-spacing: clamp(0.05em, 0.08vw + 0.04em, 0.16em);
+    }
+
+    .top-bar-left .top-bar-title {
+        margin-right: 0;
+    }
+
+    .top-bar-segment--app {
+        flex-shrink: 0;
+        flex-wrap: nowrap;
+        gap: clamp(4px, 0.55vw, 10px);
+    }
+
+    .top-bar-item {
+        padding: clamp(7px, 0.75vw, 10px) clamp(8px, 1.15vw, 18px);
+        font-size: clamp(10.5px, 0.35vw + 10px, 13px);
+        gap: 4px;
+    }
+
+    .top-bar-modal {
+        right: clamp(12px, 2vw, 24px);
+        width: min(400px, calc(100vw - 32px));
+    }
+}
+
+@media (min-width: 901px) and (max-width: 1080px) {
+    body:not(.app-view-lezioni) .top-bar-segment--app .top-bar-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+    }
+
+    body:not(.app-view-lezioni) .top-bar-segment--app .top-bar-item {
+        padding: 9px 11px;
+    }
 }
 
 .top-bar-icon {
@@ -1075,9 +1145,17 @@ button.lezione-cross-ref:focus-visible {
     flex-shrink: 0;
     margin-left: 0;
     max-height: calc(100vh - 1.6em);
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
     position: relative;
+}
+
+/* Area scrollabile tra header bar e footer crediti */
+.controls-sidebar-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
 @media (min-width: 901px) {
@@ -1085,26 +1163,40 @@ button.lezione-cross-ref:focus-visible {
         max-height: calc(100vh - var(--top-bar-height) - 1.6em);
         gap: 6px;
         padding: 10px;
-        padding-bottom: 0; /* il footer sticky fornisce il padding inferiore */
-        overflow-y: auto;  /* scroll interno se il contenuto eccede */
-        overflow-x: hidden;
+        padding-bottom: 0;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
+        align-items: stretch;
     }
 
-    /* Scrollbar sottile e discreta */
-    .controls-sidebar::-webkit-scrollbar {
+    .controls-sidebar > .menu-header,
+    .controls-sidebar > .mobile-nav-bar {
+        flex-shrink: 0;
+    }
+
+    .controls-sidebar-scroll {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-x: hidden;
+        overflow-y: auto;
+        /* Scrollbar sul contenuto, non sul card intero */
+        scrollbar-width: thin;
+        scrollbar-color: rgba(25, 118, 210, 0.22) transparent;
+    }
+
+    .controls-sidebar-scroll::-webkit-scrollbar {
         width: 6px;
     }
-    .controls-sidebar::-webkit-scrollbar-track {
+    .controls-sidebar-scroll::-webkit-scrollbar-track {
         background: transparent;
     }
-    .controls-sidebar::-webkit-scrollbar-thumb {
+    .controls-sidebar-scroll::-webkit-scrollbar-thumb {
         background: rgba(25, 118, 210, 0.22);
         border-radius: 3px;
     }
-    .controls-sidebar::-webkit-scrollbar-thumb:hover {
+    .controls-sidebar-scroll::-webkit-scrollbar-thumb:hover {
         background: rgba(25, 118, 210, 0.4);
     }
     
@@ -1121,7 +1213,7 @@ button.lezione-cross-ref:focus-visible {
     }
     
     /* Ensure sections fit without scroll */
-    .controls-sidebar .control-section:last-child {
+    .controls-sidebar-scroll .control-section:last-child {
         margin-bottom: 0;
     }
 
@@ -1130,11 +1222,10 @@ button.lezione-cross-ref:focus-visible {
         display: none !important;
     }
 
-    /* Footer crediti ancorato in basso: sempre visibile, anche se la sidebar scrolla */
+    /* Footer: ancorato al bordo inferiore della sidebar (flex), sempre visibile */
     .controls-sidebar .sidebar-footer {
-        position: sticky;
-        bottom: 0;
-        margin: 8px -10px 0; /* annulla il padding orizzontale del sidebar per full-bleed */
+        flex-shrink: 0;
+        margin: 8px -10px 0;
         padding: 10px 12px;
         background: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(248, 249, 250, 0.98) 60%, rgba(248, 249, 250, 1) 100%);
         -webkit-backdrop-filter: blur(6px);
@@ -1142,7 +1233,6 @@ button.lezione-cross-ref:focus-visible {
         border-top: 1px solid rgba(25, 118, 210, 0.18);
         border-radius: 0 0 15px 15px;
         z-index: 2;
-        flex-shrink: 0;
     }
 }
 
@@ -1710,6 +1800,18 @@ body.is-doppio .singolare-only {
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
 }
 
+@media (min-width: 901px) and (max-width: 1280px) {
+    .courts-arrow {
+        width: clamp(46px, 3.6vw + 34px, 64px);
+        height: clamp(46px, 3.6vw + 34px, 64px);
+    }
+
+    .courts-arrow svg {
+        width: clamp(24px, 1.8vw + 18px, 32px);
+        height: clamp(24px, 1.8vw + 18px, 32px);
+    }
+}
+
 /* Mostra la freccia solo su schermi grandi e in modalità 2 colpi */
 @media (min-width: 901px) {
     body:not(.mobile-1colpo):not(.mobile-dinamico) .courts-arrow {
@@ -1757,14 +1859,16 @@ body.is-doppio .singolare-only {
 
 .arrow-container { 
     position: absolute; 
-    left: -10px; 
+    left: clamp(-14px, -0.9vw, -10px); 
     top: 0; 
-    width: 28px; 
-    height: 28px; 
+    width: clamp(22px, 1.85vw + 16px, 28px); 
+    height: clamp(22px, 1.85vw + 16px, 28px); 
     transform: translateY(-50%); 
     cursor: ns-resize; 
     z-index: 25; 
     display: block; 
+    box-sizing: border-box;
+    touch-action: none;
 }
         
 .arrow-container .arrow { 
@@ -1774,9 +1878,9 @@ body.is-doppio .singolare-only {
     transform: translateY(-50%); 
     width: 0; 
     height: 0; 
-    border-top: 9px solid transparent; 
-    border-bottom: 9px solid transparent; 
-    border-left: 16px solid #ff6f00; 
+    border-top: clamp(6px, 0.55vw + 5px, 9px) solid transparent; 
+    border-bottom: clamp(6px, 0.55vw + 5px, 9px) solid transparent; 
+    border-left: clamp(11px, 0.9vw + 8px, 16px) solid #ff6f00; 
     filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4)); 
 }
 
@@ -1999,8 +2103,20 @@ body.is-doppio .singolare-only {
     }
 
     .controls-sidebar.mobile-enabled.mobile-open {
-        padding: 0 0 16px 0;
+        padding: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .controls-sidebar.mobile-enabled.mobile-open .controls-sidebar-scroll {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-x: hidden;
         overflow-y: auto;
+        padding-bottom: 16px;
+        -webkit-overflow-scrolling: touch;
     }
 
     .controls-sidebar.mobile-enabled.mobile-open > :not(.mobile-nav-bar) {
@@ -5698,14 +5814,14 @@ body {
             inset 0 1px 0 rgba(255, 255, 255, 0.8);
     }
 
-    .controls-sidebar::-webkit-scrollbar {
+    .controls-sidebar-scroll::-webkit-scrollbar {
         width: 6px;
     }
-    .controls-sidebar::-webkit-scrollbar-thumb {
+    .controls-sidebar-scroll::-webkit-scrollbar-thumb {
         background: rgba(25, 118, 210, 0.22);
         border-radius: 3px;
     }
-    .controls-sidebar::-webkit-scrollbar-thumb:hover {
+    .controls-sidebar-scroll::-webkit-scrollbar-thumb:hover {
         background: rgba(25, 118, 210, 0.42);
     }
 
