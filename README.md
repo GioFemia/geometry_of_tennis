@@ -57,7 +57,19 @@ Una pagina interattiva che visualizza e spiega in modo intuitivo la geometria de
 - `geometryoftennis.netlify.app`: pagina web completa con stile, SVG del campo e logica interattiva.
 - `README.md`: questo documento.
 
+## Branding sui campi
+
+- Ogni campo da tennis mostra due loghi "Geometry of Tennis" (glifo + testo) posizionati nel margine in alto a sinistra e in basso a destra del campo.
+- I loghi sono inseriti nell'SVG del campo primario (`index.html`) e in quello secondario generato via JS (`app.js`, funzione `courtLogoGroupMarkup`/`setupSecondaryCourt`); essendo i campi delle lezioni dei cloni del campo primario, i loghi compaiono automaticamente anche lì e nelle immagini scaricate.
+
 ## Compatibilità
 
 - Testato su browser moderni desktop e su mobile.
+
+## Changelog
+
+- Aggiunti due loghi "Geometry of Tennis" in tutti i campi da tennis, nei punti indicati (alto-sinistra e basso-destra), riutilizzando il logo-mark dell'header.
+- Rimosso il testo dai loghi sui campi e raddoppiata la dimensione del glifo (scala 2.5): ora compare solo il simbolo, più grande.
+- Loghi sui campi rivisti: glifo nuovamente raddoppiato (scala 5), racchiuso in un quadrato arrotondato in stile topbar, posizionati all'altezza delle linee del servizio (y=318 e y=654) e centrati orizzontalmente tra la linea verticale esterna e il bordo del campo (x=73 e x=527).
+- Ridotta la dimensione dei loghi da scala 5 a scala 3, con contenitore quadrato adattato (da 134 a 80, rx da 28 a 17).
 

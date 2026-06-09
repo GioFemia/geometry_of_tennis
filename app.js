@@ -487,6 +487,18 @@
                 }
             }
 
+            function courtLogoGroupMarkup(cx, cy) {
+                return `<g transform="translate(${cx},${cy})">`
+                    + `<rect x="-40" y="-40" width="80" height="80" rx="17" fill="#ffffff" fill-opacity="0.14" stroke="#ffffff" stroke-opacity="0.45" stroke-width="2"/>`
+                    + `<g transform="scale(3) translate(-12,-12)">`
+                    + `<line x1="12" y1="20" x2="3" y2="4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>`
+                    + `<line x1="12" y1="20" x2="21" y2="4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>`
+                    + `<line x1="12" y1="20" x2="12" y2="4" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="2 2.5" opacity="0.7"/>`
+                    + `<circle cx="12" cy="20" r="2.4" fill="#fff"/>`
+                    + `</g>`
+                    + `</g>`;
+            }
+
             function setupSecondaryCourt() {
                 const secondary = document.querySelector('.svg-wrap.secondary');
                 const primary = document.querySelector('.svg-wrap.primary');
@@ -520,6 +532,15 @@
                         Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
                         svg2.appendChild(el);
                     });
+
+                    // Loghi Geometry of Tennis (margine alto-sinistra e basso-destra)
+                    const logoG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                    logoG.setAttribute('class', 'court-logo');
+                    logoG.setAttribute('aria-hidden', 'true');
+                    logoG.setAttribute('pointer-events', 'none');
+                    logoG.setAttribute('opacity', '0.92');
+                    logoG.innerHTML = courtLogoGroupMarkup(73, 318) + courtLogoGroupMarkup(527, 654);
+                    svg2.appendChild(logoG);
                     
                     const left2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
                     left2.setAttribute('id', 'leftLine2');
