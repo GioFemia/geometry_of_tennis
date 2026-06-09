@@ -60,7 +60,7 @@ Una pagina interattiva che visualizza e spiega in modo intuitivo la geometria de
 ## Branding sui campi
 
 - Ogni campo da tennis mostra due loghi "Geometry of Tennis" (glifo + testo) posizionati nel margine in alto a sinistra e in basso a destra del campo.
-- I loghi sono inseriti nell'SVG del campo primario (`index.html`) e in quello secondario generato via JS (`app.js`, funzione `courtLogoGroupMarkup`/`setupSecondaryCourt`); essendo i campi delle lezioni dei cloni del campo primario, i loghi compaiono automaticamente anche lì e nelle immagini scaricate.
+- I loghi sono inseriti nell'SVG del campo primario (`index.html`) e in quello secondario generato via JS (`app.js`, funzione `courtLogoGroupMarkup`/`setupSecondaryCourt`); i loghi compaiono automaticamente anche nelle immagini scaricate.
 
 ## Compatibilità
 
@@ -72,4 +72,9 @@ Una pagina interattiva che visualizza e spiega in modo intuitivo la geometria de
 - Rimosso il testo dai loghi sui campi e raddoppiata la dimensione del glifo (scala 2.5): ora compare solo il simbolo, più grande.
 - Loghi sui campi rivisti: glifo nuovamente raddoppiato (scala 5), racchiuso in un quadrato arrotondato in stile topbar, posizionati all'altezza delle linee del servizio (y=318 e y=654) e centrati orizzontalmente tra la linea verticale esterna e il bordo del campo (x=73 e x=527).
 - Ridotta la dimensione dei loghi da scala 5 a scala 3, con contenitore quadrato adattato (da 134 a 80, rx da 28 a 17).
+- Rimossa completamente la sezione "Lezioni" dall'app:
+  - `index.html`: eliminati il pulsante "Lezioni" nella top bar, i due segmenti di navigazione delle lezioni (`topBarSegmentLezioni`, `topBarSegmentLezioneRead`), la voce "Lezioni" nel drawer mobile e l'intera schermata a piena pagina `#lezioniScreen` (elenco lezioni + 4 articoli).
+  - Guida interattiva: rimossa la pagina "Le Lezioni" (ex step 13) e rinumerati gli step in modo sequenziale (0–14, ora 15 pagine totali).
+  - `app.js`: rimossi il blocco di logica delle lezioni (snapshot/clone dei campi, funzioni `captureLesson*`), i controller `setLezioniView`/`setLezionePericoloReadView`, i relativi listener, i riferimenti nel drawer mobile, nell'highlight della guida e nei rami ESC; aggiornata la logica `shouldShowSidebar` ai nuovi indici.
+  - `styles.css`: rimosse tutte le regole `lezioni`/`lezione`/`app-view-lezion*` e i selettori orfani collegati.
 
