@@ -6830,8 +6830,6 @@
                             return null;
                         case 'secondary-court':
                             return document.querySelector('.court-container.secondary-court');
-                        case 'dinamico-panel':
-                            return document.getElementById('dinamicoPanel');
                         case 'visualizza-disegna-section': {
                             const visualizzaSection = findCompactSectionByTitle('visualizza');
                             const disegnaSection = document.getElementById('draw-section');
@@ -7048,7 +7046,7 @@
                     }
                     
                     // Chiudi la sezione modalità quando si arriva alle schede Scelta Colpitore e Scelta Colpo
-                    if (tutorialOverlay.classList.contains('active') && (currentStep === 9 || currentStep === 10)) {
+                    if (tutorialOverlay.classList.contains('active') && (currentStep === 8 || currentStep === 9)) {
                         const panelModalita = document.getElementById('panelModalita');
                         if (panelModalita) {
                             const content = panelModalita.querySelector('.panel-section-content');
@@ -7078,7 +7076,7 @@
                 function updateTutorialFieldLabels() {
                     const labelTu = document.getElementById('tutorialFieldLabelTu');
                     const labelAvversario = document.getElementById('tutorialFieldLabelAvversario');
-                    const show = tutorialOverlay.classList.contains('active') && (currentStep === 1 || currentStep === 8);
+                    const show = tutorialOverlay.classList.contains('active') && (currentStep === 1);
                     if (labelTu) labelTu.style.display = show ? '' : 'none';
                     if (labelAvversario) labelAvversario.style.display = show ? '' : 'none';
                 }
@@ -7106,9 +7104,6 @@
                     } else if (step === 7) {
                         // Pagina 8: modalità 2 colpi
                         return '2colpi';
-                    } else if (step === 8) {
-                        // Pagina 9: modalità dinamico
-                        return 'dinamico';
                     } else {
                         // Pagine successive: modalità 1 colpo
                         return '1colpo';
@@ -7122,11 +7117,11 @@
                 // Funzione per determinare se la guida deve essere sidebar o sostituire il campo principale
                 function shouldShowSidebar(step) {
                     // Pagine in overlay: introduzione e ultime tre pagine
-                    if (step === 0 || step === 12 || step === 13 || step === 14) {
+                    if (step === 0 || step === 11 || step === 12 || step === 13) {
                         return false; // Overlay per queste pagine
                     }
                     // Sidebar per le pagine centrali del tutorial
-                    return (step >= 1 && step <= 11);
+                    return (step >= 1 && step <= 10);
                 }
                 
                 // Funzione per determinare se la guida deve sostituire il campo principale
@@ -7135,9 +7130,9 @@
                     return false;
                 }
                 
-                // Funzione per determinare se la guida deve essere sopra la sidebar (step 6-7)
+                // Funzione per determinare se la guida deve essere sopra la sidebar (step 2 colpi)
                 function shouldShowOverSidebar(step) {
-                    return step === 7 || step === 8;
+                    return step === 7;
                 }
                 
                 // Funzione per cambiare modalità programmaticamente (senza triggerare eventi)
@@ -7914,12 +7909,12 @@
                 if (currentMode === '2colpi') {
                     downloadOptionsTop.style.display = 'block';
                     downloadOptions2ColpiTop.style.display = 'block';
-                    downloadOptionsDinamicoTop.style.display = 'none';
+                    if (downloadOptionsDinamicoTop) downloadOptionsDinamicoTop.style.display = 'none';
                     downloadButtonTop.style.display = 'flex';
                 } else if (currentMode === 'dinamico') {
                     downloadOptionsTop.style.display = 'block';
                     downloadOptions2ColpiTop.style.display = 'none';
-                    downloadOptionsDinamicoTop.style.display = 'block';
+                    if (downloadOptionsDinamicoTop) downloadOptionsDinamicoTop.style.display = 'block';
                     downloadButtonTop.style.display = 'flex';
                 } else {
                     downloadOptionsTop.style.display = 'none';

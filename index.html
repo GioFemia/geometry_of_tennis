@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#1976d2">
-    <meta name="description" content="Geometry of Tennis: visualizza dal punto di vista geometrico le traiettorie, il colpitore, il ricevitore e le tattiche nel singolare e nel doppio. Strumento didattico con modalità 1 colpo, 2 colpi e dinamico." />
+    <meta name="description" content="Geometry of Tennis: visualizza dal punto di vista geometrico le traiettorie, il colpitore, il ricevitore e le tattiche nel singolare e nel doppio. Strumento didattico con modalità 1 colpo e 2 colpi." />
     <meta name="author" content="Giovanni Femia" />
     <meta id="og-url" property="og:url" content="" />
     <meta property="og:title" content="Geometry of Tennis" />
@@ -109,11 +109,10 @@
                 <!-- Step 5: Modalità -->
                 <div class="tutorial-step" data-step="5">
                     <h2>Le Modalità</h2>
-                    <p>L'app offre <strong>tre modalità</strong> di visualizzazione:</p>
+                    <p>L'app offre <strong>due modalità</strong> di visualizzazione:</p>
                     <ul class="tutorial-list">
                         <li><strong>1 Colpo:</strong> Mostra solo il campo per analizzare un singolo colpo</li>
                         <li><strong>2 Colpi:</strong> Mostra in un secondo campo la visuale del ricevitore per il colpo successivo</li>
-                        <li><strong>Dinamico:</strong> Permette di simulare scambi completi colpo per colpo</li>
                     </ul>
                     <div data-highlight="modalita-section">
                     </div>
@@ -148,24 +147,8 @@
                     </div>
                 </div>
                 
-                <!-- Step 8: Dinamico -->
+                <!-- Step 8: Scelta Colpitore -->
                 <div class="tutorial-step" data-step="8">
-                    <h2>Modalità Dinamico</h2>
-                    <p>La <strong>modalità Dinamico</strong> permette di simulare punti completi:</p>
-                    <ul class="tutorial-list">
-                        <li><strong>Posiziona il colpitore</strong> e seleziona la direzione</li>
-                        <li>Premi <strong>"COLPO"</strong> per eseguire il colpo</li>
-                        <li>Il ricevitore diventa automaticamente il nuovo colpitore per il colpo successivo</li>
-                        <li>Segna <strong>"ULTIMO COLPO"</strong> per segnalare l'ultimo colpo del punto</li>
-                        <li><strong>"VISUALIZZA PUNTO"</strong> riproduce l'animazione completa dello scambio</li>
-                    </ul>
-                    <p>Perfetto per <strong>analizzare e rivedere schemi tattici</strong> completi.</p>
-                    <div data-highlight="dinamico-panel">
-                    </div>
-                </div>
-                
-                <!-- Step 9: Scelta Colpitore -->
-                <div class="tutorial-step" data-step="9">
                     <h2>Scelta del Colpitore</h2>
                     <p>Puoi scegliere <strong>chi sta colpendo</strong>:</p>
                     <ul class="tutorial-list">
@@ -177,8 +160,8 @@
                     </div>
                 </div>
                 
-                <!-- Step 10: Scelta Tipologia -->
-                <div class="tutorial-step" data-step="10">
+                <!-- Step 9: Scelta Tipologia -->
+                <div class="tutorial-step" data-step="9">
                     <h2>Scelta del Colpo</h2>
                     <p>Ogni <strong>tipo di colpo</strong> ha caratteristiche geometriche diverse:</p>
                     <ul class="tutorial-list">
@@ -194,8 +177,8 @@
                     </div>
                 </div>
                 
-                <!-- Step 11: Visualizza e Disegna -->
-                <div class="tutorial-step" data-step="11">
+                <!-- Step 10: Visualizza e Disegna -->
+                <div class="tutorial-step" data-step="10">
                     <h2>Visualizza e Disegna</h2>
                     <p>Il menu include due sezioni per personalizzare la visualizzazione:</p>
                     <ul class="tutorial-list">
@@ -209,8 +192,8 @@
                     </div>
                 </div>
                 
-                <!-- Step 12: A cosa serve l'app -->
-                <div class="tutorial-step" data-step="12">
+                <!-- Step 11: A cosa serve l'app -->
+                <div class="tutorial-step" data-step="11">
                     <h2>Per cosa è utile Geometry of Tennis</h2>
                     <p>Questa applicazione è progettata per:</p>
                     <ul class="tutorial-list">
@@ -222,8 +205,8 @@
                     <p>È uno <strong>strumento didattico</strong> per migliorare la comprensione tattica del gioco.</p>
                 </div>
                 
-                <!-- Step 13: A cosa NON serve l'app -->
-                <div class="tutorial-step" data-step="13">
+                <!-- Step 12: A cosa NON serve l'app -->
+                <div class="tutorial-step" data-step="12">
                     <h2>Per cosa NON è utile Geometry of Tennis</h2>
                     <p>In questa applicazione non si analizzano certi aspetti, come:</p>
                     <ul class="tutorial-list">
@@ -237,8 +220,8 @@
                     </div>
                 </div>
                 
-                <!-- Step 14: Finale -->
-                <div class="tutorial-step" data-step="14">
+                <!-- Step 13: Finale -->
+                <div class="tutorial-step" data-step="13">
                     <h2>Inizia a Esplorare!</h2>
                     <p>Ora hai tutte le informazioni necessarie per utilizzare l'applicazione.</p>
                     <ul class="tutorial-list">
@@ -373,13 +356,6 @@
                             <span class="mode-option-label">2 Colpi</span>
                         </div>
                     </label>
-                    <label class="mode-option" for="modo_dinamico_top">
-                        <input id="modo_dinamico_top" type="radio" name="modalita_top" value="dinamico" />
-                        <div class="mode-option-content">
-                            <span class="mode-option-icon">D</span>
-                            <span class="mode-option-label">Dinamico</span>
-                        </div>
-                    </label>
                 </div>
             </div>
         </div>
@@ -439,7 +415,6 @@
                                 <select id="default_modalita_top" name="default_modalita_top">
                                     <option value="1colpo" selected>1 Colpo</option>
                                     <option value="2colpi">2 Colpi</option>
-                                    <option value="dinamico">Dinamico</option>
                                 </select>
                             </label>
                         </div>
@@ -530,19 +505,6 @@
                                     <input id="download_secondary_top" type="radio" name="downloadCourt_top" value="secondary" />
                                     <span>Secondo Colpo</span>
                                 </label>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Opzioni per modalità dinamico -->
-                    <div id="downloadOptionsDinamicoTop" style="display: none;">
-                        <div id="singleShotOptionsTop" class="control-section" style="margin-bottom: 12px;">
-                            <h3 class="control-section-title" style="cursor: default; pointer-events: none;">Numero Colpo</h3>
-                            <div class="control-options" style="max-height: none; opacity: 1;">
-                                <div class="default-subsection">
-                                    <label class="control-option download-shot-number-label" for="download_shot_number_top">
-                                        <input type="number" id="download_shot_number_top" min="1" value="1" />
-                                    </label>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -639,13 +601,6 @@
                             <div class="mode-option-content">
                                 <span class="mode-option-icon">2</span>
                                 <span class="mode-option-label">2 Colpi</span>
-                            </div>
-                        </label>
-                        <label class="mode-option" for="modo_dinamico">
-                            <input id="modo_dinamico" type="radio" name="modalita" value="dinamico" />
-                            <div class="mode-option-content">
-                                <span class="mode-option-icon">D</span>
-                                <span class="mode-option-label">Dinamico</span>
                             </div>
                         </label>
                     </div>
@@ -892,7 +847,6 @@
                             <select id="default_modalita" name="default_modalita">
                                 <option value="1colpo" selected>1 Colpo</option>
                                 <option value="2colpi">2 Colpi</option>
-                                <option value="dinamico">Dinamico</option>
                             </select>
                         </label>
                     </div>
@@ -980,17 +934,6 @@
                                     <label class="control-option" for="download_secondary">
                                         <input id="download_secondary" type="radio" name="downloadCourt" value="secondary" />
                                         <span>Secondo Colpo</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Opzioni per modalità dinamico (solo immagine di un colpo) -->
-                        <div id="downloadOptionsDinamico" style="display: none;">
-                            <div id="singleShotOptions" class="download-option-group" style="margin-bottom: 12px;">
-                                <h4 class="download-option-title">Numero Colpo</h4>
-                                <div class="download-option-choices">
-                                    <label class="control-option download-shot-number-label" for="download_shot_number">
-                                        <input type="number" id="download_shot_number" min="1" value="1" />
                                     </label>
                                 </div>
                             </div>
@@ -1126,33 +1069,6 @@
                     </div>
                 </div>
             </div>
-            <div id="dinamicoPanel" class="dinamico-panel">
-                <div class="dinamico-primary-row">
-                    <button id="colpoButton" class="colpo-button">COLPO</button>
-                    <button id="dinamicoMobileToggle" class="dinamico-mobile-toggle" type="button" aria-expanded="false" aria-label="Apri pannello Dinamico">
-                        <span class="chevron" aria-hidden="true"></span>
-                    </button>
-                </div>
-                <div class="control-field">
-                    <label>NUMERO COLPO:</label>
-                    <div class="numero-navigation">
-                        <button id="prevColpoButton" class="nav-arrow" title="Colpo precedente">◀</button>
-                        <div id="numeroColpo" class="numero-display">1</div>
-                        <button id="nextColpoButton" class="nav-arrow" title="Colpo successivo">▶</button>
-                    </div>
-                </div>
-                <div class="ultimo-colpo-field">
-                    <label class="ultimo-colpo-label">
-                        <input type="checkbox" id="ultimoColpoCheckbox" />
-                        <span>ULTIMO COLPO</span>
-                    </label>
-                </div>
-                <button id="visualizzaScambioButton" class="visualizza-scambio-button">VISUALIZZA PUNTO</button>
-                <button id="pauseResumeButton" class="pause-resume-button" style="display: none;">
-                    <span class="pause-icon">⏸️</span>
-                </button>
-                <button id="nuovoScambioButton" class="nuovo-scambio-button">NUOVO PUNTO</button>
-            </div>
         </div>
     </div>
     
@@ -1197,13 +1113,6 @@
                                 <span class="mobile-drawer-mode-content">
                                     <span class="mobile-drawer-mode-icon">2</span>
                                     <span class="mobile-drawer-mode-label">2 Colpi</span>
-                                </span>
-                            </label>
-                            <label class="mobile-drawer-mode-option" for="modo_dinamico_drawer">
-                                <input id="modo_dinamico_drawer" type="radio" name="modalita_drawer" value="dinamico" />
-                                <span class="mobile-drawer-mode-content">
-                                    <span class="mobile-drawer-mode-icon">D</span>
-                                    <span class="mobile-drawer-mode-label">Dinamico</span>
                                 </span>
                             </label>
                         </div>
@@ -1408,12 +1317,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <div id="drawer_downloadOptionsDinamico" style="display: none;">
-                                <div class="mobile-drawer-download-subgroup">
-                                    <span class="mobile-drawer-download-label">Numero Colpo</span>
-                                    <input type="number" id="drawer_download_shot_number" min="1" value="1" class="mobile-drawer-number-input" />
-                                </div>
-                            </div>
                         </div>
                         <button id="drawer_downloadCourtImage" class="mobile-drawer-download-btn" type="button" style="display: none;">
                             <svg viewBox="0 0 24 24" width="18" height="18">
@@ -1491,7 +1394,6 @@
                             <select id="default_modalita_drawer">
                                 <option value="1colpo" selected>1 Colpo</option>
                                 <option value="2colpi">2 Colpi</option>
-                                <option value="dinamico">Dinamico</option>
                             </select>
                         </label>
                         <label class="mobile-drawer-select-label">
