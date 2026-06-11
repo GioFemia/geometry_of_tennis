@@ -539,7 +539,7 @@
                     logoG.setAttribute('aria-hidden', 'true');
                     logoG.setAttribute('pointer-events', 'none');
                     logoG.setAttribute('opacity', '0.92');
-                    logoG.innerHTML = courtLogoGroupMarkup(73, 318) + courtLogoGroupMarkup(527, 654);
+                    logoG.innerHTML = courtLogoGroupMarkup(60, 318) + courtLogoGroupMarkup(540, 654);
                     svg2.appendChild(logoG);
                     
                     const left2 = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -1060,6 +1060,9 @@
                     });
                 }
                 window.__currentCourtType__ = courtType;
+                // Tematizza l'intera pagina (topbar, pulsanti, pannelli, accenti)
+                // in base alla superficie selezionata tramite le variabili CSS.
+                document.documentElement.setAttribute('data-surface', COURT_COLORS[courtType] ? courtType : 'cemento');
                 syncTennisCourtAccessibility(true);
             }
 
@@ -3722,6 +3725,11 @@
                             if (checkboxTop) {
                                 checkboxTop.checked = defaults[key] === 'true';
                             }
+                            // Aggiorna anche la versione del drawer mobile se esiste
+                            const checkboxDrawer = document.getElementById(`default_${key}_drawer`);
+                            if (checkboxDrawer) {
+                                checkboxDrawer.checked = defaults[key] === 'true';
+                            }
                         } else {
                             // Aggiorna il select nella sidebar
                             const select = document.getElementById(`default_${key}`);
@@ -3732,6 +3740,11 @@
                             const selectTop = document.getElementById(`default_${key}_top`);
                             if (selectTop) {
                                 selectTop.value = defaults[key];
+                            }
+                            // Aggiorna anche il select nel drawer mobile se esiste
+                            const selectDrawer = document.getElementById(`default_${key}_drawer`);
+                            if (selectDrawer) {
+                                selectDrawer.value = defaults[key];
                             }
                         }
                     }
@@ -3829,6 +3842,17 @@
                         
                         // Save the change
                         localStorage.setItem(`default_${key}`, value);
+
+                        // Mantieni allineata la copia del drawer mobile (sync inverso main -> drawer)
+                        // senza ridisparare 'change' per evitare loop con il sync drawer -> main.
+                        const drawerCopy = document.getElementById(`default_${key}_drawer`);
+                        if (drawerCopy) {
+                            if (this.type === 'checkbox') {
+                                drawerCopy.checked = value;
+                            } else {
+                                drawerCopy.value = value;
+                            }
+                        }
                         
                         // Se si sta cambiando la modalità, aggiorna i checkbox di visualizzazione
                         if (key === 'modalita') {
@@ -4142,37 +4166,28 @@
                         const defaultViewDirections = document.getElementById('default_view_directions');
                         const defaultViewShot = document.getElementById('default_view_shot');
                         
-                        if (defaultViewPlayer) {
-                            defaultViewPlayer.checked = true;
-                            defaultViewPlayer.disabled = true;
-                            localStorage.setItem('default_view_player', 'true');
-                        }
-                        if (defaultViewResponder) {
-                            defaultViewResponder.checked = true;
-                            defaultViewResponder.disabled = true;
-                            localStorage.setItem('default_view_responder', 'true');
-                        }
-                        if (defaultViewDirections) {
-                            defaultViewDirections.checked = true;
-                            defaultViewDirections.disabled = true;
-                            localStorage.setItem('default_view_directions', 'true');
-                        }
-                        if (defaultViewShot) {
-                            defaultViewShot.checked = true;
-                            defaultViewShot.disabled = true;
-                            localStorage.setItem('default_view_shot', 'true');
-                        }
+                        const forceDefaultViewChecked = (key) => {
+                            ['default_' + key, 'default_' + key + '_top', 'default_' + key + '_drawer'].forEach((id) => {
+                                const el = document.getElementById(id);
+                                if (el) {
+                                    el.checked = true;
+                                    el.disabled = true;
+                                }
+                            });
+                            localStorage.setItem('default_' + key, 'true');
+                        };
+                        forceDefaultViewChecked('view_player');
+                        forceDefaultViewChecked('view_responder');
+                        forceDefaultViewChecked('view_directions');
+                        forceDefaultViewChecked('view_shot');
                     } else {
-                        // In altre modalità, riabilita i checkbox nella sezione Default
-                        const defaultViewPlayer = document.getElementById('default_view_player');
-                        const defaultViewResponder = document.getElementById('default_view_responder');
-                        const defaultViewDirections = document.getElementById('default_view_directions');
-                        const defaultViewShot = document.getElementById('default_view_shot');
-                        
-                        if (defaultViewPlayer) defaultViewPlayer.disabled = false;
-                        if (defaultViewResponder) defaultViewResponder.disabled = false;
-                        if (defaultViewDirections) defaultViewDirections.disabled = false;
-                        if (defaultViewShot) defaultViewShot.disabled = false;
+                        // In altre modalità, riabilita i checkbox nella sezione Default (sidebar, topbar e drawer)
+                        ['view_player', 'view_responder', 'view_directions', 'view_shot'].forEach((key) => {
+                            ['default_' + key, 'default_' + key + '_top', 'default_' + key + '_drawer'].forEach((id) => {
+                                const el = document.getElementById(id);
+                                if (el) el.disabled = false;
+                            });
+                        });
                     }
                     
                     // Applica i cambiamenti
@@ -4184,16 +4199,13 @@
                     if (chkShot) chkShot.disabled = false;
                     if (chkResponder) chkResponder.disabled = false;
                     
-                    // In altre modalità, riabilita anche i checkbox nella sezione Default
-                    const defaultViewPlayer = document.getElementById('default_view_player');
-                    const defaultViewResponder = document.getElementById('default_view_responder');
-                    const defaultViewDirections = document.getElementById('default_view_directions');
-                    const defaultViewShot = document.getElementById('default_view_shot');
-                    
-                    if (defaultViewPlayer) defaultViewPlayer.disabled = false;
-                    if (defaultViewResponder) defaultViewResponder.disabled = false;
-                    if (defaultViewDirections) defaultViewDirections.disabled = false;
-                    if (defaultViewShot) defaultViewShot.disabled = false;
+                    // In altre modalità, riabilita anche i checkbox nella sezione Default (sidebar, topbar e drawer)
+                    ['view_player', 'view_responder', 'view_directions', 'view_shot'].forEach((key) => {
+                        ['default_' + key, 'default_' + key + '_top', 'default_' + key + '_drawer'].forEach((id) => {
+                            const el = document.getElementById(id);
+                            if (el) el.disabled = false;
+                        });
+                    });
                     
                     // Se il punto era finito, ripristina gli elementi
                     if (puntoFinito) {
