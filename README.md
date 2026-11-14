@@ -37,8 +37,23 @@ Una pagina interattiva che visualizza e spiega in modo intuitivo la geometria de
 ## Interazioni principali
 
 - Trascinamento pallino rosso: sposta il punto d’impatto sul lato di campo attivo, aggiornando in tempo reale ventaglio, bisettrice e misura.
-- Freccia arancione laterale: regola la quota della misura orizzontale (sopra la rete se il colpo è “Tuo”, sotto se “Avversario”).
-- Linea gialla (2 colpi): trascina orizzontalmente per selezionare un punto entro i limiti consentiti dal ventaglio alla quota corrente; influenza il posizionamento e le traiettorie del secondo campo.
+- Pallino rosso piccolo (ricevitore): è la posizione del ricevitore mentre l'avversario colpisce, indipendente dalla fine del colpo. Di default sta sulla bisettrice alla linea di fondo e segue il colpitore; una volta trascinato resta libero nella sua metà campo.
+- Freccia arancione laterale: regola la quota della misura orizzontale (sopra la rete se il colpo è “Tuo”, sotto se “Avversario”). La misura è legata alla profondità del ricevitore: spostare la freccia sposta il ricevitore in profondità.
+- Linea gialla: trascinandola si cambia la direzione del colpo entro il ventaglio.
+- Punto giallo a fine linea: è dove il ricevitore colpirà la palla. Si trascina in orizzontale e in profondità, sempre dentro il ventaglio. In 2 colpi il secondo campo parte da questo punto.
+
+## Vista 3D
+
+Il pulsante **2D | 3D** in alto a destra sul campo passa a una vista prospettica, portata da `got_atp/campo.html`. È un canvas 2D, senza librerie.
+
+- **Camera**: fissa dietro la baseline del campo "Tu". L'altezza si regola con lo slider in basso (3–20 m, default 15 m).
+- **Cosa si vede**: campo nei colori della superficie scelta, rete con le quote ITF (1,07 m ai pali, 0,914 m al centro), giocatori come capsule alte 1,8 m (altezza convenzionale) e direzioni, bisettrice, cuneo, misura e disegni proiettati a terra.
+- **Colpo**: la linea gialla diventa un arco stilizzato. Parte a 1 m (2,7 m al servizio), passa la rete con almeno 0,5 m di margine, rimbalza e risale verso il punto in cui il ricevitore colpisce. Non è una traiettoria reale: l'app non conosce l'altezza della palla.
+- **Rimbalzo**: cade sempre dentro le righe del campo del ricevitore: del singolare nel singolare, del doppio nel doppio, del quadrato di battuta al servizio. Resta almeno 15 cm dentro le righe e almeno 1 m oltre la rete. Se la direzione del colpo non attraversa mai il campo, il rimbalzo va nel punto valido più vicino e la traiettoria piega lì.
+- **Volée**: nel singolare con il colpo Passante, e nel doppio quando il colpo arriva sulla linea nera di un giocatore a rete, non c'è rimbalzo. La palla arriva in volo al ricevitore, a circa 1,1 m d'altezza. Il servizio rimbalza sempre.
+- **Interazione**: colpitore, ricevitore, giocatori del doppio, linea gialla e misura si trascinano anche in 3D. La fine del colpo si sposta trascinando la pallina con l'anello bianco alla fine dell'arco. Il campo secondario (2 colpi) è solo da guardare, come in 2D.
+- **Come funziona**: l'SVG 2D resta l'unica fonte di verità. `court3d.js` lo legge e lo ridisegna in prospettiva. Il trascinamento passa per `toSvgPoint` e `window.__gotDragBridge__` in `app.js`.
+- **Altro**: Disegna e la Guida riportano automaticamente in 2D. Scarica, in 3D, salva il PNG della vista 3D. La scelta 2D/3D e l'altezza camera vengono ricordate nel browser.
 
 ## Avvio rapido
 
