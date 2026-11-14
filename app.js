@@ -4,6 +4,7 @@
             
             const dot = document.getElementById('cursorDot');
             const intersectionDot = document.getElementById('intersectionDot');
+            const shotEndHandle = document.getElementById('shotEndHandle');
             const leftLine = document.getElementById('leftLine');
             const rightLine = document.getElementById('rightLine');
             const bisectorLine = document.getElementById('bisectorLine');
@@ -104,13 +105,58 @@
             const DOPPIO_B1_DEFAULT = { x: FIELD_B_ORIGIN_X - 80, y: FIELD_B_ORIGIN_Y - 20 };    // Campo B (-80, -20)
             const DOPPIO_B2_DEFAULT = { x: FIELD_B_ORIGIN_X + 60, y: FIELD_B_ORIGIN_Y + 240 };   // Campo B (60, 240)
 
-            let currentMeasureY = ORIGIN_TOP_Y - 50;
+            // Profondità di default (Y SVG nel campo B; nel campo A si usa lo speculare rispetto alla rete).
+            // La fine del colpo e la posizione del ricevitore sono indipendenti:
+            // - fine colpo: dove il ricevitore colpirà la palla (estremo della linea gialla)
+            // - ricevitore: dove si trova mentre l'avversario colpisce (linea del campo da coprire)
+            const SHOT_END_DEFAULT_DEPTH_B = ORIGIN_TOP_Y - 50;
+            const SHOT_END_PASSANTE_DEPTH_B = 380;
+            const RECEIVER_DEFAULT_DEPTH_B = ORIGIN_TOP_Y;
+            const RECEIVER_PASSANTE_DEPTH_B = 420;
+
+            // Y del ricevitore = Y della linea "campo da coprire" (spostata dalla freccia)
+            let currentMeasureY = RECEIVER_DEFAULT_DEPTH_B;
+            // Y della fine del colpo (estremo della linea gialla)
+            let shotEndY = SHOT_END_DEFAULT_DEPTH_B;
+            // X del ricevitore: null = segue la bisettrice finché non viene trascinato
+            let receiverX = null;
             let draggingArrow = false;
             let isPlayer = true;
             let draggingDot = false;
             let draggingYellow = false;
             let draggingIntersection = false;
+            let draggingShotEnd = false;
+            // X della fine del colpo (alla profondità shotEndY): null = sulla bisettrice
             let yellowEndX = null;
+
+            // Converte una profondità definita nel campo B nel lato del ricevitore corrente
+            function depthForReceiverSide(depthB) {
+                return isPlayer ? depthB : 2 * NET_Y - depthB;
+            }
+
+            // Limita una Y alla metà campo del ricevitore
+            function clampYToReceiverHalf(y) {
+                return isPlayer
+                    ? Math.max(SVG_Y_MIN, Math.min(NET_Y, y))
+                    : Math.max(NET_Y, Math.min(SVG_Y_MAX, y));
+            }
+
+            function defaultShotEndY() {
+                return depthForReceiverSide(window.__shotTypeIsPassante__ ? SHOT_END_PASSANTE_DEPTH_B : SHOT_END_DEFAULT_DEPTH_B);
+            }
+
+            function defaultReceiverY() {
+                // Nel doppio la linea del campo da coprire guida ancora la linea gialla: profondità storiche
+                if (window.__gioco__ === 'doppio') return defaultShotEndY();
+                return depthForReceiverSide(window.__shotTypeIsPassante__ ? RECEIVER_PASSANTE_DEPTH_B : RECEIVER_DEFAULT_DEPTH_B);
+            }
+
+            // Profondità su cui si calcola la fine della linea gialla.
+            // Nel doppio la linea gialla resta legata alla linea del campo da coprire
+            // (poi viene agganciata alla Y del giocatore che riceve).
+            function getShotBaseY() {
+                return window.__gioco__ === 'doppio' ? currentMeasureY : shotEndY;
+            }
             window.__shotTypeIsPassante__ = false;
             window.__shotType2IsPassante__ = false;
             window.__leftForceRed__ = false; // in modalità attacco: rosso solo come colore, non come logica
@@ -206,7 +252,7 @@
                 part.push('Superficie: ' + getSuperficieLabelA11y() + '.');
                 part.push(window.__gioco__ === 'doppio' ? 'Gioco: doppio.' : 'Gioco: singolare.');
                 part.push('Colpitore: ' + getColpitoreLabelA11y() + '. Tipo colpo: ' + getTipologiaLabelA11y() + '.');
-                part.push('Trascina il pallino per la posizione, la linea gialla per la direzione e il ricevitore; il ventaglio azzurro mostra le traiettorie estreme possibili.');
+                part.push('Trascina il pallino per la posizione del colpitore, la linea gialla per la direzione, il punto giallo per la fine del colpo e il pallino del ricevitore per la sua posizione mentre l\'avversario colpisce; il ventaglio azzurro mostra le traiettorie estreme possibili.');
                 return part.join(' ');
             }
 
@@ -530,6 +576,7 @@
                     elems.forEach(([tag, attrs]) => {
                         const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
                         Object.entries(attrs).forEach(([k, v]) => el.setAttribute(k, v));
+                        el.setAttribute('data-3d', 'base');
                         svg2.appendChild(el);
                     });
 
@@ -627,70 +674,68 @@
                 secondary.style.display = 'block';
             }
 
+            // X del ricevitore di default: sulla bisettrice del ventaglio alla sua profondità
+            function computeDefaultReceiverX(dotX, dotY, yH) {
+                const targets = computePassYTargets(dotX, dotY);
+                if (window.__shotTypeIsServizio__) {
+                    const bx = (targets.left.x + targets.right.x) / 2;
+                    const by = (targets.left.y + targets.right.y) / 2;
+                    return computeIntersectionX(dotX, dotY, bx, by, yH);
+                }
+                const { leftX, leftY, rightX, rightY } = getDirectionalAnchorPoints(dotX, dotY, targets);
+                const bisectorTarget = (targets.left + targets.right) / 2;
+                return computeBisectorXAtY(dotX, dotY, bisectorTarget, yH, leftX, leftY, rightX, rightY);
+            }
+
+            function getReceiverPosition() {
+                const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                const y = currentMeasureY;
+                const x = (receiverX == null) ? computeDefaultReceiverX(dotX, dotY, y) : receiverX;
+                return { x: Math.max(SVG_X_MIN, Math.min(SVG_X_MAX, x)), y };
+            }
+
+            function updateShotEndHandle() {
+                if (!shotEndHandle) return;
+                const inValidMode = (window.__modalita__ === 'dinamico' || window.__modalita__ === '1colpo' || window.__modalita__ === '2colpi');
+                const show = inValidMode
+                    && window.__gioco__ !== 'doppio'
+                    && window.__viewShot__ !== false
+                    && !!yellowLine && yellowLine.style.display !== 'none';
+                if (!show) {
+                    shotEndHandle.style.display = 'none';
+                    return;
+                }
+                const x2 = parseFloat(yellowLine.getAttribute('x2'));
+                const y2 = parseFloat(yellowLine.getAttribute('y2'));
+                if (Number.isNaN(x2) || Number.isNaN(y2)) {
+                    shotEndHandle.style.display = 'none';
+                    return;
+                }
+                shotEndHandle.setAttribute('cx', String(x2));
+                shotEndHandle.setAttribute('cy', String(y2));
+                shotEndHandle.style.display = '';
+            }
+
             function updateIntersectionDot() {
+                updateShotEndHandle();
                 if (!intersectionDot) return;
-                
+
                 if (window.__gioco__ === 'doppio') {
                     intersectionDot.style.display = 'none';
                     return;
                 }
 
-                // Show intersection dot in all modes (dinamico, 1colpo, 2colpi) and only when both shot and responder are visible
+                // Il ricevitore è indipendente dalla fine del colpo: sta dove si trova
+                // mentre l'avversario colpisce (Y = linea del campo da coprire).
                 const inValidMode = (window.__modalita__ === 'dinamico' || window.__modalita__ === '1colpo' || window.__modalita__ === '2colpi');
                 const shouldDisplay = inValidMode && window.__viewResponder__ === true;
-                
+
                 if (shouldDisplay) {
                     intersectionDot.style.display = '';
-                    
-                    let receiverX = null;
-                    let receiverY = null;
-                    
-                    if (yellowLine) {
-                        const yellowX = parseFloat(yellowLine.getAttribute('x2'));
-                        const yellowY = parseFloat(yellowLine.getAttribute('y2'));
-                        if (!Number.isNaN(yellowX) && !Number.isNaN(yellowY)) {
-                            receiverX = yellowX;
-                            receiverY = yellowY;
-                        }
-                    }
-                    
-                    if (receiverX === null || receiverY === null) {
-                        const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
-                        const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
-                        const targets = computePassYTargets(dotX, dotY);
-                        const anchors = getDirectionalAnchorPoints(dotX, dotY, targets);
-                        const { leftX, leftY, rightX, rightY } = anchors;
-                        
-                        const xLeftAtH = computeIntersectionX(dotX, dotY, leftX, leftY, currentMeasureY);
-                        const xRightAtH = computeIntersectionX(dotX, dotY, rightX, rightY, currentMeasureY);
-                        const minXAtH = Math.min(xLeftAtH, xRightAtH);
-                        const maxXAtH = Math.max(xLeftAtH, xRightAtH);
-                        const bisectorTarget = window.__shotTypeIsServizio__
-                            ? ((targets.left.y + targets.right.y) / 2)
-                            : ((targets.left + targets.right) / 2);
-                        
-                        let intersectionX;
-                        if (yellowEndX == null) {
-                            intersectionX = computeBisectorXAtY(
-                                dotX,
-                                dotY,
-                                bisectorTarget,
-                                currentMeasureY,
-                                leftX,
-                                leftY,
-                                rightX,
-                                rightY
-                            );
-                        } else {
-                            intersectionX = yellowEndX;
-                        }
-                        
-                        receiverX = Math.max(minXAtH, Math.min(maxXAtH, intersectionX));
-                        receiverY = currentMeasureY;
-                    }
-                    
-                    intersectionDot.setAttribute('cx', String(receiverX));
-                    intersectionDot.setAttribute('cy', String(receiverY));
+                    const pos = getReceiverPosition();
+                    intersectionDot.setAttribute('cx', String(pos.x));
+                    intersectionDot.setAttribute('cy', String(pos.y));
                 } else {
                     intersectionDot.style.display = 'none';
                 }
@@ -1182,47 +1227,18 @@
                 // Always use normal mode logic for secondary court
                 const endYSvgR = isPlayerRight ? END_Y_TOP : END_Y_BOTTOM;
 
-                let clampedX, mainY;
-                if (window.__gioco__ === 'doppio' && yellowLine) {
-                    // In doubles the yellow line is already snapped to a player's Y or yDeep
-                    // by computeDoppioYellowEndY — read the actual endpoint directly.
+                // Il secondo colpo parte da dove il ricevitore colpisce la palla,
+                // cioè dalla fine della linea gialla (non dalla posizione del ricevitore).
+                // In doppio la linea gialla è già agganciata alla Y di un giocatore o a yDeep.
+                let clampedX = leftDotX;
+                let mainY = getShotBaseY();
+                if (yellowLine) {
                     const yx2 = parseFloat(yellowLine.getAttribute('x2'));
                     const yy2 = parseFloat(yellowLine.getAttribute('y2'));
                     if (!isNaN(yx2) && !isNaN(yy2)) {
                         clampedX = yx2;
                         mainY    = yy2;
-                    } else {
-                        clampedX = leftDotX;
-                        mainY    = currentMeasureY;
                     }
-                } else {
-                    const leftTargets = computePassYTargets(leftDotX, leftDotY);
-                    const primaryAnchors = getDirectionalAnchorPoints(leftDotX, leftDotY, leftTargets);
-                    const xLeftAtY = computeIntersectionX(leftDotX, leftDotY, primaryAnchors.leftX, primaryAnchors.leftY, currentMeasureY);
-                    const xRightAtY = computeIntersectionX(leftDotX, leftDotY, primaryAnchors.rightX, primaryAnchors.rightY, currentMeasureY);
-
-                    const minXAtY = Math.min(xLeftAtY, xRightAtY);
-                    const maxXAtY = Math.max(xLeftAtY, xRightAtY);
-                    let xIntersect;
-                    if (yellowEndX == null) {
-                        const bisTargetLeft = window.__shotTypeIsServizio__
-                            ? ((leftTargets.left.y + leftTargets.right.y) / 2)
-                            : ((leftTargets.left + leftTargets.right) / 2);
-                        xIntersect = computeBisectorXAtY(
-                            leftDotX,
-                            leftDotY,
-                            bisTargetLeft,
-                            currentMeasureY,
-                            primaryAnchors.leftX,
-                            primaryAnchors.leftY,
-                            primaryAnchors.rightX,
-                            primaryAnchors.rightY
-                        );
-                    } else {
-                        xIntersect = computeIntersectionX(leftDotX, leftDotY, yellowEndX, currentMeasureY, currentMeasureY);
-                    }
-                    clampedX = Math.max(minXAtY, Math.min(maxXAtY, xIntersect));
-                    mainY    = currentMeasureY;
                 }
                 dot2.setAttribute('cx', String(clampedX));
                 dot2.setAttribute('cy', String(mainY));
@@ -1565,28 +1581,29 @@
                         yellowLine.setAttribute('x1', String(dotX));
                         yellowLine.setAttribute('y1', String(dotY));
                         
-                        // Calculate intersection points with the blue lines at the measure height
-                        const xLeftAtH = computeIntersectionX(dotX, dotY, leftEndX, leftEndY, currentMeasureY);
-                        const xRightAtH = computeIntersectionX(dotX, dotY, rightEndX, rightEndY, currentMeasureY);
+                        // Calculate intersection points with the blue lines at the shot-end height
+                        const shotBaseY = getShotBaseY();
+                        const xLeftAtH = computeIntersectionX(dotX, dotY, leftEndX, leftEndY, shotBaseY);
+                        const xRightAtH = computeIntersectionX(dotX, dotY, rightEndX, rightEndY, shotBaseY);
                         const minXAtH = Math.min(xLeftAtH, xRightAtH);
                         const maxXAtH = Math.max(xLeftAtH, xRightAtH);
-                        
+
                         let yellowX2Srv, yellowY2Srv;
                         if (yellowEndX == null) {
                             // Position yellow line at the bisector of the blue lines
                             const bisectorX = (leftEndX + rightEndX) / 2;
                             const bisectorY = (leftEndY + rightEndY) / 2;
-                            const xOnBis = computeIntersectionX(dotX, dotY, bisectorX, bisectorY, currentMeasureY);
+                            const xOnBis = computeIntersectionX(dotX, dotY, bisectorX, bisectorY, shotBaseY);
                             yellowX2Srv = Math.max(minXAtH, Math.min(maxXAtH, xOnBis));
                         } else {
                             // Clamp yellow line within the blue lines
                             yellowX2Srv = Math.max(minXAtH, Math.min(maxXAtH, yellowEndX));
                         }
-                        yellowY2Srv = currentMeasureY;
+                        yellowY2Srv = shotBaseY;
                         // In doubles serve, snap yellow endpoint to the receiver's Y
-                        if (window.__gioco__ === 'doppio' && currentMeasureY !== dotY) {
+                        if (window.__gioco__ === 'doppio' && shotBaseY !== dotY) {
                             const receiverY = computeDoppioYellowEndY(dotX, dotY, yellowX2Srv);
-                            yellowX2Srv = dotX + (receiverY - dotY) / (currentMeasureY - dotY) * (yellowX2Srv - dotX);
+                            yellowX2Srv = dotX + (receiverY - dotY) / (shotBaseY - dotY) * (yellowX2Srv - dotX);
                             yellowY2Srv = receiverY;
                         }
                         yellowLine.setAttribute('x2', String(yellowX2Srv));
@@ -1612,21 +1629,22 @@
                         yellowLine.style.display = (window.__viewShot__ === false) ? 'none' : '';
                         yellowLine.setAttribute('x1', String(dotX));
                         yellowLine.setAttribute('y1', String(dotY));
-                        const xLeftAtH = computeIntersectionX(dotX, dotY, leftX, leftY, currentMeasureY);
-                        const xRightAtH = computeIntersectionX(dotX, dotY, rightX, rightY, currentMeasureY);
+                        const shotBaseY = getShotBaseY();
+                        const xLeftAtH = computeIntersectionX(dotX, dotY, leftX, leftY, shotBaseY);
+                        const xRightAtH = computeIntersectionX(dotX, dotY, rightX, rightY, shotBaseY);
                         const minXAtH = Math.min(xLeftAtH, xRightAtH);
                         const maxXAtH = Math.max(xLeftAtH, xRightAtH);
                         let yellowX2, yellowY2;
                         if (yellowEndX == null) {
-                            const xOnBis = computeBisectorXAtY(dotX, dotY, bisectorTarget, currentMeasureY, leftX, leftY, rightX, rightY);
+                            const xOnBis = computeBisectorXAtY(dotX, dotY, bisectorTarget, shotBaseY, leftX, leftY, rightX, rightY);
                             yellowX2 = Math.max(minXAtH, Math.min(maxXAtH, xOnBis));
                         } else {
                             yellowX2 = Math.max(minXAtH, Math.min(maxXAtH, yellowEndX));
                         }
-                        yellowY2 = currentMeasureY;
-                        if (window.__gioco__ === 'doppio' && currentMeasureY !== dotY) {
+                        yellowY2 = shotBaseY;
+                        if (window.__gioco__ === 'doppio' && shotBaseY !== dotY) {
                             const newY = computeDoppioYellowEndY(dotX, dotY, yellowX2);
-                            yellowX2 = dotX + (newY - dotY) / (currentMeasureY - dotY) * (yellowX2 - dotX);
+                            yellowX2 = dotX + (newY - dotY) / (shotBaseY - dotY) * (yellowX2 - dotX);
                             yellowY2 = newY;
                         }
                         yellowLine.setAttribute('x2', String(yellowX2));
@@ -1644,6 +1662,12 @@
             }
 
             function toSvgPoint(evt) {
+                // Vista 3D: il punto arriva dalla proiezione inversa del canvas (court3d.js)
+                const c3d = window.__court3d__;
+                if (c3d && c3d.isActive()) {
+                    const p3 = c3d.clientToSvg(evt.clientX, evt.clientY);
+                    if (p3) return p3;
+                }
                 const pt = svg.createSVGPoint();
                 pt.x = evt.clientX;
                 pt.y = evt.clientY;
@@ -1780,11 +1804,8 @@
                     dot.setAttribute('cx', x);
                     dot.setAttribute('cy', y);
                 }
-                if (isPlayer) {
-                    currentMeasureY = Math.max(SVG_Y_MIN, Math.min(NET_Y, currentMeasureY));
-                } else {
-                    currentMeasureY = Math.max(NET_Y, Math.min(SVG_Y_MAX, currentMeasureY));
-                }
+                currentMeasureY = clampYToReceiverHalf(currentMeasureY);
+                shotEndY = clampYToReceiverHalf(shotEndY);
                 updateArrowHtmlPosition();
                 const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
                 const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
@@ -1949,6 +1970,29 @@
                     evt.stopPropagation();
                 });
             });
+
+            // Il ricevitore colpisce al volo (nessun rimbalzo)?
+            // - singolare: colpo passante (l'avversario è a rete)
+            // - doppio: la linea gialla termina sulla linea nera di un giocatore a rete
+            //   (giocatore nella metà campo verso la rete, fieldY > 170)
+            // Il servizio deve sempre rimbalzare.
+            function isShotVolley() {
+                if (window.__shotTypeIsServizio__) return false;
+                if (window.__gioco__ !== 'doppio') return !!window.__shotTypeIsPassante__;
+                if (!yellowLine) return false;
+                const ex = parseFloat(yellowLine.getAttribute('x2'));
+                const ey = parseFloat(yellowLine.getAttribute('y2'));
+                if (Number.isNaN(ex) || Number.isNaN(ey)) return false;
+                const info = getActiveDoppioInfo();
+                return doppioDots.some(d => {
+                    if (!d || d === info.dot) return false;
+                    const cy = parseFloat(d.getAttribute('cy'));
+                    const cx = parseFloat(d.getAttribute('cx'));
+                    const onOppField = isPlayer ? (cy < NET_Y) : (cy > NET_Y);
+                    const fieldY = (cy < NET_Y) ? cy - FIELD_B_ORIGIN_Y : FIELD_A_ORIGIN_Y - cy;
+                    return onOppField && fieldY > 170 && Math.abs(ey - cy) < 0.5 && Math.abs(ex - cx) <= 60.5;
+                });
+            }
 
             function updateDoppioHorizontalLines() {
                 const TICK_LEN = 10;
@@ -2129,28 +2173,14 @@
                 const p = toSvgPoint(evt);
                 const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
                 const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
-                const targets = computePassYTargets(dotX, dotY);
-                
-                let xLeftAtH, xRightAtH;
-                if (window.__shotTypeIsServizio__) {
-                    // Servizio mode: use the actual target points
-                    xLeftAtH = computeIntersectionX(dotX, dotY, targets.left.x, targets.left.y, currentMeasureY);
-                    xRightAtH = computeIntersectionX(dotX, dotY, targets.right.x, targets.right.y, currentMeasureY);
-                } else {
-                    // Normal mode: use anchor points (passante-aware)
-                    const anchors = getDirectionalAnchorPoints(dotX, dotY, targets);
-                    xLeftAtH = computeIntersectionX(dotX, dotY, anchors.leftX, anchors.leftY, currentMeasureY);
-                    xRightAtH = computeIntersectionX(dotX, dotY, anchors.rightX, anchors.rightY, currentMeasureY);
-                }
-                
-                const minXAtH = Math.min(xLeftAtH, xRightAtH);
-                const maxXAtH = Math.max(xLeftAtH, xRightAtH);
+                const shotBaseY = getShotBaseY();
+                const { minX: minXAtH, maxX: maxXAtH } = computeWedgeXRangeAtY(dotX, dotY, shotBaseY);
                 const clampedX = Math.max(minXAtH, Math.min(maxXAtH, p.x));
                 yellowEndX = clampedX;
-                let yellowX2 = clampedX, yellowY2 = currentMeasureY;
-                if (window.__gioco__ === 'doppio' && currentMeasureY !== dotY) {
+                let yellowX2 = clampedX, yellowY2 = shotBaseY;
+                if (window.__gioco__ === 'doppio' && shotBaseY !== dotY) {
                     const newY = computeDoppioYellowEndY(dotX, dotY, clampedX);
-                    yellowX2 = dotX + (newY - dotY) / (currentMeasureY - dotY) * (clampedX - dotX);
+                    yellowX2 = dotX + (newY - dotY) / (shotBaseY - dotY) * (clampedX - dotX);
                     yellowY2 = newY;
                 }
                 yellowLine.setAttribute('x1', String(dotX));
@@ -2176,7 +2206,54 @@
                 window.addEventListener('pointerup', onYellowPointerUp);
             }
 
-            // Intersection dot drag (yellow line + horizontal line simultaneously)
+            // Intervallo di X del ventaglio (linee blu) a una data profondità
+            function computeWedgeXRangeAtY(dotX, dotY, yH) {
+                const targets = computePassYTargets(dotX, dotY);
+                let xLeftAtH, xRightAtH;
+                if (window.__shotTypeIsServizio__) {
+                    xLeftAtH = computeIntersectionX(dotX, dotY, targets.left.x, targets.left.y, yH);
+                    xRightAtH = computeIntersectionX(dotX, dotY, targets.right.x, targets.right.y, yH);
+                } else {
+                    const anchors = getDirectionalAnchorPoints(dotX, dotY, targets);
+                    xLeftAtH = computeIntersectionX(dotX, dotY, anchors.leftX, anchors.leftY, yH);
+                    xRightAtH = computeIntersectionX(dotX, dotY, anchors.rightX, anchors.rightY, yH);
+                }
+                return { minX: Math.min(xLeftAtH, xRightAtH), maxX: Math.max(xLeftAtH, xRightAtH) };
+            }
+
+            // Shot-end handle drag: sposta la fine del colpo (X e Y) dentro il ventaglio,
+            // senza toccare la posizione del ricevitore.
+            function onShotEndPointerDown(evt) {
+                if (!shotEndHandle) return;
+                draggingShotEnd = true;
+                shotEndHandle.setPointerCapture && shotEndHandle.setPointerCapture(evt.pointerId);
+                evt.preventDefault();
+                evt.stopPropagation();
+            }
+            function onShotEndPointerMove(evt) {
+                if (!draggingShotEnd) return;
+                const p = toSvgPoint(evt);
+                const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
+                const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
+                shotEndY = clampYToReceiverHalf(p.y);
+                const { minX, maxX } = computeWedgeXRangeAtY(dotX, dotY, shotEndY);
+                yellowEndX = Math.max(minX, Math.min(maxX, p.x));
+                updateLinesAndWedge(dotX, dotY);
+            }
+            function onShotEndPointerUp(evt) {
+                if (!draggingShotEnd) return;
+                draggingShotEnd = false;
+                shotEndHandle && shotEndHandle.releasePointerCapture && shotEndHandle.releasePointerCapture(evt.pointerId);
+            }
+            if (shotEndHandle) {
+                shotEndHandle.addEventListener('pointerdown', onShotEndPointerDown);
+                window.addEventListener('pointermove', onShotEndPointerMove);
+                window.addEventListener('pointerup', onShotEndPointerUp);
+            }
+
+            // Receiver dot drag: posizione del ricevitore mentre l'avversario colpisce.
+            // Si muove liberamente nella sua metà campo e trascina con sé la linea
+            // del campo da coprire; la fine del colpo (linea gialla) non cambia.
             function onIntersectionPointerDown(evt) {
                 if (!intersectionDot) return;
                 draggingIntersection = true;
@@ -2189,39 +2266,10 @@
                 const p = toSvgPoint(evt);
                 const dotX = dot ? parseFloat(dot.getAttribute('cx')) : ORIGIN_X;
                 const dotY = dot ? parseFloat(dot.getAttribute('cy')) : (isPlayer ? ORIGIN_BOTTOM_Y : ORIGIN_TOP_Y);
-                const targets = computePassYTargets(dotX, dotY);
-                
-                // Update Y position (horizontal line)
-                let newY;
-                if (isPlayer) {
-                    newY = Math.max(SVG_Y_MIN, Math.min(NET_Y, p.y));
-                } else {
-                    newY = Math.max(NET_Y, Math.min(SVG_Y_MAX, p.y));
-                }
-                currentMeasureY = newY;
-                
-                // Update X position (yellow line end)
-                let xLeftAtH, xRightAtH;
-                if (window.__shotTypeIsServizio__) {
-                    xLeftAtH = computeIntersectionX(dotX, dotY, targets.left.x, targets.left.y, currentMeasureY);
-                    xRightAtH = computeIntersectionX(dotX, dotY, targets.right.x, targets.right.y, currentMeasureY);
-                } else {
-                    const anchors = getDirectionalAnchorPoints(dotX, dotY, targets);
-                    xLeftAtH = computeIntersectionX(dotX, dotY, anchors.leftX, anchors.leftY, currentMeasureY);
-                    xRightAtH = computeIntersectionX(dotX, dotY, anchors.rightX, anchors.rightY, currentMeasureY);
-                }
-                const minXAtH = Math.min(xLeftAtH, xRightAtH);
-                const maxXAtH = Math.max(xLeftAtH, xRightAtH);
-                const clampedX = Math.max(minXAtH, Math.min(maxXAtH, p.x));
-                
-                yellowEndX = clampedX;
-                
-                // Update yellow line
-                yellowLine.setAttribute('x1', String(dotX));
-                yellowLine.setAttribute('y1', String(dotY));
-                yellowLine.setAttribute('x2', String(clampedX));
-                yellowLine.setAttribute('y2', String(currentMeasureY));
-                
+
+                currentMeasureY = clampYToReceiverHalf(p.y);
+                receiverX = Math.max(SVG_X_MIN, Math.min(SVG_X_MAX, p.x));
+
                 // Update arrow position
                 updateArrowHtmlPosition();
                 
@@ -2244,13 +2292,45 @@
                 window.addEventListener('pointerup', onIntersectionPointerUp);
             }
 
+            // Ponte per la vista 3D (court3d.js): avvia i trascinamenti esistenti
+            // senza passare dagli eventi dell'SVG (nascosto in 3D). I move/up
+            // sono già ascoltati su window e usano toSvgPoint.
+            window.__gotDragBridge__ = {
+                startDot() {
+                    if (isColpitoreMovementLocked()) showColpitoreMovementAlert();
+                    draggingDot = true;
+                    updateColpitoreDragState();
+                },
+                startIntersection() { draggingIntersection = true; },
+                startYellow() { draggingYellow = true; },
+                startShotEnd() { draggingShotEnd = true; },
+                shotIsVolley() { return isShotVolley(); },
+                startDoppio(circleEl) {
+                    if (window.__gioco__ !== 'doppio' || !circleEl) return;
+                    draggingDoppioDot = circleEl;
+                    _doppioPointerId = null;
+                },
+                startMeasure() { draggingArrow = true; },
+                isDragging() {
+                    return !!(draggingDot || draggingIntersection || draggingYellow || draggingShotEnd || draggingDoppioDot || draggingArrow);
+                },
+                refresh2d() {
+                    updateArrowHtmlPosition();
+                    updateCourtsArrowPosition();
+                },
+                courtColors() {
+                    return COURT_COLORS[window.__currentCourtType__] || COURT_COLORS.cemento;
+                },
+                ariaLabel() { return buildTennisCourtAriaLabel(); }
+            };
+
             function handleTouchFriendlyPointerDown(evt) {
                 if (!isMobileViewport()) return;
                 if (evt.pointerType === 'mouse') return;
                 if (window.drawingEnabled) return;
                 const isDoppio = window.__gioco__ === 'doppio';
                 const targetNode = evt.target;
-                if (targetNode === dot || targetNode === intersectionDot || targetNode === yellowLine || targetNode === arrowHtml) {
+                if (targetNode === dot || targetNode === intersectionDot || targetNode === shotEndHandle || targetNode === yellowLine || targetNode === arrowHtml) {
                     return;
                 }
                 const point = toSvgPoint(evt);
@@ -2273,9 +2353,23 @@
                     const intersectionX = parseFloat(intersectionDot.getAttribute('cx'));
                     const intersectionY = parseFloat(intersectionDot.getAttribute('cy'));
                     const interDistance = Math.hypot(point.x - intersectionX, point.y - intersectionY);
-                    if (interDistance <= TOUCH_PICK_RADIUS) {
+                    // Se la maniglia di fine colpo è più vicina, lascia la scelta a lei
+                    const handleVisible = shotEndHandle && shotEndHandle.style.display !== 'none';
+                    const handleDistance = handleVisible
+                        ? Math.hypot(point.x - parseFloat(shotEndHandle.getAttribute('cx')), point.y - parseFloat(shotEndHandle.getAttribute('cy')))
+                        : Infinity;
+                    if (interDistance <= TOUCH_PICK_RADIUS && interDistance <= handleDistance) {
                         onIntersectionPointerDown(evt);
                         onIntersectionPointerMove(evt);
+                        handled = true;
+                    }
+                }
+                if (!isDoppio && !handled && shotEndHandle && shotEndHandle.style.display !== 'none') {
+                    const endX = parseFloat(shotEndHandle.getAttribute('cx'));
+                    const endY = parseFloat(shotEndHandle.getAttribute('cy'));
+                    if (Math.hypot(point.x - endX, point.y - endY) <= TOUCH_PICK_RADIUS) {
+                        onShotEndPointerDown(evt);
+                        onShotEndPointerMove(evt);
                         handled = true;
                     }
                 }
@@ -2379,7 +2473,10 @@
                             isPlayer = info.isPlayer;
                             if (prevIsPlayer !== isPlayer) {
                                 currentMeasureY = 2 * NET_Y - currentMeasureY;
+                                shotEndY = 2 * NET_Y - shotEndY;
+                                receiverX = null;
                             }
+                            shotEndY = clampYToReceiverHalf(shotEndY);
                             if (isPlayer) {
                                 currentMeasureY = Math.max(SVG_Y_MIN, Math.min(NET_Y, currentMeasureY));
                             } else {
@@ -2394,13 +2491,10 @@
                         // Singolare mode
                         isPlayer = (val === 'tuo');
                         
-                        // Mirror measure Y
-                        currentMeasureY = 2 * NET_Y - currentMeasureY;
-                        if (isPlayer) {
-                            currentMeasureY = Math.max(SVG_Y_MIN, Math.min(NET_Y, currentMeasureY));
-                        } else {
-                            currentMeasureY = Math.max(NET_Y, Math.min(SVG_Y_MAX, currentMeasureY));
-                        }
+                        // Mirror measure Y (ricevitore) e fine colpo; il ricevitore torna sulla bisettrice
+                        currentMeasureY = clampYToReceiverHalf(2 * NET_Y - currentMeasureY);
+                        shotEndY = clampYToReceiverHalf(2 * NET_Y - shotEndY);
+                        receiverX = null;
                         updateArrowHtmlPosition();
 
                         // Reposition dot to origin
@@ -2455,15 +2549,11 @@
                             }
                         }
                         
-                        if (window.__shotTypeIsPassante__) {
-                            const targetYCampoB = 380;
-                            currentMeasureY = isPlayer ? targetYCampoB : (2 * NET_Y - targetYCampoB);
-                            updateArrowHtmlPosition();
-                        } else {
-                            const defaultYCampoB = ORIGIN_TOP_Y - 50;
-                            currentMeasureY = isPlayer ? defaultYCampoB : (2 * NET_Y - defaultYCampoB);
-                            updateArrowHtmlPosition();
-                        }
+                        // Ricevitore e fine colpo tornano alle profondità di default della tipologia
+                        currentMeasureY = defaultReceiverY();
+                        shotEndY = defaultShotEndY();
+                        receiverX = null;
+                        updateArrowHtmlPosition();
                         
                         updateThemeColors();
                         updateThemeColorsRight();
@@ -3212,6 +3302,11 @@
             
             // Download court image function
             function downloadCourtImage() {
+                // Vista 3D: esporta i canvas prospettici
+                if (window.__court3d__ && window.__court3d__.isActive()) {
+                    window.__court3d__.download(downloadCanvas);
+                    return;
+                }
                 console.log('Inizio download immagine campo...');
                 
                 const currentMode = window.__modalita__;
@@ -3906,6 +4001,8 @@
                     tipologia: currentTipologia ? currentTipologia.value : 'palleggio',
                     currentMeasureY: currentMeasureY,
                     yellowEndX: yellowEndX,
+                    shotEndY: shotEndY,
+                    receiverX: receiverX,
                     previousShotWasAttacco: previousShotWasAttacco,
                     previousShotWasPassante: previousShotWasPassante,
                     previousShotDotX: previousShotDot ? parseFloat(previousShotDot.getAttribute('cx')) : null,
@@ -3979,6 +4076,8 @@
                 // Ripristina altre variabili
                 currentMeasureY = state.currentMeasureY;
                 yellowEndX = state.yellowEndX;
+                shotEndY = (typeof state.shotEndY === 'number') ? state.shotEndY : defaultShotEndY();
+                receiverX = (typeof state.receiverX === 'number') ? state.receiverX : null;
                 previousShotWasAttacco = state.previousShotWasAttacco;
                 previousShotWasPassante = state.previousShotWasPassante;
                 
@@ -4394,11 +4493,12 @@
                         dot.setAttribute('cy', String(originY));
                     }
                     
-                    // 4. Reset currentMeasureY al valore di default
-                    const defaultYCampoB = ORIGIN_TOP_Y - 50;
-                    currentMeasureY = isPlayer ? defaultYCampoB : (2 * NET_Y - defaultYCampoB);
+                    // 4. Reset posizione ricevitore (= linea campo da coprire) e fine colpo
+                    currentMeasureY = defaultReceiverY();
+                    shotEndY = defaultShotEndY();
+                    receiverX = null;
                     updateArrowHtmlPosition();
-                    
+
                     // 5. Reset yellowEndX
                     yellowEndX = null;
                     
@@ -4468,7 +4568,7 @@
                     // Nascondi tutti gli elementi tranne i cerchietti rossi
                     const elementsToHide = [
                         leftLine, rightLine, bisectorLine, yellowLine, 
-                        wedge, hMeasure, hMeasureLabel, hMeasureBadge, arrowHtml, dot, intersectionDot
+                        wedge, hMeasure, hMeasureLabel, hMeasureBadge, arrowHtml, dot, intersectionDot, shotEndHandle
                     ];
                     elementsToHide.forEach(el => {
                         if (el) el.style.display = 'none';
@@ -4670,8 +4770,10 @@
                     // Ottieni le posizioni dei due cerchietti rossi
                     const startX = parseFloat(dot.getAttribute('cx'));
                     const startY = parseFloat(dot.getAttribute('cy'));
-                    const endX = parseFloat(intersectionDot.getAttribute('cx'));
-                    const endY = parseFloat(intersectionDot.getAttribute('cy'));
+                    // La palla va dove finisce il colpo (estremo della linea gialla),
+                    // non dove si trova il ricevitore mentre l'avversario colpisce.
+                    const endX = parseFloat(yellowLine.getAttribute('x2'));
+                    const endY = parseFloat(yellowLine.getAttribute('y2'));
                     
                     // Salva lo stato corrente del colpitore e della tipologia
                     const currentIsPlayer = isPlayer;
@@ -4690,8 +4792,8 @@
                     
                     // Nascondi tutti gli elementi tranne i cerchietti rossi (corrente + precedenti)
                     const elementsToHide = [
-                        leftLine, rightLine, bisectorLine, yellowLine, 
-                        wedge, hMeasure, arrowHtml
+                        leftLine, rightLine, bisectorLine, yellowLine,
+                        wedge, hMeasure, arrowHtml, shotEndHandle
                     ];
                     elementsToHide.forEach(el => {
                         if (el) el.style.display = 'none';
@@ -4865,8 +4967,12 @@
                                 dot.setAttribute('cx', String(endX));
                                 dot.setAttribute('cy', String(endY));
                                 
-                                // 5. Posiziona la linea orizzontale blu al livello y di partenza della pallina
+                                // 5. Posiziona la linea orizzontale blu al livello y di partenza della pallina:
+                                //    il nuovo ricevitore è chi ha appena colpito (X sulla bisettrice);
+                                //    la fine del nuovo colpo torna alla profondità di default.
                                 currentMeasureY = startY;
+                                receiverX = null;
+                                shotEndY = defaultShotEndY();
                                 updateArrowHtmlPosition();
                                 
                                 // Ripristina gli elementi nascosti
@@ -5321,6 +5427,8 @@
             }
 
             function activateDrawTool(mode) {
+                // I disegni si fanno sull'SVG: torna in 2D
+                if (window.__court3d__ && window.__court3d__.isActive()) window.__court3d__.setVista('2d');
                 drawingMode = mode;
                 window.drawingEnabled = true;
                 [penButton, highlighterButton, arrowButton, lineButton, textButton, rulerButton, eraserButton].forEach((b) => {
@@ -6794,9 +6902,10 @@
                             // Ritorna un oggetto speciale per indicare elementi multipli
                             const yellowLineEl = document.getElementById('yellowLine');
                             const intersectionDotEl = document.getElementById('intersectionDot');
+                            const shotEndHandleEl = document.getElementById('shotEndHandle');
                             return {
                                 _multiElement: true,
-                                elements: [yellowLineEl, intersectionDotEl].filter(el => el !== null)
+                                elements: [yellowLineEl, shotEndHandleEl, intersectionDotEl].filter(el => el !== null)
                             };
                         case 'h-measure':
                             // Ritorna un oggetto speciale per indicare elementi multipli
@@ -7486,6 +7595,7 @@
                     setGiocoInputsEnabled(false);
                     
                     currentStep = 0;
+                    if (window.__court3d__ && window.__court3d__.isActive()) window.__court3d__.setVista('2d');
                     tutorialOverlay.classList.add('active', 'fade-in');
                     tutorialOverlay.classList.remove('fade-out');
                     
