@@ -17,3 +17,164 @@
         overflow-y: auto;
     }
 }
+
+/* ==========================================
+   VISTA 3D (court3d.js)
+   Il canvas 3D è sovrapposto all'SVG 2D, che resta la fonte di verità.
+   ========================================== */
+.court3d-layer {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+    z-index: 20;
+}
+
+.court3d-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    border-radius: 20px;
+    opacity: 0;
+    transition: opacity 0.22s ease;
+    pointer-events: none;
+    touch-action: none;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+body.vista-3d .court3d-canvas {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+body.vista-3d .court3d-canvas.is-grab { cursor: grab; }
+body.vista-3d .court3d-canvas.is-grabbing { cursor: grabbing; }
+
+body.vista-3d #measureArrowHtml,
+body.vista-3d #coordinateTooltip {
+    display: none !important;
+}
+
+/* Toggle 2D / 3D (pillola segmentata in vetro) */
+.court3d-toggle {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 30;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 3px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.38);
+    box-shadow: 0 4px 14px rgba(var(--c-darker-rgb), 0.28);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    user-select: none;
+}
+
+.court3d-toggle button {
+    position: relative;
+    z-index: 1;
+    width: 44px;
+    min-width: 0;
+    min-height: 0;
+    height: 28px;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    color: #ffffff;
+    font: 800 13px/1 'Montserrat', 'Roboto', Arial, sans-serif;
+    letter-spacing: 0.6px;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.court3d-toggle button.active {
+    color: var(--c-primary);
+}
+
+.court3d-toggle button:focus-visible {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+.court3d-toggle-thumb {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    height: calc(100% - 6px);
+    border-radius: 999px;
+    background: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.court3d-toggle.is-3d .court3d-toggle-thumb {
+    transform: translateX(100%);
+}
+
+/* Altezza camera (solo 3D) */
+.court3d-camera {
+    position: absolute;
+    left: 50%;
+    bottom: 12px;
+    transform: translate(-50%, 6px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1px solid rgba(255, 255, 255, 0.34);
+    color: #ffffff;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 14px rgba(var(--c-darker-rgb), 0.25);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease, transform 0.22s ease;
+}
+
+body.vista-3d .court3d-camera {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    pointer-events: auto;
+}
+
+.court3d-camera input[type="range"] {
+    width: clamp(90px, 22vw, 140px);
+    accent-color: #ffffff;
+    touch-action: none;
+}
+
+.court3d-camera-value {
+    min-width: 38px;
+    font: 700 12px/1 'Roboto', Arial, sans-serif;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .court3d-canvas,
+    .court3d-toggle-thumb,
+    .court3d-camera {
+        transition: none;
+    }
+}
+
+/* L'icona non deve ereditare le regole di .svg-wrap svg */
+.svg-wrap .court3d-camera svg {
+    width: 16px;
+    height: 16px;
+    min-width: 0;
+    max-height: none;
+    flex: none;
+}
