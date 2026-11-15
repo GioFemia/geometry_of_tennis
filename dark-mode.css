@@ -1,0 +1,284 @@
+/* ==========================================
+   TEMA SCURO
+   Attivo quando <html data-theme="dark"> (impostato da theme.js in base
+   alla scelta Chiaro / Scuro / Sistema salvata in localStorage).
+   La palette per superficie (cemento/terra/erba) resta valida: qui si
+   scuriscono solo sfondi, superfici, bordi e testi.
+   ========================================== */
+
+:root[data-theme="dark"] {
+    color-scheme: dark;
+
+    --dm-bg-1: #0b1016;
+    --dm-bg-2: #111821;
+    --dm-surface: #17202a;
+    --dm-surface-2: #1e2834;
+    --dm-surface-3: #273340;
+    --dm-border: rgba(255, 255, 255, 0.09);
+    --dm-border-strong: rgba(255, 255, 255, 0.16);
+    --dm-text: #e6ecf2;
+    --dm-text-2: #b4c1cd;
+    --dm-text-3: #8797a7;
+
+    /* Sfondi pagina e tinte chiare della palette, ricavate dal colore della superficie */
+    --c-bg-1: var(--dm-bg-1);
+    --c-bg-2: var(--dm-bg-2);
+    --c-50: color-mix(in srgb, var(--c-primary) 20%, var(--dm-surface));
+    --c-100: color-mix(in srgb, var(--c-primary) 32%, var(--dm-surface));
+}
+
+:root[data-theme="dark"] body {
+    color: var(--dm-text);
+}
+
+/* Titoli con testo in gradiente: restano chiari (usavano --c-50 come tinta) */
+:root[data-theme="dark"] .top-bar-title,
+:root[data-theme="dark"] .mobile-nav-title,
+:root[data-theme="dark"] .controls-sidebar.mobile-enabled .mobile-nav-title,
+:root[data-theme="dark"] .tutorial-title {
+    background-image: linear-gradient(135deg, #ffffff 0%, var(--c-200) 50%, #ffffff 100%);
+}
+
+:root[data-theme="dark"] .app-title {
+    background-image: linear-gradient(135deg, var(--c-200) 0%, #ffffff 50%, var(--c-200) 100%);
+}
+
+/* ---------- Superfici principali ---------- */
+:root[data-theme="dark"] .controls-sidebar,
+:root[data-theme="dark"] .controls-sidebar.mobile-enabled,
+:root[data-theme="dark"] .top-bar-modal,
+:root[data-theme="dark"] .mobile-drawer-content,
+:root[data-theme="dark"] .tutorial-modal,
+:root[data-theme="dark"] .colpitore-alert-modal,
+:root[data-theme="dark"] .draw-text-overlay-panel,
+:root[data-theme="dark"] .page-footer-mobile,
+:root[data-theme="dark"] body.desktop-tutorial-sidebar .tutorial-overlay,
+:root[data-theme="dark"] body.desktop-tutorial-replace-primary .tutorial-overlay {
+    background: var(--dm-surface);
+    border-color: var(--dm-border);
+    color: var(--dm-text);
+}
+
+:root[data-theme="dark"] .controls-sidebar .sidebar-footer,
+:root[data-theme="dark"] .sidebar-footer,
+:root[data-theme="dark"] .tutorial-footer,
+:root[data-theme="dark"] .tutorial-dots {
+    background: var(--dm-surface);
+    border-color: var(--dm-border);
+}
+
+:root[data-theme="dark"] .control-section,
+:root[data-theme="dark"] .top-bar-modal-content .control-section,
+:root[data-theme="dark"] .mobile-drawer-settings-group,
+:root[data-theme="dark"] .draw-inspector,
+:root[data-theme="dark"] .draw-controls-hover,
+:root[data-theme="dark"] .controls-sidebar .draw-controls-hover,
+:root[data-theme="dark"] .draw-color-picker-hover,
+:root[data-theme="dark"] .draw-width-picker-hover {
+    background: var(--dm-surface-2);
+    border-color: var(--dm-border);
+}
+
+/* ---------- Opzioni, pulsanti e campi ---------- */
+:root[data-theme="dark"] .control-option.compact-option,
+:root[data-theme="dark"] .controls-sidebar .control-option.compact-option,
+:root[data-theme="dark"] .mobile-drawer-item,
+:root[data-theme="dark"] .mobile-drawer-radio,
+:root[data-theme="dark"] .mobile-drawer-checkbox,
+:root[data-theme="dark"] .mobile-drawer-mode-content,
+:root[data-theme="dark"] .mode-option-content,
+:root[data-theme="dark"] .top-bar-modal-content .mode-option-content,
+:root[data-theme="dark"] .mode-option-icon,
+:root[data-theme="dark"] .draw-tool-button,
+:root[data-theme="dark"] .controls-sidebar .draw-tool-button.compact,
+:root[data-theme="dark"] .mobile-drawer-draw-tool,
+:root[data-theme="dark"] .draw-text-overlay-btn--secondary,
+:root[data-theme="dark"] .tutorial-nav-btn:not(.tutorial-nav-primary),
+:root[data-theme="dark"] .lock-message,
+:root[data-theme="dark"] .coordinate-tooltip {
+    background: var(--dm-surface-3);
+    border-color: var(--dm-border);
+    color: var(--dm-text);
+}
+
+:root[data-theme="dark"] .control-option:hover,
+:root[data-theme="dark"] .control-option.compact-option:hover,
+:root[data-theme="dark"] .controls-sidebar .control-option.compact-option:hover,
+:root[data-theme="dark"] .mobile-drawer-item:hover,
+:root[data-theme="dark"] .mobile-drawer-checkbox:hover,
+:root[data-theme="dark"] .mobile-drawer-mode-option:hover .mobile-drawer-mode-content,
+:root[data-theme="dark"] .mode-option:hover .mode-option-content,
+:root[data-theme="dark"] .top-bar-modal-content .mode-option:hover .mode-option-content,
+:root[data-theme="dark"] .mode-option.disabled-option:hover .mode-option-content,
+:root[data-theme="dark"] .draw-tool-button:hover,
+:root[data-theme="dark"] .draw-tool-button.compact:hover,
+:root[data-theme="dark"] .controls-sidebar .draw-tool-button.compact:hover,
+:root[data-theme="dark"] .mobile-drawer-draw-tool:hover,
+:root[data-theme="dark"] .draw-text-overlay-btn--secondary:hover,
+:root[data-theme="dark"] .default-subsection .control-option:has(input[type="checkbox"]:disabled):hover {
+    background: color-mix(in srgb, var(--c-primary) 18%, var(--dm-surface-3));
+}
+
+:root[data-theme="dark"] .mobile-drawer-draw-tool-danger:hover {
+    background: rgba(244, 67, 54, 0.18);
+    color: #ff8a80;
+}
+
+/* Elementi selezionati: tinta della superficie + testo chiaro */
+:root[data-theme="dark"] .control-option.compact-option:has(input:checked),
+:root[data-theme="dark"] .controls-sidebar .control-option.compact-option:has(input:checked),
+:root[data-theme="dark"] .mobile-drawer-radio:has(input:checked),
+:root[data-theme="dark"] .mobile-drawer-mode-option input:checked + .mobile-drawer-mode-content,
+:root[data-theme="dark"] .mode-option input[type="radio"]:checked + .mode-option-content,
+:root[data-theme="dark"] .top-bar-modal-content .mode-option input[type="radio"]:checked + .mode-option-content {
+    background: linear-gradient(135deg, var(--c-50) 0%, var(--c-100) 100%);
+    border-color: rgba(var(--c-court-rgb), 0.55);
+    color: var(--c-200);
+}
+
+:root[data-theme="dark"] .control-option.compact-option:has(input:checked) *,
+:root[data-theme="dark"] .mobile-drawer-radio:has(input:checked) span,
+:root[data-theme="dark"] .mode-option input[type="radio"]:checked + .mode-option-content .mode-option-label,
+:root[data-theme="dark"] .mobile-drawer-mode-option input:checked + .mobile-drawer-mode-content .mobile-drawer-mode-label {
+    color: var(--c-200);
+}
+
+:root[data-theme="dark"] .mobile-drawer-radio.mobile-drawer-radio-disabled,
+:root[data-theme="dark"] .mobile-drawer-radio:has(input:disabled) {
+    background: var(--dm-surface-2);
+    opacity: 0.55;
+}
+
+/* Top bar: pulsante attivo e modale */
+:root[data-theme="dark"] .top-bar-item.active {
+    background: rgba(255, 255, 255, 0.92);
+}
+
+:root[data-theme="dark"] .top-bar-modal-close {
+    color: #ffffff;
+}
+
+/* Campi di input */
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea,
+:root[data-theme="dark"] input[type="number"],
+:root[data-theme="dark"] input[type="text"],
+:root[data-theme="dark"] .default-subsection select,
+:root[data-theme="dark"] .default-subsection input[type="number"],
+:root[data-theme="dark"] .top-bar-modal-content select,
+:root[data-theme="dark"] .top-bar-modal-content .default-subsection select,
+:root[data-theme="dark"] .mobile-drawer-select-label select,
+:root[data-theme="dark"] .mobile-drawer-number-input,
+:root[data-theme="dark"] .download-shot-number-label input[type="number"] {
+    background-color: var(--dm-surface-3);
+    border-color: var(--dm-border-strong);
+    color: var(--dm-text);
+}
+
+:root[data-theme="dark"] .control-option.compact-option input[type="radio"],
+:root[data-theme="dark"] .control-option.compact-option input[type="checkbox"] {
+    background-color: var(--dm-surface);
+    border-color: var(--dm-border-strong);
+}
+
+:root[data-theme="dark"] .compact-color,
+:root[data-theme="dark"] .mobile-drawer-color-input {
+    background: var(--dm-surface-3);
+    border-color: var(--dm-border-strong);
+}
+
+:root[data-theme="dark"] .draw-inspector-hint kbd,
+:root[data-theme="dark"] kbd {
+    background: var(--dm-surface-3);
+    border-color: var(--dm-border-strong);
+    color: var(--dm-text);
+}
+
+/* ---------- Testi ---------- */
+:root[data-theme="dark"] .control-option label,
+:root[data-theme="dark"] .controls-sidebar .control-option.compact-option,
+:root[data-theme="dark"] .mobile-drawer-item,
+:root[data-theme="dark"] .mobile-drawer-radio span,
+:root[data-theme="dark"] .mobile-drawer-checkbox span,
+:root[data-theme="dark"] .mobile-drawer-mode-label,
+:root[data-theme="dark"] .mobile-drawer-draw-tool,
+:root[data-theme="dark"] .mode-option-label,
+:root[data-theme="dark"] .lock-message,
+:root[data-theme="dark"] .coordinate-tooltip,
+:root[data-theme="dark"] .colpitore-alert-message,
+:root[data-theme="dark"] .tutorial-step h2,
+:root[data-theme="dark"] .tutorial-list li strong,
+:root[data-theme="dark"] .draw-text-overlay-title,
+:root[data-theme="dark"] .draw-text-menu-title {
+    color: var(--dm-text);
+}
+
+:root[data-theme="dark"] .control-section-title,
+:root[data-theme="dark"] .control-section-title.compact-title,
+:root[data-theme="dark"] .download-option-title,
+:root[data-theme="dark"] .mobile-drawer-select-label span,
+:root[data-theme="dark"] .mobile-drawer-draw-label,
+:root[data-theme="dark"] .mobile-drawer-download-label,
+:root[data-theme="dark"] .mode-option-icon,
+:root[data-theme="dark"] .field-label,
+:root[data-theme="dark"] .draw-tool-button,
+:root[data-theme="dark"] .controls-sidebar .draw-tool-button.compact,
+:root[data-theme="dark"] .draw-label,
+:root[data-theme="dark"] .draw-inspector-hint,
+:root[data-theme="dark"] .draw-tool-button--undo,
+:root[data-theme="dark"] .draw-tool-button--redo,
+:root[data-theme="dark"] .draw-text-overlay-size-label,
+:root[data-theme="dark"] .draw-text-overlay-btn--secondary,
+:root[data-theme="dark"] .tutorial-close,
+:root[data-theme="dark"] .tutorial-step p,
+:root[data-theme="dark"] .tutorial-step em,
+:root[data-theme="dark"] .tutorial-list li,
+:root[data-theme="dark"] .progress-text,
+:root[data-theme="dark"] .tutorial-nav-btn:not(.tutorial-nav-primary),
+:root[data-theme="dark"] .sidebar-footer-text {
+    color: var(--dm-text-2);
+}
+
+:root[data-theme="dark"] .sidebar-footer-text strong {
+    color: var(--c-200);
+}
+
+:root[data-theme="dark"] .panel-section-title,
+:root[data-theme="dark"] .mobile-drawer-settings-title {
+    color: var(--c-200);
+}
+
+/* ---------- Guida (tutorial) ---------- */
+:root[data-theme="dark"] .tutorial-tip {
+    background: rgba(255, 152, 0, 0.12);
+    border-color: rgba(255, 152, 0, 0.35);
+    color: #ffb74d;
+}
+
+:root[data-theme="dark"] .progress-bar,
+:root[data-theme="dark"] .tutorial-dot {
+    background: var(--dm-surface-3);
+}
+
+:root[data-theme="dark"] .tutorial-dot.active {
+    background: var(--c-court);
+}
+
+/* ---------- Varie ---------- */
+:root[data-theme="dark"] .court-lock-overlay {
+    background: rgba(11, 16, 22, 0.72);
+}
+
+:root[data-theme="dark"] .lock-icon-wrapper {
+    background: linear-gradient(135deg, var(--dm-surface-3) 0%, var(--dm-surface-2) 100%);
+}
+
+:root[data-theme="dark"] .colpitore-alert-title,
+:root[data-theme="dark"] .draw-tool-button.compact[data-tool="clear"] {
+    color: #ff7961;
+}
+
+:root[data-theme="dark"] .top-bar-modal-overlay,
+:root[data-theme="dark"] .tutorial-overlay {
+    backdrop-filter: blur(4px) brightness(0.7);
+}
