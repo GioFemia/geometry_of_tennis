@@ -5,6 +5,7 @@
             const dot = document.getElementById('cursorDot');
             const intersectionDot = document.getElementById('intersectionDot');
             const shotEndHandle = document.getElementById('shotEndHandle');
+            const receiverHitArea = document.getElementById('receiverHitArea');
             const leftLine = document.getElementById('leftLine');
             const rightLine = document.getElementById('rightLine');
             const bisectorLine = document.getElementById('bisectorLine');
@@ -90,6 +91,7 @@
             const TOUCH_LINE_THRESHOLD = 20;
             const MOBILE_DINAMICO_DESIRED_GAP = 12;
             const RECEIVER_DOT_RADIUS = 8;
+            const TOUCH_HANDLE_CORE_RADIUS = 14; // touch: zona centrale della maniglia fine colpo quando è sopra il ricevitore
             const COVER_BADGE_TEXT_HEIGHT = 22;
             const COVER_BADGE_VERTICAL_MARGIN = 6;
             
@@ -111,11 +113,10 @@
             // - ricevitore: dove si trova mentre l'avversario colpisce (linea del campo da coprire)
             const SHOT_END_DEFAULT_DEPTH_B = ORIGIN_TOP_Y - 50;
             const SHOT_END_PASSANTE_DEPTH_B = 380;
-            const RECEIVER_DEFAULT_DEPTH_B = ORIGIN_TOP_Y;
-            const RECEIVER_PASSANTE_DEPTH_B = 420;
 
-            // Y del ricevitore = Y della linea "campo da coprire" (spostata dalla freccia)
-            let currentMeasureY = RECEIVER_DEFAULT_DEPTH_B;
+            // Y del ricevitore = Y della linea "campo da coprire" (spostata dalla freccia).
+            // Di default il ricevitore coincide con la fine del colpo.
+            let currentMeasureY = SHOT_END_DEFAULT_DEPTH_B;
             // Y della fine del colpo (estremo della linea gialla)
             let shotEndY = SHOT_END_DEFAULT_DEPTH_B;
             // X del ricevitore: null = segue la bisettrice finché non viene trascinato
@@ -146,9 +147,9 @@
             }
 
             function defaultReceiverY() {
-                // Nel doppio la linea del campo da coprire guida ancora la linea gialla: profondità storiche
-                if (window.__gioco__ === 'doppio') return defaultShotEndY();
-                return depthForReceiverSide(window.__shotTypeIsPassante__ ? RECEIVER_PASSANTE_DEPTH_B : RECEIVER_DEFAULT_DEPTH_B);
+                // Il ricevitore parte sovrapposto alla fine del colpo (anche nel doppio,
+                // dove la linea del campo da coprire guida la linea gialla)
+                return defaultShotEndY();
             }
 
             // Profondità su cui si calcola la fine della linea gialla.
@@ -717,9 +718,22 @@
                 shotEndHandle.style.display = '';
             }
 
+            // L'area di presa invisibile segue posizione e visibilità del ricevitore
+            function syncReceiverHitArea() {
+                if (!receiverHitArea || !intersectionDot) return;
+                receiverHitArea.setAttribute('cx', intersectionDot.getAttribute('cx'));
+                receiverHitArea.setAttribute('cy', intersectionDot.getAttribute('cy'));
+                receiverHitArea.style.display = intersectionDot.style.display === 'none' ? 'none' : '';
+            }
+
             function updateIntersectionDot() {
                 updateShotEndHandle();
                 if (!intersectionDot) return;
+                updateIntersectionDotPosition();
+                syncReceiverHitArea();
+            }
+
+            function updateIntersectionDotPosition() {
 
                 if (window.__gioco__ === 'doppio') {
                     intersectionDot.style.display = 'none';
@@ -2288,6 +2302,7 @@
             }
             if (intersectionDot) {
                 intersectionDot.addEventListener('pointerdown', onIntersectionPointerDown);
+                if (receiverHitArea) receiverHitArea.addEventListener('pointerdown', onIntersectionPointerDown);
                 window.addEventListener('pointermove', onIntersectionPointerMove);
                 window.addEventListener('pointerup', onIntersectionPointerUp);
             }
@@ -2330,7 +2345,7 @@
                 if (window.drawingEnabled) return;
                 const isDoppio = window.__gioco__ === 'doppio';
                 const targetNode = evt.target;
-                if (targetNode === dot || targetNode === intersectionDot || targetNode === shotEndHandle || targetNode === yellowLine || targetNode === arrowHtml) {
+                if (targetNode === dot || targetNode === intersectionDot || targetNode === receiverHitArea || targetNode === shotEndHandle || targetNode === yellowLine || targetNode === arrowHtml) {
                     return;
                 }
                 const point = toSvgPoint(evt);
@@ -2358,7 +2373,14 @@
                     const handleDistance = handleVisible
                         ? Math.hypot(point.x - parseFloat(shotEndHandle.getAttribute('cx')), point.y - parseFloat(shotEndHandle.getAttribute('cy')))
                         : Infinity;
-                    if (interDistance <= TOUCH_PICK_RADIUS && interDistance <= handleDistance) {
+                    // Punti sovrapposti (default): il centro va alla fine del colpo, la corona esterna al ricevitore
+                    const overlapped = handleVisible && Math.hypot(
+                        parseFloat(shotEndHandle.getAttribute('cx')) - intersectionX,
+                        parseFloat(shotEndHandle.getAttribute('cy')) - intersectionY) < RECEIVER_DOT_RADIUS;
+                    const receiverWins = overlapped
+                        ? handleDistance > TOUCH_HANDLE_CORE_RADIUS
+                        : interDistance < handleDistance;
+                    if (interDistance <= TOUCH_PICK_RADIUS && receiverWins) {
                         onIntersectionPointerDown(evt);
                         onIntersectionPointerMove(evt);
                         handled = true;
@@ -4568,7 +4590,7 @@
                     // Nascondi tutti gli elementi tranne i cerchietti rossi
                     const elementsToHide = [
                         leftLine, rightLine, bisectorLine, yellowLine, 
-                        wedge, hMeasure, hMeasureLabel, hMeasureBadge, arrowHtml, dot, intersectionDot, shotEndHandle
+                        wedge, hMeasure, hMeasureLabel, hMeasureBadge, arrowHtml, dot, intersectionDot, shotEndHandle, receiverHitArea
                     ];
                     elementsToHide.forEach(el => {
                         if (el) el.style.display = 'none';
@@ -4793,7 +4815,7 @@
                     // Nascondi tutti gli elementi tranne i cerchietti rossi (corrente + precedenti)
                     const elementsToHide = [
                         leftLine, rightLine, bisectorLine, yellowLine,
-                        wedge, hMeasure, arrowHtml, shotEndHandle
+                        wedge, hMeasure, arrowHtml, shotEndHandle, receiverHitArea
                     ];
                     elementsToHide.forEach(el => {
                         if (el) el.style.display = 'none';
