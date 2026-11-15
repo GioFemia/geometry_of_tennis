@@ -37,7 +37,7 @@ Una pagina interattiva che visualizza e spiega in modo intuitivo la geometria de
 ## Interazioni principali
 
 - Trascinamento pallino rosso: sposta il punto d’impatto sul lato di campo attivo, aggiornando in tempo reale ventaglio, bisettrice e misura.
-- Pallino rosso piccolo (ricevitore): è la posizione del ricevitore mentre l'avversario colpisce, indipendente dalla fine del colpo. Di default sta sulla bisettrice alla linea di fondo e segue il colpitore; una volta trascinato resta libero nella sua metà campo.
+- Pallino rosso piccolo (ricevitore): è la posizione del ricevitore mentre l'avversario colpisce, indipendente dalla fine del colpo. Di default coincide con la fine del colpo (sulla bisettrice, alla stessa profondità) e segue il colpitore; una volta trascinato resta libero nella sua metà campo. Quando i due punti sono sovrapposti, il centro giallo sposta la fine del colpo e l'anello rosso il ricevitore.
 - Freccia arancione laterale: regola la quota della misura orizzontale (sopra la rete se il colpo è “Tuo”, sotto se “Avversario”). La misura è legata alla profondità del ricevitore: spostare la freccia sposta il ricevitore in profondità.
 - Linea gialla: trascinandola si cambia la direzione del colpo entro il ventaglio.
 - Punto giallo a fine linea: è dove il ricevitore colpirà la palla. Si trascina in orizzontale e in profondità, sempre dentro il ventaglio. In 2 colpi il secondo campo parte da questo punto.
