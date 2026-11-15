@@ -25,6 +25,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800;900&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="components-extras.css">
+    <link rel="stylesheet" href="dark-mode.css">
+    <script>
+        /* Applica subito il tema salvato (evita il lampo chiaro); la logica completa è in theme.js */
+        (function () {
+            var p = 'auto';
+            try { p = localStorage.getItem('geometryOfTennis_theme') || 'auto'; } catch (e) {}
+            var dark = p === 'dark' || (p !== 'light' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+        })();
+    </script>
 </head>
 <body>
     <div id="app-a11y-announcer" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -384,6 +394,25 @@
                             <input id="campo_erba_top" type="radio" name="campoType_top" value="erba" />
                             <span>Erba</span>
                         </label>
+                    </div>
+                </div>
+
+                <!-- Tema -->
+                <div class="control-section">
+                    <h3 class="control-section-title">Tema</h3>
+                    <div class="control-options">
+                            <label class="control-option" for="theme_auto_top">
+                                <input id="theme_auto_top" type="radio" name="theme_top" value="auto" checked />
+                                <span>Sistema</span>
+                            </label>
+                            <label class="control-option" for="theme_light_top">
+                                <input id="theme_light_top" type="radio" name="theme_top" value="light" />
+                                <span>Chiaro</span>
+                            </label>
+                            <label class="control-option" for="theme_dark_top">
+                                <input id="theme_dark_top" type="radio" name="theme_top" value="dark" />
+                                <span>Scuro</span>
+                            </label>
                     </div>
                 </div>
                 
@@ -816,6 +845,25 @@
                         <input id="campo_erba" type="radio" name="campoType" value="erba" />
                         <span>Erba</span>
                     </label>
+                </div>
+            </div>
+
+            <!-- Tema -->
+            <div class="control-section collapsed">
+                <h3 class="control-section-title">Tema</h3>
+                <div class="control-options">
+                        <label class="control-option" for="theme_auto">
+                            <input id="theme_auto" type="radio" name="theme_panel" value="auto" checked />
+                            <span>Sistema</span>
+                        </label>
+                        <label class="control-option" for="theme_light">
+                            <input id="theme_light" type="radio" name="theme_panel" value="light" />
+                            <span>Chiaro</span>
+                        </label>
+                        <label class="control-option" for="theme_dark">
+                            <input id="theme_dark" type="radio" name="theme_panel" value="dark" />
+                            <span>Scuro</span>
+                        </label>
                 </div>
             </div>
             
@@ -1371,6 +1419,25 @@
                         </label>
                     </div>
                 </div>
+
+                <!-- Tema -->
+                <div class="mobile-drawer-settings-group">
+                    <h4 class="mobile-drawer-settings-title">Tema</h4>
+                    <div class="mobile-drawer-radio-group">
+                        <label class="mobile-drawer-radio">
+                            <input type="radio" name="theme_drawer" value="auto" checked />
+                            <span>Sistema</span>
+                        </label>
+                        <label class="mobile-drawer-radio">
+                            <input type="radio" name="theme_drawer" value="light" />
+                            <span>Chiaro</span>
+                        </label>
+                        <label class="mobile-drawer-radio">
+                            <input type="radio" name="theme_drawer" value="dark" />
+                            <span>Scuro</span>
+                        </label>
+                    </div>
+                </div>
                 
                 <!-- Default -->
                 <div class="mobile-drawer-settings-group">
@@ -1455,6 +1522,7 @@
 
     <script src="app.js"></script>
     <script src="court3d.js"></script>
+    <script src="theme.js"></script>
 
 </body>
 </html>
