@@ -172,6 +172,38 @@
             window.__modalita__ = '1colpo';
             window.__gioco__ = 'singolare';
             const MODALITA_DOPPIO_FALLBACK = '2colpi';
+            // Modalità non disponibili nel doppio → modalità che le sostituisce
+            const MODALITA_NON_DOPPIO = { dinamico: MODALITA_DOPPIO_FALLBACK, algoritmo: '1colpo' };
+            // Classe sul body per ogni modalità (usata anche dal layout desktop)
+            const MODALITA_BODY_CLASSES = {
+                '1colpo': 'mobile-1colpo',
+                '2colpi': 'mobile-2colpi',
+                dinamico: 'mobile-dinamico',
+                algoritmo: 'mobile-algoritmo'
+            };
+
+            // Modalità che usano il campo interattivo (colpitore, colpo, ricevitore)
+            function isCourtModalita(m) {
+                return m === '1colpo' || m === '2colpi' || m === 'dinamico' || m === 'algoritmo';
+            }
+
+            // Modalità effettiva per il tipo di gioco (nel doppio alcune non esistono)
+            function modalitaForGioco(m, gioco) {
+                return gioco === 'doppio' && MODALITA_NON_DOPPIO[m] ? MODALITA_NON_DOPPIO[m] : m;
+            }
+
+            // Campo secondario e classe sul body in base alla modalità.
+            // Algoritmo: solo il campo principale, a destra la scheda del rischio (algoritmo.js).
+            function applyModalitaLayout(mode) {
+                const secondary = document.querySelector('.court-container.secondary-court');
+                if (secondary) {
+                    secondary.style.display = (mode === '2colpi' || mode === 'dinamico') ? 'flex' : 'none';
+                }
+                if (!bodyEl) return;
+                Object.keys(MODALITA_BODY_CLASSES).forEach((m) => {
+                    bodyEl.classList.toggle(MODALITA_BODY_CLASSES[m], m === mode);
+                });
+            }
             window.__doppioColpitore__ = 'giocatore1';
             window.__numeroColpo__ = 1;
             let isMobileLayout = false;
@@ -698,7 +730,7 @@
 
             function updateShotEndHandle() {
                 if (!shotEndHandle) return;
-                const inValidMode = (window.__modalita__ === 'dinamico' || window.__modalita__ === '1colpo' || window.__modalita__ === '2colpi');
+                const inValidMode = isCourtModalita(window.__modalita__);
                 const show = inValidMode
                     && window.__gioco__ !== 'doppio'
                     && window.__viewShot__ !== false
@@ -742,7 +774,7 @@
 
                 // Il ricevitore è indipendente dalla fine del colpo: sta dove si trova
                 // mentre l'avversario colpisce (Y = linea del campo da coprire).
-                const inValidMode = (window.__modalita__ === 'dinamico' || window.__modalita__ === '1colpo' || window.__modalita__ === '2colpi');
+                const inValidMode = isCourtModalita(window.__modalita__);
                 const shouldDisplay = inValidMode && window.__viewResponder__ === true;
 
                 if (shouldDisplay) {
@@ -1222,6 +1254,52 @@
                 const tTop = computePassYTargetsBaseRight(dotX_m, dotY_m);
                 return { left: 2 * NET_Y - tTop.right, right: 2 * NET_Y - tTop.left };
             }
+
+            // Modalità Algoritmo: midpoint pesato sulla risposta incrociata dell'avversario.
+            // Peso incrociato w = 0.5 + k · min(1, |x| / 115): con l'avversario al centro la
+            // direzione coincide con la bisettrice, sulla riga laterale ruota verso l'incrociato.
+            // Serve solo al calcolo del rischio: il campo secondario (2 colpi) non cambia.
+            const CROSSCOURT_WEIGHT_K = 0.15;
+            function crossCourtWeightedEndX(x0, y0, bisEndX, leftEndX, rightEndX, endYSvg) {
+                const xRel = x0 - ORIGIN_X;
+                const w = 0.5 + CROSSCOURT_WEIGHT_K * Math.min(1, Math.abs(xRel) / 115);
+                if (w === 0.5) return bisEndX;
+                // L'incrociato è il bordo del cuneo diretto verso il lato opposto all'avversario
+                const crossEndX = xRel < 0 ? Math.max(leftEndX, rightEndX) : Math.min(leftEndX, rightEndX);
+                const dy = endYSvg - y0;
+                const thetaBis = Math.atan2(dy, bisEndX - x0);
+                const thetaCross = Math.atan2(dy, crossEndX - x0);
+                let delta = thetaCross - thetaBis;
+                if (delta > Math.PI) delta -= 2 * Math.PI;
+                if (delta < -Math.PI) delta += 2 * Math.PI;
+                const theta = thetaBis + (2 * w - 1) * delta;
+                const s = Math.sin(theta);
+                if (Math.abs(s) < 1e-6) return bisEndX;
+                return x0 + (dy / s) * Math.cos(theta);
+            }
+
+            // Direzioni di risposta dell'avversario quando colpisce da (x, y): stessi calcoli del
+            // campo secondario, su linee non collegate al DOM. Usata da algoritmo.js per il
+            // rischio tattico e per la mappa del rischio (una posizione per ogni direzione).
+            const scratchRespLeft = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            const scratchRespRight = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            const scratchRespBis = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            window.__computeResponseGeometry__ = function (x, y) {
+                const isPlayerRight = !isPlayer;
+                const endY = isPlayerRight ? END_Y_TOP : END_Y_BOTTOM;
+                const targetsR = computePassYTargetsFor(x, y, isPlayerRight);
+                const anchors = getDirectionalAnchorPoints(x, y, targetsR, {
+                    isServizio: false,
+                    isPassante: window.__shotType2IsPassante__,
+                    isPlayerContext: isPlayerRight
+                });
+                const leftEndX = setLineToYEnd(scratchRespLeft, x, y, anchors.leftX, anchors.leftY, endY);
+                const rightEndX = setLineToYEnd(scratchRespRight, x, y, anchors.rightX, anchors.rightY, endY);
+                setBisectorToYEnd(scratchRespBis, x, y, (targetsR.left + targetsR.right) / 2, endY);
+                const geoBisEndX = parseFloat(scratchRespBis.getAttribute('x2'));
+                const bisEndX = crossCourtWeightedEndX(x, y, geoBisEndX, leftEndX, rightEndX, endY);
+                return { leftEndX, rightEndX, bisEndX, endY };
+            };
 
             function updateSecondaryFromLeft() {
                 const svg2 = document.querySelector('.svg-wrap.secondary svg');
@@ -2329,6 +2407,9 @@
                 isDragging() {
                     return !!(draggingDot || draggingIntersection || draggingYellow || draggingShotEnd || draggingDoppioDot || draggingArrow);
                 },
+                // Usato da algoritmo.js: durante il trascinamento della fine del colpo
+                // il campo mostra le direzioni di risposta dell'avversario
+                isDraggingShotEnd() { return !!draggingShotEnd; },
                 refresh2d() {
                     updateArrowHtmlPosition();
                     updateCourtsArrowPosition();
@@ -2605,9 +2686,7 @@
                 modalitaInputs.forEach((inp) => {
                     inp.addEventListener('change', (e) => {
                         const requestedVal = e.target && e.target.value ? e.target.value : '1colpo';
-                        const val = window.__gioco__ === 'doppio' && requestedVal === 'dinamico'
-                            ? MODALITA_DOPPIO_FALLBACK
-                            : requestedVal;
+                        const val = modalitaForGioco(requestedVal, window.__gioco__);
 
                         if (val !== requestedVal) {
                             const fallbackTopRadio = document.querySelector(`input[name="modalita_top"][value="${val}"]`);
@@ -2627,24 +2706,9 @@
                         // Reset flag alert quando si cambia modalità
                         resetColpitoreAlertFlag();
                         
-                        // Handle different modes
-                        if (val === '1colpo') {
-                            // Single shot mode - show only primary court
-                            document.querySelector('.court-container:last-of-type').style.display = 'none';
-                            document.body.classList.add('mobile-1colpo');
-                            document.body.classList.remove('mobile-2colpi', 'mobile-dinamico');
-                        } else if (val === '2colpi') {
-                            // Two shots mode - show both courts
-                            document.querySelector('.court-container:last-of-type').style.display = 'flex';
-                            document.body.classList.add('mobile-2colpi');
-                            document.body.classList.remove('mobile-1colpo', 'mobile-dinamico');
-                        } else if (val === 'dinamico') {
-                            // Dynamic mode - show panel in right container
-                            document.querySelector('.court-container:last-of-type').style.display = 'flex';
-                            document.body.classList.add('mobile-dinamico');
-                            document.body.classList.remove('mobile-1colpo', 'mobile-2colpi');
-                        }
-                        
+                        // 1 colpo / Algoritmo: solo il campo principale; 2 colpi: entrambi i campi
+                        applyModalitaLayout(val);
+
                         // Update the display
                         updateDinamicoPanel();
                         updateSecondaryCourtLock();
@@ -2686,20 +2750,7 @@
                 if (initialModalita) {
                     const initialVal = initialModalita.value;
                     window.__modalita__ = initialVal;
-                    const secondaryCourtContainer = document.querySelector('.court-container:last-of-type');
-                    if (secondaryCourtContainer) {
-                        secondaryCourtContainer.style.display = initialVal === '1colpo' ? 'none' : 'flex';
-                    }
-                    if (initialVal === '1colpo') {
-                        document.body.classList.add('mobile-1colpo');
-                        document.body.classList.remove('mobile-2colpi', 'mobile-dinamico');
-                    } else if (initialVal === '2colpi') {
-                        document.body.classList.add('mobile-2colpi');
-                        document.body.classList.remove('mobile-1colpo', 'mobile-dinamico');
-                    } else if (initialVal === 'dinamico') {
-                        document.body.classList.add('mobile-dinamico');
-                        document.body.classList.remove('mobile-1colpo', 'mobile-2colpi');
-                    }
+                    applyModalitaLayout(initialVal);
                     const topModalita = document.querySelector(`input[name="modalita_top"][value="${initialVal}"]`);
                     if (topModalita) topModalita.checked = true;
                     const drawerModalita = document.querySelector(`input[name="modalita_drawer"][value="${initialVal}"]`);
@@ -2832,8 +2883,8 @@
                     return;
                 }
                 
-                // Modalità 1 colpo: scarica direttamente il campo principale
-                if (currentMode === '1colpo') {
+                // Modalità 1 colpo e Algoritmo: scarica direttamente il campo principale
+                if (currentMode === '1colpo' || currentMode === 'algoritmo') {
                     const svgElement = document.getElementById('tennisCourt');
                     if (!svgElement) {
                         alert('Errore: elemento SVG non trovato');
@@ -3085,8 +3136,11 @@
                 } else if (mode === 'dinamico') {
                     iconText = 'D';
                     labelText = 'Dinamico';
+                } else if (mode === 'algoritmo') {
+                    iconText = 'A';
+                    labelText = 'Algoritmo';
                 }
-                
+
                 if (mobileIcon) {
                     mobileIcon.textContent = iconText;
                 }
@@ -3101,49 +3155,57 @@
                 updateDownloadButtonVisibility(mode);
             }
 
+            // Nel doppio le modalità Dinamico e Algoritmo non sono disponibili: si disabilitano
+            // le opzioni e, se una è attiva (o è il default), si passa alla modalità sostitutiva.
             function syncDinamicoAvailabilityForGame() {
                 const isDoppio = window.__gioco__ === 'doppio';
-                const dinamicoInputs = document.querySelectorAll('input[name="modalita"][value="dinamico"], input[name="modalita_top"][value="dinamico"]');
+                const MODE_NAMES = { dinamico: 'Dinamico', algoritmo: 'Algoritmo' };
 
-                dinamicoInputs.forEach((input) => {
-                    input.disabled = isDoppio;
-                    const option = input.closest('.mode-option');
-                    if (!option) return;
-                    option.classList.toggle('disabled-option', isDoppio);
-                    option.setAttribute('aria-disabled', isDoppio ? 'true' : 'false');
-                    if (isDoppio) {
-                        option.title = 'La modalita Dinamico non e disponibile in doppio';
-                    } else {
-                        option.removeAttribute('title');
-                    }
+                Object.keys(MODALITA_NON_DOPPIO).forEach((mode) => {
+                    const inputs = document.querySelectorAll(`input[name="modalita"][value="${mode}"], input[name="modalita_top"][value="${mode}"]`);
+                    inputs.forEach((input) => {
+                        input.disabled = isDoppio;
+                        const option = input.closest('.mode-option');
+                        if (!option) return;
+                        option.classList.toggle('disabled-option', isDoppio);
+                        option.setAttribute('aria-disabled', isDoppio ? 'true' : 'false');
+                        if (isDoppio) {
+                            option.title = `La modalità ${MODE_NAMES[mode]} non è disponibile nel doppio`;
+                        } else {
+                            option.removeAttribute('title');
+                        }
+                    });
                 });
 
                 ['default_modalita', 'default_modalita_top', 'default_modalita_drawer'].forEach((selectId) => {
                     const select = document.getElementById(selectId);
                     if (!select) return;
-                    const dinamicoOption = select.querySelector('option[value="dinamico"]');
-                    if (dinamicoOption) {
-                        dinamicoOption.disabled = isDoppio;
-                    }
-                    if (isDoppio && select.value === 'dinamico') {
-                        select.value = MODALITA_DOPPIO_FALLBACK;
+                    Object.keys(MODALITA_NON_DOPPIO).forEach((mode) => {
+                        const option = select.querySelector(`option[value="${mode}"]`);
+                        if (option) option.disabled = isDoppio;
+                    });
+                    const fallback = modalitaForGioco(select.value, window.__gioco__);
+                    if (fallback !== select.value) {
+                        select.value = fallback;
+                        if (selectId === 'default_modalita') {
+                            localStorage.setItem('default_modalita', fallback);
+                        }
                     }
                 });
 
-                if (isDoppio) {
-                    localStorage.setItem('default_modalita', MODALITA_DOPPIO_FALLBACK);
-                }
-
-                if (isDoppio && window.__modalita__ === 'dinamico') {
-                    const fallbackTopRadio = document.querySelector(`input[name="modalita_top"][value="${MODALITA_DOPPIO_FALLBACK}"]`);
-                    const fallbackSidebarRadio = document.querySelector(`input[name="modalita"][value="${MODALITA_DOPPIO_FALLBACK}"]`);
+                const current = window.__modalita__;
+                const target = modalitaForGioco(current, window.__gioco__);
+                if (target !== current) {
+                    const fallbackTopRadio = document.querySelector(`input[name="modalita_top"][value="${target}"]`);
+                    const fallbackSidebarRadio = document.querySelector(`input[name="modalita"][value="${target}"]`);
                     if (fallbackTopRadio) fallbackTopRadio.checked = true;
                     if (fallbackSidebarRadio) {
                         fallbackSidebarRadio.checked = true;
                         fallbackSidebarRadio.dispatchEvent(new Event('change', { bubbles: true }));
                     } else {
-                        window.__modalita__ = MODALITA_DOPPIO_FALLBACK;
-                        updateModeIndicator(MODALITA_DOPPIO_FALLBACK);
+                        window.__modalita__ = target;
+                        applyModalitaLayout(target);
+                        updateModeIndicator(target);
                         updateDinamicoPanel();
                         updateSecondaryCourtLock();
                     }
@@ -3151,7 +3213,9 @@
             }
             
             // Update download button visibility based on mode
-            function updateDownloadButtonVisibility(mode) {
+            function updateDownloadButtonVisibility(modeIn) {
+                // Algoritmo: un solo campo, come 1 colpo
+                const mode = modeIn === 'algoritmo' ? '1colpo' : modeIn;
                 const downloadButton = document.getElementById('downloadCourtImage');
                 const downloadOptions = document.getElementById('downloadOptions');
                 const downloadOptions2Colpi = document.getElementById('downloadOptions2Colpi');
@@ -3339,8 +3403,8 @@
                     return;
                 }
                 
-                // Modalità 1 colpo: scarica direttamente il campo principale
-                if (currentMode === '1colpo') {
+                // Modalità 1 colpo e Algoritmo: scarica direttamente il campo principale
+                if (currentMode === '1colpo' || currentMode === 'algoritmo') {
                     const svgElement = document.getElementById('tennisCourt');
                     if (!svgElement) {
                         alert('Errore: elemento SVG non trovato');
@@ -3554,7 +3618,9 @@
             }
             
             // Update download button visibility based on mode
-            function updateDownloadButtonVisibility(mode) {
+            function updateDownloadButtonVisibility(modeIn) {
+                // Algoritmo: un solo campo, come 1 colpo
+                const mode = modeIn === 'algoritmo' ? '1colpo' : modeIn;
                 const downloadButton = document.getElementById('downloadCourtImage');
                 const downloadOptions = document.getElementById('downloadOptions');
                 const downloadOptions2Colpi = document.getElementById('downloadOptions2Colpi');
@@ -4257,8 +4323,10 @@
             
             // Funzione per gestire i checkbox di visualizzazione in modalità DINAMICO e 2 COLPI
             function updateVisualizationCheckboxes() {
-                if (window.__modalita__ === 'dinamico' || window.__modalita__ === '2colpi') {
-                    // In modalità DINAMICO e 2 COLPI, forza e disabilita i checkbox critici
+                if (window.__modalita__ === 'dinamico' || window.__modalita__ === '2colpi' || window.__modalita__ === 'algoritmo') {
+                    // In modalità DINAMICO, 2 COLPI e ALGORITMO, forza e disabilita i checkbox critici
+                    // (in Algoritmo il ricevitore resta libero: il calcolo non lo usa)
+                    const forceResponder = window.__modalita__ !== 'algoritmo';
                     if (chkDirections) {
                         chkDirections.checked = true;
                         chkDirections.disabled = true;
@@ -4274,12 +4342,14 @@
                         chkShot.disabled = true;
                         window.__viewShot__ = true;
                     }
-                    if (chkResponder) {
+                    if (chkResponder && forceResponder) {
                         chkResponder.checked = true;
                         chkResponder.disabled = true;
                         window.__viewResponder__ = true;
+                    } else if (chkResponder) {
+                        chkResponder.disabled = false;
                     }
-                    
+
                     // In modalità 2colpi, forza anche i checkbox nella sezione Default e li disabilita
                     if (window.__modalita__ === '2colpi') {
                         const defaultViewPlayer = document.getElementById('default_view_player');
@@ -4417,6 +4487,13 @@
                     if (servizioRadio) {
                         servizioRadio.disabled = false;
                         if (servizioLabel) servizioLabel.style.opacity = '1';
+                        // Algoritmo: il rischio è definito per i colpi a rimbalzo, non per il servizio
+                        const hideServizio = window.__modalita__ === 'algoritmo';
+                        if (servizioLabel) servizioLabel.style.display = hideServizio ? 'none' : '';
+                        if (hideServizio && servizioRadio.checked && palleggioRadio) {
+                            palleggioRadio.checked = true;
+                            palleggioRadio.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
                     }
                     if (palleggioRadio) {
                         palleggioRadio.disabled = false;
@@ -6595,7 +6672,11 @@
                 drawerMenuViewCheckboxes.forEach(({ drawer, main }) => {
                     const drawerEl = document.getElementById(drawer);
                     const mainEl = document.getElementById(main);
-                    if (drawerEl && mainEl) drawerEl.checked = mainEl.checked;
+                    if (drawerEl && mainEl) {
+                        drawerEl.checked = mainEl.checked;
+                        // Checkbox forzati dalla modalità (2 colpi, Algoritmo): bloccati anche qui
+                        drawerEl.disabled = mainEl.disabled;
+                    }
                 });
                 // Disegna: colore, spessore, dimensione
                 if (drawColorDrawer && drawColorInput) drawColorDrawer.value = drawColorInput.value;
@@ -7277,16 +7358,9 @@
                         });
                     }
                     window.__modalita__ = newModalita;
-                    
-                    // Handle different modes
-                    const secondaryCourt = document.querySelector('.court-container.secondary-court');
-                    if (secondaryCourt) {
-                        if (newModalita === '1colpo') {
-                            secondaryCourt.style.display = 'none';
-                        } else if (newModalita === '2colpi' || newModalita === 'dinamico') {
-                            secondaryCourt.style.display = 'flex';
-                        }
-                    }
+
+                    // Campo secondario e classe della modalità (la scheda Algoritmo segue la classe)
+                    applyModalitaLayout(newModalita);
                     
                     // Update the display
                     if (typeof updateDinamicoPanel === 'function') {
