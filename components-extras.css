@@ -57,32 +57,40 @@ body.vista-3d #coordinateTooltip {
     display: none !important;
 }
 
-/* Toggle 2D / 3D (pillola segmentata in vetro) */
+/* Toggle 2D / 3D (pillola segmentata in vetro).
+   Compatto e semitrasparente a riposo per coprire poco il campo; torna pieno al passaggio. */
 .court3d-toggle {
     position: absolute;
-    top: 12px;
-    right: 12px;
+    top: 8px;
+    right: 8px;
     z-index: 30;
     display: grid;
     grid-template-columns: 1fr 1fr;
     align-items: center;
-    padding: 3px;
+    padding: 2px;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.18);
-    border: 1px solid rgba(255, 255, 255, 0.38);
-    box-shadow: 0 4px 14px rgba(var(--c-darker-rgb), 0.28);
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.26);
+    box-shadow: 0 2px 8px rgba(var(--c-darker-rgb), 0.2);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
     user-select: none;
+    opacity: 0.82;
+    transition: opacity 0.2s ease;
+}
+
+.court3d-toggle:hover,
+.court3d-toggle:focus-within {
+    opacity: 1;
 }
 
 .court3d-toggle button {
     position: relative;
     z-index: 1;
-    width: 44px;
+    width: 32px;
     min-width: 0;
     min-height: 0;
-    height: 28px;
+    height: 22px;
     margin: 0;
     padding: 0;
     box-shadow: none;
@@ -90,10 +98,17 @@ body.vista-3d #coordinateTooltip {
     border-radius: 999px;
     background: transparent;
     color: #ffffff;
-    font: 800 13px/1 'Montserrat', 'Roboto', Arial, sans-serif;
-    letter-spacing: 0.6px;
+    font: 800 10.5px/1 'Montserrat', 'Roboto', Arial, sans-serif;
+    letter-spacing: 0.4px;
     cursor: pointer;
     transition: color 0.2s ease;
+}
+
+/* Area di tocco più alta della pillola (invisibile): resta comodo su touch */
+.court3d-toggle button::after {
+    content: "";
+    position: absolute;
+    inset: -7px 0;
 }
 
 .court3d-toggle button.active {
@@ -107,13 +122,13 @@ body.vista-3d #coordinateTooltip {
 
 .court3d-toggle-thumb {
     position: absolute;
-    top: 3px;
-    left: 3px;
-    width: calc(50% - 3px);
-    height: calc(100% - 6px);
+    top: 2px;
+    left: 2px;
+    width: calc(50% - 2px);
+    height: calc(100% - 4px);
     border-radius: 999px;
     background: #ffffff;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.16);
     transition: transform 0.24s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -164,6 +179,7 @@ body.vista-3d .court3d-camera {
 
 @media (prefers-reduced-motion: reduce) {
     .court3d-canvas,
+    .court3d-toggle,
     .court3d-toggle-thumb,
     .court3d-camera {
         transition: none;

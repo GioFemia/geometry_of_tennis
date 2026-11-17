@@ -33,6 +33,7 @@ Una pagina interattiva che visualizza e spiega in modo intuitivo la geometria de
   - Tipo colpo (2 colpi): Palleggio / Attacco
     - Palleggio: sinistra Palleggio, destra Palleggio.
     - Attacco: sinistra Palleggio, destra Passante (cambia la geometria e il colore del secondo campo).
+- Modalità Algoritmo: il campo principale e, accanto, la scheda con il rischio del colpo (vedi sotto).
 
 ## Interazioni principali
 
@@ -44,7 +45,7 @@ Una pagina interattiva che visualizza e spiega in modo intuitivo la geometria de
 
 ## Vista 3D
 
-Il pulsante **2D | 3D** in alto a destra sul campo passa a una vista prospettica, portata da `got_atp/campo.html`. È un canvas 2D, senza librerie.
+Il pulsante **2D | 3D** in alto a destra sul campo passa a una vista prospettica, portata da `got_atp/campo.html`. È un canvas 2D, senza librerie. Il pulsante è una pillola compatta (70×28 px) a 8 px dall'angolo, fuori dalle righe del campo, semitrasparente finché non ci si passa sopra; l'area di tocco è più alta della pillola.
 
 - **Camera**: fissa dietro la baseline del campo "Tu". L'altezza si regola con lo slider in basso (3–20 m, default 15 m).
 - **Cosa si vede**: campo nei colori della superficie scelta, rete con le quote ITF (1,07 m ai pali, 0,914 m al centro), giocatori come capsule alte 1,8 m (altezza convenzionale) e direzioni, bisettrice, cuneo, misura e disegni proiettati a terra.
@@ -54,6 +55,26 @@ Il pulsante **2D | 3D** in alto a destra sul campo passa a una vista prospettica
 - **Interazione**: colpitore, ricevitore, giocatori del doppio, linea gialla e misura si trascinano anche in 3D. La fine del colpo si sposta trascinando la pallina con l'anello bianco alla fine dell'arco. Il campo secondario (2 colpi) è solo da guardare, come in 2D.
 - **Come funziona**: l'SVG 2D resta l'unica fonte di verità. `court3d.js` lo legge e lo ridisegna in prospettiva. Il trascinamento passa per `toSvgPoint` e `window.__gotDragBridge__` in `app.js`.
 - **Altro**: Disegna e la Guida riportano automaticamente in 2D. Scarica, in 3D, salva il PNG della vista 3D. La scelta 2D/3D e l'altezza camera vengono ricordate nel browser.
+
+## Modalità Algoritmo
+
+Terza modalità, accanto a 1 Colpo e 2 Colpi. Valuta il rischio del colpo disegnato sul campo principale con l'algoritmo del progetto `got_algo` (versione 1.7).
+
+- **Layout**: su schermi grandi il campo principale è al centro e la scheda del rischio a destra, al posto del secondo campo. Su schermi piccoli la scheda compatta (circa 90 px di altezza) sta sotto il campo: una riga con Colpo, Tecnico e Tattico (valore e barra colorata dal livello, senza gauge) e una riga con i selettori della vista. In orizzontale va a destra del campo. Sui tablet in verticale è centrata e larga al massimo 560 px.
+- **Cosa mostra**: solo il risultato. Rischio colpo da 0 a 10 (con livello basso / medio / alto), Rischio tecnico e Rischio tattico. Non mostra i pesi tecnico/tattico, il vantaggio tattico né le singole variabili che compongono i due rischi.
+- **Tempo reale**: i valori si aggiornano mentre si trascinano il colpitore, la linea gialla o la fine del colpo. Sono gli stessi di `got_algo`: verificati su 60 colpi presi dalla pagina, con colpitore Tu e Avversario.
+- **Vista sul campo**:
+  - *Direzioni*: le direzioni del colpitore, come in 1 Colpo. Passando sopra la fine del colpo (o trascinandola) il campo mostra in arancione le direzioni di risposta dell'avversario e il suo midpoint pesato (linea tratteggiata). Più il colpitore è lontano da quella linea, più sale il rischio tattico.
+  - *Mappa del rischio*: il cuneo del colpitore, fino alla profondità della fine del colpo, è diviso in 80 spicchi colorati con il rischio del colpo giocato in quella direzione. Si sceglie se mostrare il rischio Colpo, Tecnico o Tattico. La scala va da rosa chiaro (0) a bordeaux (10); nella scheda ci sono la scala, il minimo, il massimo e il valore del colpo attuale (segno giallo). Su schermi piccoli in verticale, dove la scheda è sotto il campo, questa legenda è nascosta per lasciare più spazio al campo. La mappa compare anche nella vista 3D.
+  - La scheda non ha testi di spiegazione: le istruzioni sono in questo README.
+  - La scelta tra Direzioni e Mappa e il rischio mostrato nella mappa vengono ricordati nel browser.
+- **Vincoli**:
+  - Solo singolare: nel doppio l'opzione è disabilitata e si torna a 1 Colpo.
+  - Il Servizio è nascosto: l'algoritmo è definito per i colpi a rimbalzo. Palleggio, Passante e Attacco sono disponibili; con Attacco la risposta dell'avversario è un passante.
+  - Colpitore, Direzioni e Colpo restano sempre visibili; Ricevitore resta libero perché il calcolo non lo usa.
+- **Colpitore Avversario**: il calcolo ruota la geometria di 180° attorno al centro del campo, quindi dà gli stessi valori della situazione speculare dal lato "Tu".
+- **Midpoint pesato**: la direzione ideale di recupero è la bisettrice della risposta dell'avversario ruotata verso il suo incrociato (`w = 0.5 + 0.15 · min(1, |x| / 115)`). Serve solo al calcolo: il secondo campo della modalità 2 Colpi non cambia.
+- **File**: `algoritmo.js` (motore, scheda, mappa, direzioni dell'avversario) e `algoritmo.css` (layout e tema scuro). In `app.js`: la modalità `algoritmo`, `window.__computeResponseGeometry__(x, y)` (direzioni di risposta dell'avversario da un punto qualsiasi, senza toccare il secondo campo) e `isDraggingShotEnd()` nel ponte `__gotDragBridge__`.
 
 ## Avvio rapido
 
@@ -83,6 +104,12 @@ Il pulsante **2D | 3D** in alto a destra sul campo passa a una vista prospettica
 
 ## Changelog
 
+- **Modalità Algoritmo (2026-11-17):** nuova modalità accanto a 1 Colpo e 2 Colpi, con la scheda del rischio a destra del campo (sotto su schermi piccoli), le viste Direzioni e Mappa del rischio e l'opzione "Algoritmo" nei selettori di modalità, nei Default e nella Guida. Dettagli nella sezione **Modalità Algoritmo**. Due ritocchi collegati:
+  - Nel doppio il Default "Modalità" veniva sempre riscritto a 2 Colpi in `localStorage`. Ora cambia solo se la modalità scelta non esiste nel doppio (Algoritmo → 1 Colpo).
+  - Nel drawer mobile i checkbox "Visualizza" bloccati dalla modalità (2 Colpi, Algoritmo) ora sono disabilitati anche lì, come su desktop.
+  - Scheda più essenziale: rimossi i testi di spiegazione in fondo; sui telefoni in verticale niente legenda della mappa (scala 0–10, min, max, colpo), così il campo è più grande.
+  - Pulsante 2D/3D meno invadente, in tutte le modalità: da 96×36 a 70×28 px, a 8 px dall'angolo invece di 12, semitrasparente a riposo (`components-extras.css`, `court3d.js`). Sul telefono ora sta tutto fuori dalle righe del campo; l'area di tocco resta più alta della pillola.
+  - Sui telefoni la scheda è su una sola riga di risultati (Colpo, Tecnico, Tattico) più i selettori: da 171 a 94 px su un telefono da 375×812, con il campo che passa da 555 a 635 px di altezza e occupa tutta la larghezza.
 - Aggiunti due loghi "Geometry of Tennis" in tutti i campi da tennis, nei punti indicati (alto-sinistra e basso-destra), riutilizzando il logo-mark dell'header.
 - Rimosso il testo dai loghi sui campi e raddoppiata la dimensione del glifo (scala 2.5): ora compare solo il simbolo, più grande.
 - Loghi sui campi rivisti: glifo nuovamente raddoppiato (scala 5), racchiuso in un quadrato arrotondato in stile topbar, posizionati all'altezza delle linee del servizio (y=318 e y=654) e centrati orizzontalmente tra la linea verticale esterna e il bordo del campo (x=73 e x=527).

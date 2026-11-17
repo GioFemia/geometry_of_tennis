@@ -913,8 +913,9 @@
         const wr = primaryWrap.getBoundingClientRect();
         const sr = primarySvg.getBoundingClientRect();
         if (!sr.width) return;
-        controls.style.top = (sr.top - wr.top + 12) + 'px';
-        controls.style.right = (wr.right - sr.right + 12) + 'px';
+        // Vicino all'angolo in alto a destra, fuori dalle righe del campo
+        controls.style.top = (sr.top - wr.top + 8) + 'px';
+        controls.style.right = (wr.right - sr.right + 8) + 'px';
     }
     window.addEventListener('resize', positionControls);
     if (window.ResizeObserver) new ResizeObserver(positionControls).observe(primarySvg);

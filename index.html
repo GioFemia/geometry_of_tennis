@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="theme-color" content="#1976d2">
-    <meta name="description" content="Geometry of Tennis: visualizza dal punto di vista geometrico le traiettorie, il colpitore, il ricevitore e le tattiche nel singolare e nel doppio. Strumento didattico con modalità 1 colpo e 2 colpi." />
+    <meta name="description" content="Geometry of Tennis: visualizza dal punto di vista geometrico le traiettorie, il colpitore, il ricevitore e le tattiche nel singolare e nel doppio. Strumento didattico con modalità 1 colpo, 2 colpi e algoritmo del rischio." />
     <meta name="author" content="Giovanni Femia" />
     <meta id="og-url" property="og:url" content="" />
     <meta property="og:title" content="Geometry of Tennis" />
@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="components-extras.css">
     <link rel="stylesheet" href="dark-mode.css">
+    <link rel="stylesheet" href="algoritmo.css">
     <script>
         /* Applica subito il tema salvato (evita il lampo chiaro); la logica completa è in theme.js */
         (function () {
@@ -119,10 +120,11 @@
                 <!-- Step 5: Modalità -->
                 <div class="tutorial-step" data-step="5">
                     <h2>Le Modalità</h2>
-                    <p>L'app offre <strong>due modalità</strong> di visualizzazione:</p>
+                    <p>L'app offre <strong>tre modalità</strong> di visualizzazione:</p>
                     <ul class="tutorial-list">
                         <li><strong>1 Colpo:</strong> Mostra solo il campo per analizzare un singolo colpo</li>
                         <li><strong>2 Colpi:</strong> Mostra in un secondo campo la visuale del ricevitore per il colpo successivo</li>
+                        <li><strong>Algoritmo:</strong> Accanto al campo mostra il rischio del colpo (tecnico, tattico e totale, da 0 a 10), che si aggiorna mentre sposti colpitore e traiettoria. Disponibile nel singolare</li>
                     </ul>
                     <div data-highlight="modalita-section">
                     </div>
@@ -366,6 +368,13 @@
                             <span class="mode-option-label">2 Colpi</span>
                         </div>
                     </label>
+                    <label class="mode-option" for="modo_algoritmo_top">
+                        <input id="modo_algoritmo_top" type="radio" name="modalita_top" value="algoritmo" />
+                        <div class="mode-option-content">
+                            <span class="mode-option-icon">A</span>
+                            <span class="mode-option-label">Algoritmo</span>
+                        </div>
+                    </label>
                 </div>
             </div>
         </div>
@@ -444,6 +453,7 @@
                                 <select id="default_modalita_top" name="default_modalita_top">
                                     <option value="1colpo" selected>1 Colpo</option>
                                     <option value="2colpi">2 Colpi</option>
+                                    <option value="algoritmo">Algoritmo</option>
                                 </select>
                             </label>
                         </div>
@@ -630,6 +640,13 @@
                             <div class="mode-option-content">
                                 <span class="mode-option-icon">2</span>
                                 <span class="mode-option-label">2 Colpi</span>
+                            </div>
+                        </label>
+                        <label class="mode-option" for="modo_algoritmo">
+                            <input id="modo_algoritmo" type="radio" name="modalita" value="algoritmo" />
+                            <div class="mode-option-content">
+                                <span class="mode-option-icon">A</span>
+                                <span class="mode-option-label">Algoritmo</span>
                             </div>
                         </label>
                     </div>
@@ -895,6 +912,7 @@
                             <select id="default_modalita" name="default_modalita">
                                 <option value="1colpo" selected>1 Colpo</option>
                                 <option value="2colpi">2 Colpi</option>
+                                <option value="algoritmo">Algoritmo</option>
                             </select>
                         </label>
                     </div>
@@ -1122,8 +1140,101 @@
                 </div>
             </div>
         </div>
+
+        <!-- Scheda Algoritmo (modalità Algoritmo): a destra del campo su schermi grandi,
+             sotto il campo su schermi piccoli. Valori e mappa sono gestiti da algoritmo.js -->
+        <aside id="algoPanel" class="algo-panel" aria-label="Algoritmo: rischio del colpo">
+            <header class="algo-head">
+                <span class="algo-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <line x1="12" y1="20" x2="3" y2="4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+                        <line x1="12" y1="20" x2="21" y2="4" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/>
+                        <line x1="12" y1="20" x2="12" y2="4" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-dasharray="2 2.5" opacity="0.75"/>
+                        <circle cx="12" cy="20" r="2.4" fill="#fff"/>
+                    </svg>
+                </span>
+                <div class="algo-head-text">
+                    <span class="algo-kicker">Geometry of Tennis</span>
+                    <h2 class="algo-title">Algoritmo</h2>
+                    <p class="algo-sub">Rischio tecnico e tattico del colpo</p>
+                </div>
+            </header>
+
+            <div class="algo-error" id="algoError" role="alert" hidden></div>
+
+            <div class="algo-results" id="algoResults">
+                <section class="algo-score" id="algoScore" aria-label="Rischio colpo">
+                    <span class="algo-score-label"><span class="algo-long">Rischio colpo</span><span class="algo-short">Colpo</span></span>
+                    <div class="algo-gauge">
+                        <svg viewBox="0 0 220 124" aria-hidden="true">
+                            <defs>
+                                <linearGradient id="algoGaugeGrad" x1="0" y1="0" x2="1" y2="0">
+                                    <stop offset="0%" stop-color="#22a861"/>
+                                    <stop offset="45%" stop-color="#9ccc3d"/>
+                                    <stop offset="70%" stop-color="#f2a516"/>
+                                    <stop offset="100%" stop-color="#e5484d"/>
+                                </linearGradient>
+                            </defs>
+                            <path class="algo-gauge-track" d="M20 112 A90 90 0 0 1 200 112" fill="none" stroke-width="16" stroke-linecap="round"/>
+                            <path id="algoGaugeArc" d="M20 112 A90 90 0 0 1 200 112" fill="none" stroke="url(#algoGaugeGrad)" stroke-width="16" stroke-linecap="round" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/>
+                        </svg>
+                        <div class="algo-gauge-value">
+                            <span id="algoColpo">–</span><span class="algo-gauge-scale">/10</span>
+                        </div>
+                    </div>
+                    <span class="algo-level" id="algoLevel">—</span>
+                    <span class="algo-meter algo-score-meter" aria-hidden="true"><i id="algoColpoMeter"></i></span>
+                </section>
+
+                <div class="algo-parts">
+                    <section class="algo-part" id="algoTecnicoCard" aria-label="Rischio tecnico">
+                        <span class="algo-part-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>
+                        </span>
+                        <span class="algo-part-body">
+                            <span class="algo-part-label"><span class="algo-long">Rischio tecnico</span><span class="algo-short">Tecnico</span></span>
+                            <span class="algo-meter"><i id="algoTecnicoMeter"></i></span>
+                        </span>
+                        <span class="algo-part-value" id="algoTecnico">–</span>
+                    </section>
+                    <section class="algo-part" id="algoTatticoCard" aria-label="Rischio tattico">
+                        <span class="algo-part-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 8l7-5 7 5"/><path d="M4 21h16"/></svg>
+                        </span>
+                        <span class="algo-part-body">
+                            <span class="algo-part-label"><span class="algo-long">Rischio tattico</span><span class="algo-short">Tattico</span></span>
+                            <span class="algo-meter"><i id="algoTatticoMeter"></i></span>
+                        </span>
+                        <span class="algo-part-value" id="algoTattico">–</span>
+                    </section>
+                </div>
+            </div>
+
+            <section class="algo-view" aria-label="Vista sul campo">
+                <span class="algo-section-title">Vista sul campo</span>
+                <div class="algo-view-controls">
+                    <div class="algo-seg" id="algoViewSeg" role="group" aria-label="Vista del campo">
+                        <button type="button" data-view="direzioni" aria-pressed="true">Direzioni</button>
+                        <button type="button" data-view="mappa" aria-pressed="false"><span class="algo-long">Mappa del rischio</span><span class="algo-short">Mappa</span></button>
+                    </div>
+                    <div class="algo-seg algo-seg--metric" id="algoMetricSeg" role="group" aria-label="Rischio mostrato nella mappa" hidden>
+                        <button type="button" data-metric="colpo" aria-pressed="true">Colpo</button>
+                        <button type="button" data-metric="tecnico" aria-pressed="false">Tecnico</button>
+                        <button type="button" data-metric="tattico" aria-pressed="false">Tattico</button>
+                    </div>
+                </div>
+                <div class="algo-map-legend" id="algoMapLegend" hidden>
+                    <span class="algo-scale"><span>0</span><span class="algo-scale-bar"><i id="algoScaleMark"></i></span><span>10</span></span>
+                    <span class="algo-map-stats">
+                        <span>min <b id="algoMapMin">–</b></span>
+                        <span>max <b id="algoMapMax">–</b></span>
+                        <span><i class="algo-shot-swatch" aria-hidden="true"></i>colpo <b id="algoMapShot">–</b></span>
+                    </span>
+                </div>
+            </section>
+        </aside>
     </div>
-    
+
     <!-- Alert overlay per movimento colpitore in modalità dinamico -->
     <div id="colpitoreMovementAlert" class="colpitore-movement-alert">
         <div class="colpitore-alert-modal">
@@ -1165,6 +1276,13 @@
                                 <span class="mobile-drawer-mode-content">
                                     <span class="mobile-drawer-mode-icon">2</span>
                                     <span class="mobile-drawer-mode-label">2 Colpi</span>
+                                </span>
+                            </label>
+                            <label class="mobile-drawer-mode-option" for="modo_algoritmo_drawer">
+                                <input id="modo_algoritmo_drawer" type="radio" name="modalita_drawer" value="algoritmo" />
+                                <span class="mobile-drawer-mode-content">
+                                    <span class="mobile-drawer-mode-icon">A</span>
+                                    <span class="mobile-drawer-mode-label">Algoritmo</span>
                                 </span>
                             </label>
                         </div>
@@ -1465,6 +1583,7 @@
                             <select id="default_modalita_drawer">
                                 <option value="1colpo" selected>1 Colpo</option>
                                 <option value="2colpi">2 Colpi</option>
+                                <option value="algoritmo">Algoritmo</option>
                             </select>
                         </label>
                         <label class="mobile-drawer-select-label">
@@ -1525,6 +1644,7 @@
 
     <script src="app.js"></script>
     <script src="court3d.js"></script>
+    <script src="algoritmo.js"></script>
     <script src="theme.js"></script>
 
 </body>
